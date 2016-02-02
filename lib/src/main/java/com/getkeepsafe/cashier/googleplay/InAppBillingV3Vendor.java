@@ -143,6 +143,7 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
 
     @Override
     public void dispose(@NonNull final Activity activity) {
+        logger.log("Disposing self...");
         Check.notNull(activity, "Activity");
         if (inAppBillingService != null) {
             activity.unbindService(serviceConnection);
