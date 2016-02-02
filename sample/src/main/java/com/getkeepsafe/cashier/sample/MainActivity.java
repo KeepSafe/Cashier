@@ -16,13 +16,11 @@ import com.getkeepsafe.cashier.Product;
 import com.getkeepsafe.cashier.Purchase;
 import com.getkeepsafe.cashier.PurchaseListener;
 import com.getkeepsafe.cashier.Vendor;
-import com.getkeepsafe.cashier.googleplay.InAppBillingV3Vendor;
 import com.getkeepsafe.cashier.logging.LogCatLogger;
 
 public class MainActivity extends AppCompatActivity {
     private TextView ownedSku;
-    private InAppBillingV3Vendor gplay;
-    private Cashier gplayCashier;
+    private Cashier cashier;
     private Purchase testPurchase;
     private ProgressDialog progressDialog;
 
@@ -86,9 +84,7 @@ public class MainActivity extends AppCompatActivity {
         final Button purchaseItem = (Button) findViewById(R.id.buy_item);
         final Button consumeItem = (Button) findViewById(R.id.consume_item);
 
-        gplay = new InAppBillingV3Vendor(getPackageName());
-        gplayCashier = new Cashier.Builder(this)
-                .forVendor(gplay)
+        cashier = Cashier.forGooglePlay(this)
                 .withLogger(new LogCatLogger())
                 .build();
 
@@ -99,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
         purchaseItem.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                gplayCashier.purchase(testProduct, purchaseListener);
+                cashier.purchase(testProduct, purchaseListener);
             }
         });
 
@@ -110,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
                 progressDialog.setIndeterminate(true);
                 progressDialog.setTitle("Consuming item, please wait...");
                 progressDialog.show();
-                gplayCashier.consume(testPurchase, consumeListener);
+                cashier.consume(testPurchase, consumeListener);
             }
         });
     }
@@ -118,12 +114,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        gplayCashier.dispose();
+        cashier.dispose();
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (!gplay.onActivityResult(requestCode, resultCode, data)) {
+        if (!cashier.onActivityResult(requestCode, resultCode, data)) {
             super.onActivityResult(requestCode, resultCode, data);
         }
     }
@@ -131,6 +127,7 @@ public class MainActivity extends AppCompatActivity {
     private void setOwnedSku() {
         setOwnedSku("None", "None", "None");
     }
+
     private void setOwnedSku(@NonNull final String sku,
                              @NonNull final String orderId,
                              @NonNull final String token) {

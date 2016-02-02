@@ -1,14 +1,26 @@
 package com.getkeepsafe.cashier;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
+import com.getkeepsafe.cashier.googleplay.InAppBillingV3Vendor;
 import com.getkeepsafe.cashier.logging.Logger;
 import com.getkeepsafe.cashier.utilities.Check;
 
 public class Cashier {
     private final Activity activity;
     private final Vendor vendor;
+
+    public static Builder forGooglePlay(@NonNull final Activity activity) {
+        return forGooglePlay(activity, null);
+    }
+    public static Builder forGooglePlay(@NonNull final Activity activity,
+                                        @Nullable final String developerPayload) {
+        return new Builder(activity).forVendor(
+                new InAppBillingV3Vendor(activity.getPackageName(), developerPayload));
+    }
 
     private Cashier(@NonNull final Activity activity,
                    @NonNull final Vendor vendor) {
@@ -49,6 +61,10 @@ public class Cashier {
 
     public void dispose() {
         vendor.dispose(activity);
+    }
+
+    public boolean onActivityResult(final int requestCode, final int resultCode, final Intent data) {
+        return vendor.onActivityResult(requestCode, resultCode, data);
     }
 
     public static class Builder {

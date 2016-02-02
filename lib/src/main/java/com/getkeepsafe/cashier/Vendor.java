@@ -42,4 +42,5 @@ public interface Vendor {
 
     boolean available();
     boolean canPurchase(@NonNull Product product);
+    boolean onActivityResult(final int requestCode, final int resultCode, final Intent data);
 }

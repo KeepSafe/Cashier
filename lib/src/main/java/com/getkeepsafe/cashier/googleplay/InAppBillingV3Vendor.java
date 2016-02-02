@@ -258,6 +258,7 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
         }
     }
 
+    @Override
     public boolean onActivityResult(final int requestCode,
                                     final int resultCode,
                                     final Intent data) {
