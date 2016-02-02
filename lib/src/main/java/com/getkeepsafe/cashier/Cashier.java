@@ -38,7 +38,12 @@ public class Cashier {
             throw new IllegalArgumentException("Cannot consume a subscription type!");
         }
 
-        vendor.consume(activity, purchase, listener);
+        vendor.initialize(activity, new Vendor.InitializationListener() {
+            @Override
+            public void initialized() {
+                vendor.consume(activity, purchase, listener);
+            }
+        });
     }
 
     public void dispose() {

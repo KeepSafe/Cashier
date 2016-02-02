@@ -25,30 +25,12 @@ import com.getkeepsafe.cashier.Vendor;
 import com.getkeepsafe.cashier.logging.Logger;
 import com.getkeepsafe.cashier.utilities.Check;
 
+import org.json.JSONException;
+
 import java.util.List;
 import java.util.Random;
 
-public class InAppBillingV3Vendor implements Vendor {
-    public static final int BILLING_RESPONSE_RESULT_OK = 0;
-    public static final int BILLING_RESPONSE_RESULT_USER_CANCELED = 1;
-    public static final int BILLING_RESPONSE_RESULT_BILLING_UNAVAILABLE = 3;
-    public static final int BILLING_RESPONSE_RESULT_ITEM_UNAVAILABLE = 4;
-    public static final int BILLING_RESPONSE_RESULT_DEVELOPER_ERROR = 5;
-    public static final int BILLING_RESPONSE_RESULT_ERROR = 6;
-    public static final int BILLING_RESPONSE_RESULT_ITEM_ALREADY_OWNED = 7;
-    public static final int BILLING_RESPONSE_RESULT_ITEM_NOT_OWNED = 8;
-
-    // Keys for the responses from InAppBillingService
-    public static final String RESPONSE_CODE = "RESPONSE_CODE";
-    public static final String RESPONSE_GET_SKU_DETAILS_LIST = "DETAILS_LIST";
-    public static final String RESPONSE_BUY_INTENT = "BUY_INTENT";
-    public static final String RESPONSE_INAPP_PURCHASE_DATA = "INAPP_PURCHASE_DATA";
-    public static final String RESPONSE_INAPP_SIGNATURE = "INAPP_DATA_SIGNATURE";
-    public static final String RESPONSE_INAPP_ITEM_LIST = "INAPP_PURCHASE_ITEM_LIST";
-    public static final String RESPONSE_INAPP_PURCHASE_DATA_LIST = "INAPP_PURCHASE_DATA_LIST";
-    public static final String RESPONSE_INAPP_SIGNATURE_LIST = "INAPP_DATA_SIGNATURE_LIST";
-    public static final String INAPP_CONTINUATION_TOKEN = "INAPP_CONTINUATION_TOKEN";
-
+public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
     private static final String PRODUCT_TYPE_ITEM = "inapp";
     private static final String PRODUCT_TYPE_SUBSCRIPTION = "subs";
 
@@ -286,17 +268,14 @@ public class InAppBillingV3Vendor implements Vendor {
         }
 
         final int responseCode = getResponseCode(data);
-        final String purchaseData = data.getStringExtra(RESPONSE_INAPP_PURCHASE_DATA);
-        final String dataSignature = data.getStringExtra(RESPONSE_INAPP_SIGNATURE);
-
         if (resultCode == Activity.RESULT_OK && responseCode == BILLING_RESPONSE_RESULT_OK) {
             logger.log("Successful purchase of " + pendingProduct.sku + "!");
-            logger.log("Purchase data: " + purchaseData);
-            logger.log("Data signature: " + dataSignature);
-            logger.log("Extras: " + data.getExtras());
 
-            // TODO: listener
-            purchaseListener.success(pendingProduct, null);
+            try {
+                purchaseListener.success(GooglePlayPurchase.of(pendingProduct, data));
+            } catch (JSONException e) {
+                purchaseListener.failure(pendingProduct, Vendor.PURCHASE_SUCCESS_RESULT_MALFORMED);
+            }
         } else if (resultCode == Activity.RESULT_OK) {
             logger.log("Purchase failed! " + responseCode);
             purchaseListener.failure(pendingProduct, convertCode(responseCode));
