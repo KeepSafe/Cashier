@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Cashier</string>
+    <string name="purchase_unavailable">Purchase unavailable</string>
+    <string name="purchase_cancel">Purchase cancelled</string>
+</resources>
