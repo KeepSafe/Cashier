@@ -3,13 +3,14 @@ package com.getkeepsafe.cashier;
 import android.app.Activity;
 import android.support.annotation.NonNull;
 
+import com.getkeepsafe.cashier.logging.Logger;
 import com.getkeepsafe.cashier.utilities.Check;
 
 public class Cashier {
     private final Activity activity;
     private final Vendor vendor;
 
-    public Cashier(@NonNull final Activity activity,
+    private Cashier(@NonNull final Activity activity,
                    @NonNull final Vendor vendor) {
         this.activity = Check.notNull(activity, "Activity");
         this.vendor = Check.notNull(vendor, "Vendor");
@@ -48,5 +49,33 @@ public class Cashier {
 
     public void dispose() {
         vendor.dispose(activity);
+    }
+
+    public static class Builder {
+        private final Activity activity;
+        private Vendor vendor;
+        private Logger logger;
+
+        public Builder(final Activity activity) {
+            this.activity = Check.notNull(activity, "Activity");
+        }
+
+        public Builder forVendor(final Vendor vendor) {
+            this.vendor = vendor;
+            return this;
+        }
+
+        public Builder withLogger(final Logger logger) {
+            this.logger = logger;
+            return this;
+        }
+
+        public Cashier build() {
+            if (logger != null) {
+                vendor.setLogger(logger);
+            }
+
+            return new Cashier(activity, vendor);
+        }
     }
 }

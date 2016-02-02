@@ -86,8 +86,11 @@ public class MainActivity extends AppCompatActivity {
         final Button purchaseItem = (Button) findViewById(R.id.buy_item);
         final Button consumeItem = (Button) findViewById(R.id.consume_item);
 
-        gplay = new InAppBillingV3Vendor(getPackageName(), new LogCatLogger());
-        gplayCashier = new Cashier(this, gplay);
+        gplay = new InAppBillingV3Vendor(getPackageName());
+        gplayCashier = new Cashier.Builder(this)
+                .forVendor(gplay)
+                .withLogger(new LogCatLogger())
+                .build();
 
         final Product testProduct = Product.item("android.test.purchased");
         testPurchase = new Purchase(testProduct, "", "inapp:" + getPackageName() + ":android.test.purchased");

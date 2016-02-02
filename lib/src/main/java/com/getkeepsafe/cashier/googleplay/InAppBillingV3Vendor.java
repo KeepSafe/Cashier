@@ -33,15 +33,16 @@ import java.util.Random;
 public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
     private static final String PRODUCT_TYPE_ITEM = "inapp";
     private static final String PRODUCT_TYPE_SUBSCRIPTION = "subs";
-
     private static final int API_VERSION = 3;
 
     private final String packageName;
-    private final Logger logger;
-    private final String developerPayload;
 
     @Nullable
     private IInAppBillingService inAppBillingService;
+    @Nullable
+    private Logger logger;
+    @Nullable
+    private String developerPayload;
     private InitializationListener initializationListener;
     private Product pendingProduct;
     private PurchaseListener purchaseListener;
@@ -70,8 +71,7 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
                         .isBillingSupported(API_VERSION, packageName, PRODUCT_TYPE_SUBSCRIPTION)
                             == BILLING_RESPONSE_RESULT_OK;
                 available = canPurchaseItems || canSubscribe;
-                logger.log("Connected to service and it is "
-                        + (available ? "available" : "not available"));
+                log("Connected to service and it is " + (available ? "available" : "not available"));
                 initializationListener.initialized();
             } catch (RemoteException e) {
                 logAndDisable(Log.getStackTraceString(e));
@@ -84,19 +84,14 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
         }
     };
 
-    public InAppBillingV3Vendor(@NonNull final String packageName,
-                                @NonNull final Logger logger) {
-        this(packageName, logger, null);
+    public InAppBillingV3Vendor(@NonNull final String packageName) {
+        this(packageName, null);
     }
 
     public InAppBillingV3Vendor(@NonNull final String packageName,
-                                @NonNull final Logger logger,
                                 @Nullable final String developerPayload) {
         this.packageName = Check.notNull(packageName, "Package Name");
-        this.logger = Check.notNull(logger, "Logger");
-        this.developerPayload = (developerPayload == null ? "" : developerPayload);
-
-        this.logger.setTag("InAppBillingV3");
+        this.developerPayload = developerPayload;
         available = false;
         initialized = false;
     }
@@ -113,7 +108,7 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
             return;
         }
 
-        logger.log("Initializing In-app billing v3...");
+        log("Initializing In-app billing v3...");
 
         final Intent serviceIntent
                 = new Intent("com.android.vending.billing.InAppBillingService.BIND");
@@ -143,7 +138,7 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
 
     @Override
     public void dispose(@NonNull final Activity activity) {
-        logger.log("Disposing self...");
+        log("Disposing self...");
         Check.notNull(activity, "Activity");
         if (inAppBillingService != null) {
             activity.unbindService(serviceConnection);
@@ -190,7 +185,7 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
             throw new IllegalStateException("Trying to purchase without initializing first!");
         }
 
-        logger.log("Constructing buy intent...");
+        log("Constructing buy intent...");
         final String type = product.isSubscription ? PRODUCT_TYPE_SUBSCRIPTION : PRODUCT_TYPE_ITEM;
         try {
             final Bundle buyBundle = inAppBillingService
@@ -198,19 +193,19 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
 
             final int response = getResponseCode(buyBundle);
             if (response != BILLING_RESPONSE_RESULT_OK) {
-                logger.log("Couldn't purchase product! code:" + response);
+                log("Couldn't purchase product! code:" + response);
                 listener.failure(product, convertCode(response));
                 return;
             }
 
             final PendingIntent pendingIntent = buyBundle.getParcelable(RESPONSE_BUY_INTENT);
             if (pendingIntent == null) {
-                logger.log("Received no pending intent!");
+                log("Received no pending intent!");
                 listener.failure(product, convertCode(response));
                 return;
             }
 
-            logger.log("Launching buy intent for " + product.sku);
+            log("Launching buy intent for " + product.sku);
             this.purchaseListener = listener;
             pendingProduct = product;
             requestCode = new Random().nextInt(1024);
@@ -218,7 +213,7 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
                     requestCode,
                     new Intent(), 0, 0, 0);
         } catch (RemoteException | IntentSender.SendIntentException e) {
-            logger.log("Failed to launch purchase!\n" + Log.getStackTraceString(e));
+            log("Failed to launch purchase!\n" + Log.getStackTraceString(e));
             listener.failure(product, convertCode(BILLING_RESPONSE_RESULT_ERROR));
         }
     }
@@ -239,26 +234,34 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
         }
 
         try {
-            logger.log("Consuming " + purchase.sku + " " + purchase.token);
+            log("Consuming " + purchase.sku + " " + purchase.token);
             final int response
                     = inAppBillingService.consumePurchase(API_VERSION, packageName, purchase.token);
             if (response == BILLING_RESPONSE_RESULT_OK) {
-                logger.log("Successfully consumed purchase!");
+                log("Successfully consumed purchase!");
                 listener.success(purchase);
             } else {
-                logger.log("Couldn't consume purchase! " + response);
+                log("Couldn't consume purchase! " + response);
                 listener.failure(purchase, convertCode(response));
             }
         } catch (RemoteException e) {
-            logger.log("Couldn't consume purchase! " + Log.getStackTraceString(e));
+            log("Couldn't consume purchase! " + Log.getStackTraceString(e));
             listener.failure(purchase, convertCode(BILLING_RESPONSE_RESULT_ERROR));
+        }
+    }
+
+    @Override
+    public void setLogger(@Nullable final Logger logger) {
+        this.logger = logger;
+        if (this.logger != null) {
+            this.logger.setTag("InAppBillingV3");
         }
     }
 
     public boolean onActivityResult(final int requestCode,
                                     final int resultCode,
                                     final Intent data) {
-        logger.log("onActivityResult " + resultCode);
+        log("onActivityResult " + resultCode);
         if (this.requestCode != requestCode) {
             return false;
         }
@@ -270,7 +273,7 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
 
         final int responseCode = getResponseCode(data);
         if (resultCode == Activity.RESULT_OK && responseCode == BILLING_RESPONSE_RESULT_OK) {
-            logger.log("Successful purchase of " + pendingProduct.sku + "!");
+            log("Successful purchase of " + pendingProduct.sku + "!");
 
             try {
                 purchaseListener.success(GooglePlayPurchase.of(pendingProduct, data));
@@ -278,10 +281,10 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
                 purchaseListener.failure(pendingProduct, Vendor.PURCHASE_SUCCESS_RESULT_MALFORMED);
             }
         } else if (resultCode == Activity.RESULT_OK) {
-            logger.log("Purchase failed! " + responseCode);
+            log("Purchase failed! " + responseCode);
             purchaseListener.failure(pendingProduct, convertCode(responseCode));
         } else {
-            logger.log("Purchase canceled! " + responseCode);
+            log("Purchase canceled! " + responseCode);
             purchaseListener.failure(pendingProduct, convertCode(responseCode));
         }
 
@@ -293,7 +296,7 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
     }
 
     private void logAndDisable(@NonNull final String message) {
-        logger.log(message);
+        log(message);
         available = false;
     }
 
@@ -304,13 +307,13 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
 
     private int getResponseCode(@Nullable final Bundle bundle) {
         if (bundle == null) {
-            logger.log("Null response code from bundle, assuming OK (known issue)");
+            log("Null response code from bundle, assuming OK (known issue)");
             return BILLING_RESPONSE_RESULT_OK;
         }
 
         final Object o = bundle.get(RESPONSE_CODE);
         if (o == null) {
-            logger.log("Null response code from bundle, assuming OK (known issue)");
+            log("Null response code from bundle, assuming OK (known issue)");
             return BILLING_RESPONSE_RESULT_OK;
         } else if (o instanceof Integer) {
             return (Integer) o;
@@ -319,7 +322,7 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
         } else {
             final String message
                     = "Unexpected type for bundle response code. " + o.getClass().getName();
-            logger.log(message);
+            log(message);
             throw new RuntimeException(message);
         }
     }
@@ -340,5 +343,10 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
             default:
                 return Vendor.PURCHASE_FAILURE;
         }
+    }
+
+    private void log(@NonNull final String message) {
+        if (logger == null) return;
+        logger.log(message);
     }
 }
