@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
         public void failure(@NonNull final Product product, final int code) {
             final String message;
             switch (code) {
-                case Vendor.PURCHASE_CANCEL:
+                case Vendor.PURCHASE_CANCELED:
                     message = "Purchase canceled";
                     break;
                 case Vendor.PURCHASE_FAILURE:
@@ -106,6 +106,7 @@ public class MainActivity extends AppCompatActivity {
                 progressDialog.setIndeterminate(true);
                 progressDialog.setTitle("Consuming item, please wait...");
                 progressDialog.show();
+                // TODO: Thread
                 cashier.consume(testPurchase, consumeListener);
             }
         });

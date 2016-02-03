@@ -46,16 +46,24 @@ public class GooglePlayPurchase extends Purchase implements GooglePlayConstants 
     public final int purchaseState;
 
     public static GooglePlayPurchase of(@NonNull final Product product,
-                                          @NonNull final Intent purchaseIntent)
+                                        @NonNull final Intent purchaseIntent)
             throws JSONException {
         Check.notNull(product, "Product");
         final String purchaseData = Check.notNull(purchaseIntent, "Purchase Intent")
                 .getStringExtra(RESPONSE_INAPP_PURCHASE_DATA);
-        Check.notNull(purchaseData, "Purchase Data");
-
         final String dataSignature = purchaseIntent.getStringExtra(RESPONSE_INAPP_SIGNATURE);
 
-        // Parse receipt data
+        return of(product,
+                Check.notNull(purchaseData, "Purchase Data"),
+                Check.notNull(dataSignature, "Purchase Data"));
+    }
+
+    public static GooglePlayPurchase of(@NonNull final Product product,
+                                        @NonNull final String purchaseData,
+                                        @NonNull final String dataSignature) throws JSONException {
+        Check.notNull(product, "Product");
+        Check.notNull(purchaseData, "Purchase Data");
+        Check.notNull(dataSignature, "Signature");
         final JSONObject data = new JSONObject(purchaseData);
         final String packageName = data.getString("packageName");
         final String purchaseToken = data.getString("purchaseToken");
@@ -71,7 +79,7 @@ public class GooglePlayPurchase extends Purchase implements GooglePlayConstants 
         final long purchaseTime = data.getLong("purchaseTime");
         final int purchaseState = data.getInt("purchaseState");
 
-        return new GooglePlayPurchase(
+        final GooglePlayPurchase purchase = new GooglePlayPurchase(
                 product,
                 orderId,
                 purchaseToken,
@@ -81,6 +89,9 @@ public class GooglePlayPurchase extends Purchase implements GooglePlayConstants 
                 purchaseTime,
                 purchaseState,
                 autoRenewing);
+        purchase.setExtras(purchaseData);
+
+        return purchase;
     }
 
     private GooglePlayPurchase(@NonNull final Product product,
