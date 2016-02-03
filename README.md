@@ -1,6 +1,6 @@
 # Cashier
 
-![cashier](https://raw.githubusercontent.com/KeepSafe/Cashier/master/web/ic_launcher.png) 
+![cashier](web/ic_launcher.png) 
 
 A general billing provider for Android. Supports Google Play's in-app billing v3 and Amazon's in-app billing out of the box.
 
