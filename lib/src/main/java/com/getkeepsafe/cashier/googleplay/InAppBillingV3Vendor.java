@@ -294,8 +294,20 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
                 final String purchaseData = purchaseDataList.get(i);
                 final String sku = purchasedSkus.get(i);
                 final String signature = signatureList.get(i);
-                final Product product = purchasedProducts.get(i);
-                // TODO: Should make the product aligns with sku
+
+                Product product = null;
+                for (final Product maybeProduct : purchasedProducts) {
+                    if (sku.equals(maybeProduct.sku)) {
+                        product = maybeProduct;
+                        break;
+                    }
+                }
+
+                if (product == null) {
+                    // TODO: Should raise this as an error to the user
+                    continue;
+                }
+
                 log("Found purchase: " + sku);
 
                 // TODO: Security verification?
