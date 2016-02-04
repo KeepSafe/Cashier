@@ -32,6 +32,17 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(MainActivity.this, "Purchase success", Toast.LENGTH_SHORT).show();
             setOwnedSku(purchase.sku, purchase.orderId, purchase.token);
             purchasedProduct = purchase;
+
+            // This is unnecessary, just to show off how to get a cashier instance off a purchase
+            cashier.dispose();
+            try {
+                cashier = Cashier
+                        .forPurchase(MainActivity.this, purchasedProduct)
+                        .withLogger(new LogCatLogger())
+                        .build();
+            } catch (Cashier.VendorMissingException e) {
+                // Won't happen in the sample
+            }
         }
 
         @Override

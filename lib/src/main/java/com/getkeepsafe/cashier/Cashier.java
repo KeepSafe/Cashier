@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.getkeepsafe.cashier.googleplay.GooglePlayConstants;
 import com.getkeepsafe.cashier.googleplay.InAppBillingV3Vendor;
 import com.getkeepsafe.cashier.googleplay.ProductionInAppBillingV3API;
 import com.getkeepsafe.cashier.logging.Logger;
@@ -15,15 +16,39 @@ public class Cashier {
     private final Vendor vendor;
 
     public static Builder forGooglePlay(@NonNull final Activity activity) {
+        Check.notNull(activity, "Activity");
         return forGooglePlay(activity, null);
     }
 
     public static Builder forGooglePlay(@NonNull final Activity activity,
                                         @Nullable final String developerPayload) {
+        Check.notNull(activity, "Activity");
         return new Builder(activity).forVendor(
                 new InAppBillingV3Vendor(
                         new ProductionInAppBillingV3API(activity.getPackageName()),
                         developerPayload));
+    }
+
+    public static Builder forPurchase(@NonNull final Activity activity,
+                                      @NonNull final Purchase purchase)
+            throws VendorMissingException {
+        return forPurchase(activity, purchase, null);
+    }
+
+    public static Builder forPurchase(@NonNull final Activity activity,
+                                      @NonNull final Purchase purchase,
+                                      @Nullable final String developerPayload)
+            throws VendorMissingException {
+        Check.notNull(purchase, "Purchase");
+        final Vendor vendor;
+        if (purchase.vendorId.equals(GooglePlayConstants.VENDOR_ID)) {
+            vendor = new InAppBillingV3Vendor(
+                    new ProductionInAppBillingV3API(activity.getPackageName()), developerPayload);
+        } else {
+            throw new VendorMissingException(purchase.vendorId);
+        }
+
+        return new Builder(activity).forVendor(vendor);
     }
 
     // TODO: Flesh out
@@ -118,6 +143,20 @@ public class Cashier {
             }
 
             return new Cashier(activity, vendor);
+        }
+    }
+
+    public static class VendorMissingException extends Exception {
+        public final String vendorId;
+
+        public VendorMissingException(@NonNull final String vendorId) {
+            this(vendorId, null);
+        }
+
+        public VendorMissingException(@NonNull final String vendorId,
+                                      @Nullable final String message) {
+            super(message);
+            this.vendorId = Check.notNull(vendorId, "Vendor ID");
         }
     }
 }
