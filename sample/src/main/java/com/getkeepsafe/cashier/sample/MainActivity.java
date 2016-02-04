@@ -108,6 +108,7 @@ public class MainActivity extends AppCompatActivity {
                 purchasedProduct = inventory.purchases().get(0);
                 setOwnedSku(purchasedProduct.sku, purchasedProduct.orderId, purchasedProduct.token);
             } else {
+                Toast.makeText(MainActivity.this, "You have no purchased items", Toast.LENGTH_SHORT).show();
                 setOwnedSku();
             }
         }
