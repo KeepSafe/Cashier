@@ -68,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
                 public void run() {
                     Toast.makeText(MainActivity.this, "Purchase consumed!", Toast.LENGTH_SHORT).show();
                     setOwnedSku();
+                    purchasedProduct = null;
                     if (progressDialog != null) {
                         progressDialog.dismiss();
                     }
