@@ -24,6 +24,8 @@ public interface Vendor extends VendorConstants {
         }
     }
 
+    @NonNull
+    String id();
     void initialize(@NonNull Activity activity, @NonNull InitializationListener listener);
     void dispose(@NonNull Activity activity);
     void purchase(@NonNull Activity activity,

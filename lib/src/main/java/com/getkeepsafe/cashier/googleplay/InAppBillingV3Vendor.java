@@ -85,6 +85,12 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
         available = false;
     }
 
+    @NonNull
+    @Override
+    public String id() {
+        return "iabv3";
+    }
+
     @Override
     public void initialize(@NonNull final Activity activity,
                            @NonNull final InitializationListener listener) {
