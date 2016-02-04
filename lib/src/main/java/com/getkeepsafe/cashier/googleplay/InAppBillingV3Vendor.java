@@ -88,7 +88,7 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
     @NonNull
     @Override
     public String id() {
-        return VENDOR_ID;
+        return VENDOR_PACKAGE;
     }
 
     @Override

@@ -1,7 +1,7 @@
 package com.getkeepsafe.cashier.googleplay;
 
 public interface GooglePlayConstants {
-    String VENDOR_ID = "iabv3";
+    String VENDOR_PACKAGE = "com.android.vending";
 
     // API Response codes
     int BILLING_RESPONSE_RESULT_OK = 0;

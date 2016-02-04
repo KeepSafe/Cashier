@@ -29,6 +29,22 @@ public class Cashier {
                         developerPayload));
     }
 
+    public static Builder forAppInstaller(@NonNull final Activity activity)
+            throws VendorMissingException {
+        return forAppInstaller(activity, null);
+    }
+
+    public static Builder forAppInstaller(@NonNull final Activity activity,
+                                          @Nullable final String developerPayload)
+            throws VendorMissingException {
+        Check.notNull(activity, "Activity");
+        final String installer = activity
+                .getPackageManager()
+                .getInstallerPackageName(activity.getPackageName());
+        return new Builder(activity)
+                .forVendor(idToVendor(installer, activity, developerPayload));
+    }
+
     public static Builder forPurchase(@NonNull final Activity activity,
                                       @NonNull final Purchase purchase)
             throws VendorMissingException {
@@ -40,15 +56,20 @@ public class Cashier {
                                       @Nullable final String developerPayload)
             throws VendorMissingException {
         Check.notNull(purchase, "Purchase");
-        final Vendor vendor;
-        if (purchase.vendorId.equals(GooglePlayConstants.VENDOR_ID)) {
-            vendor = new InAppBillingV3Vendor(
+        return new Builder(activity)
+                .forVendor(idToVendor(purchase.vendorId, activity, developerPayload));
+    }
+
+    private static Vendor idToVendor(@NonNull final String id,
+                              @NonNull final Activity activity,
+                              @Nullable final String developerPayload)
+            throws VendorMissingException {
+        if (id.equals(GooglePlayConstants.VENDOR_PACKAGE)) {
+            return new InAppBillingV3Vendor(
                     new ProductionInAppBillingV3API(activity.getPackageName()), developerPayload);
-        } else {
-            throw new VendorMissingException(purchase.vendorId);
         }
 
-        return new Builder(activity).forVendor(vendor);
+        throw new VendorMissingException(id);
     }
 
     // TODO: Flesh out
