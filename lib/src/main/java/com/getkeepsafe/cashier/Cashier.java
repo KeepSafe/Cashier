@@ -3,6 +3,7 @@ package com.getkeepsafe.cashier;
 import android.app.Activity;
 import android.content.Intent;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.getkeepsafe.cashier.googleplay.GooglePlayConstants;
 import com.getkeepsafe.cashier.googleplay.InAppBillingV3Vendor;
@@ -128,6 +129,12 @@ public class Cashier {
     }
 
     public void purchase(@NonNull final Product product, @NonNull final PurchaseListener listener) {
+        purchase(product, null, listener);
+    }
+
+    public void purchase(@NonNull final Product product,
+                         @Nullable final String developerPayload,
+                         @NonNull final PurchaseListener listener) {
         Check.notNull(product, "Product");
         Check.notNull(listener, "Listener");
         vendor.initialize(activity, new Vendor.InitializationListener() {
@@ -138,7 +145,7 @@ public class Cashier {
                     return;
                 }
 
-                vendor.purchase(activity, product, listener);
+                vendor.purchase(activity, product, developerPayload, listener);
             }
         });
     }

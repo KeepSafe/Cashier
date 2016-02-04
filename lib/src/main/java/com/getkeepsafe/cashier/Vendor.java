@@ -34,6 +34,10 @@ public interface Vendor extends VendorConstants {
     void purchase(@NonNull Activity activity,
                   @NonNull Product product,
                   @NonNull PurchaseListener listener);
+    void purchase(@NonNull Activity activity,
+                  @NonNull Product product,
+                  @Nullable String developerPayload,
+                  @NonNull PurchaseListener listener);
     void consume(@NonNull Activity activity,
                  @NonNull Purchase purchase,
                  @NonNull ConsumeListener listener);

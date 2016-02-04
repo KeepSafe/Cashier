@@ -31,12 +31,19 @@ public class MainActivity extends AppCompatActivity {
     private ProgressDialog progressDialog;
     private Purchase purchasedProduct;
 
+    private static final String DEV_PAYLOAD = "hello-cashier!";
+
     private PurchaseListener purchaseListener = new PurchaseListener() {
         @Override
         public void success(@NonNull final Purchase purchase) {
             Toast.makeText(MainActivity.this, "Purchase success", Toast.LENGTH_SHORT).show();
             setOwnedSku(purchase);
             purchasedProduct = purchase;
+
+            // Double-check payload
+            if (!DEV_PAYLOAD.equals(purchase.developerPayload)) {
+                throw new RuntimeException("Library has a bug! Contact developers immediately!");
+            }
 
             // This is unnecessary, just to show off how to get a cashier instance off a purchase
             cashier.dispose();
@@ -166,7 +173,7 @@ public class MainActivity extends AppCompatActivity {
         purchaseItem.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                cashier.purchase(testProduct, purchaseListener);
+                cashier.purchase(testProduct, DEV_PAYLOAD, purchaseListener);
             }
         });
 

@@ -139,6 +139,14 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
     public void purchase(@NonNull final Activity activity,
                          @NonNull final Product product,
                          @NonNull final PurchaseListener listener) {
+        purchase(activity, product, null, listener);
+    }
+
+    @Override
+    public void purchase(@NonNull final Activity activity,
+                         @NonNull final Product product,
+                         @Nullable final String developerPayload,
+                         @NonNull final PurchaseListener listener) {
         Check.notNull(activity, "Activity");
         Check.notNull(product, "Product");
         Check.notNull(listener, "Purchase Listener");
@@ -152,7 +160,11 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
         final String type = product.isSubscription ? PRODUCT_TYPE_SUBSCRIPTION : PRODUCT_TYPE_ITEM;
         try {
             //noinspection ConstantConditions
-            developerPayload = UUID.randomUUID().toString();
+            if (developerPayload == null) {
+                this.developerPayload = UUID.randomUUID().toString();
+            } else {
+                this.developerPayload = developerPayload;
+            }
             final Bundle buyBundle = api.getBuyIntent(product.sku, type, developerPayload);
             final int response = getResponseCode(buyBundle);
             if (response != BILLING_RESPONSE_RESULT_OK) {
