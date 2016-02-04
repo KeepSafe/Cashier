@@ -14,7 +14,7 @@ public class Purchase extends Product {
     public Purchase(@NonNull final Product product,
                     @NonNull final String orderId,
                     @NonNull final String token) {
-        super(product.sku, product.isSubscription);
+        super(product);
         this.orderId = Check.notNull(orderId, "Order ID");
         this.token = Check.notNull(token, "Token");
     }

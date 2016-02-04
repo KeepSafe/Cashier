@@ -6,6 +6,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.getkeepsafe.cashier.googleplay.InAppBillingV3Vendor;
+import com.getkeepsafe.cashier.googleplay.ProductionInAppBillingV3API;
 import com.getkeepsafe.cashier.logging.Logger;
 import com.getkeepsafe.cashier.utilities.Check;
 
@@ -16,11 +17,25 @@ public class Cashier {
     public static Builder forGooglePlay(@NonNull final Activity activity) {
         return forGooglePlay(activity, null);
     }
+
     public static Builder forGooglePlay(@NonNull final Activity activity,
                                         @Nullable final String developerPayload) {
         return new Builder(activity).forVendor(
-                new InAppBillingV3Vendor(activity.getPackageName(), developerPayload));
+                new InAppBillingV3Vendor(
+                        new ProductionInAppBillingV3API(activity.getPackageName()),
+                        developerPayload));
     }
+
+    // TODO: Flesh out
+//    public static Builder forDebugGooglePlay(@NonNull final Activity activity) {
+//        return forDebugGooglePlay(activity, null);
+//    }
+//
+//    public static Builder forDebugGooglePlay(@NonNull final Activity activity,
+//                                             @Nullable final String developerPayload) {
+//        return new Builder(activity).forVendor(
+//                new InAppBillingV3Vendor())
+//    }
 
     private Cashier(@NonNull final Activity activity,
                    @NonNull final Vendor vendor) {
@@ -55,6 +70,17 @@ public class Cashier {
             @Override
             public void initialized() {
                 vendor.consume(activity, purchase, listener);
+            }
+        });
+    }
+
+    public void getInventory(@NonNull final InventoryListener listener) {
+        Check.notNull(listener, "Listener");
+
+        vendor.initialize(activity, new Vendor.InitializationListener() {
+            @Override
+            public void initialized() {
+                vendor.getInventory(activity, listener);
             }
         });
     }

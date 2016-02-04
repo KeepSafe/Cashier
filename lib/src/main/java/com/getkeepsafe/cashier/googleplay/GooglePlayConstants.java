@@ -21,4 +21,27 @@ public interface GooglePlayConstants {
     String RESPONSE_INAPP_PURCHASE_DATA_LIST = "INAPP_PURCHASE_DATA_LIST";
     String RESPONSE_INAPP_SIGNATURE_LIST = "INAPP_DATA_SIGNATURE_LIST";
     String INAPP_CONTINUATION_TOKEN = "INAPP_CONTINUATION_TOKEN";
+
+    // API Request commands
+    String REQUEST_SKU_DETAILS_ITEM_LIST = "ITEM_ID_LIST";
+    String REQUEST_SKU_DETAILS_ITEM_TYPE_LIST = "ITEM_TYPE_LIST";
+
+    // Static test inapp products
+    String TEST_PRODUCT_PURCHASED = "android.test.purchased";
+    String TEST_PRODUCT_CANCELED = "android.test.canceled";
+    String TEST_PRODUCT_REFUNDED = "android.test.refunded";
+    String TEST_PRODUCT_UNAVAILABLE = "android.test.item_unavailable";
+
+    // Product types
+    String PRODUCT_TYPE_ITEM = "inapp";
+    String PRODUCT_TYPE_SUBSCRIPTION = "subs";
+
+    interface ProductConstants {
+        String SKU = "productId";
+        String PRICE = "price";
+        String CURRENCY = "price_currency_code";
+        String NAME = "title";
+        String DESCRIPTION = "description";
+        String PRICE_MICRO = "price_amount_micros";
+    }
 }

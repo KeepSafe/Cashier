@@ -2,22 +2,15 @@ package com.getkeepsafe.cashier.googleplay;
 
 import android.app.Activity;
 import android.app.PendingIntent;
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
-import android.content.ServiceConnection;
-import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.os.RemoteException;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.android.vending.billing.IInAppBillingService;
 import com.getkeepsafe.cashier.ConsumeListener;
 import com.getkeepsafe.cashier.Inventory;
 import com.getkeepsafe.cashier.InventoryListener;
@@ -36,45 +29,37 @@ import java.util.List;
 import java.util.Random;
 
 public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
-    private static final String PRODUCT_TYPE_ITEM = "inapp";
-    private static final String PRODUCT_TYPE_SUBSCRIPTION = "subs";
-    private static final int API_VERSION = 3;
-
-    private final String packageName;
-
     @Nullable
-    private IInAppBillingService inAppBillingService;
+    private final String developerPayload;
+    private final InAppBillingV3API api;
+
     @Nullable
     private Logger logger;
-    @Nullable
-    private String developerPayload;
-    private InitializationListener initializationListener;
     private Product pendingProduct;
     private PurchaseListener purchaseListener;
+    private InitializationListener initializationListener;
 
-    private boolean canPurchaseItems;
-    private boolean canSubscribe;
-    private boolean initialized;
-    private boolean available;
     private int requestCode;
+    private boolean available;
+    private boolean canSubscribe;
+    private boolean canPurchaseItems;
 
-    private final ServiceConnection serviceConnection = new ServiceConnection() {
+    private final InAppBillingV3API.LifecycleListener lifecycleListener
+            = new InAppBillingV3API.LifecycleListener() {
         @Override
-        public void onServiceConnected(final ComponentName name, final IBinder service) {
-            inAppBillingService = IInAppBillingService.Stub.asInterface(service);
-            if (inAppBillingService == null) {
+        public void initialized(final boolean success) {
+            if (!success) {
                 logAndDisable("Couldn't create InAppBillingService instance");
                 return;
             }
 
             try {
-                canPurchaseItems = inAppBillingService
-                        .isBillingSupported(API_VERSION, packageName, PRODUCT_TYPE_ITEM)
-                            == BILLING_RESPONSE_RESULT_OK;
+                canPurchaseItems = api.isBillingSupported(PRODUCT_TYPE_ITEM)
+                        == BILLING_RESPONSE_RESULT_OK;
 
-                canSubscribe = inAppBillingService
-                        .isBillingSupported(API_VERSION, packageName, PRODUCT_TYPE_SUBSCRIPTION)
-                            == BILLING_RESPONSE_RESULT_OK;
+                canSubscribe = api.isBillingSupported(PRODUCT_TYPE_SUBSCRIPTION)
+                        == BILLING_RESPONSE_RESULT_OK;
+
                 available = canPurchaseItems || canSubscribe;
                 log("Connected to service and it is " + (available ? "available" : "not available"));
                 initializationListener.initialized();
@@ -84,21 +69,20 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
         }
 
         @Override
-        public void onServiceDisconnected(final ComponentName name) {
+        public void disconnected() {
             logAndDisable("Disconnected from service");
         }
     };
 
-    public InAppBillingV3Vendor(@NonNull final String packageName) {
-        this(packageName, null);
+    public InAppBillingV3Vendor(@NonNull final InAppBillingV3API api) {
+        this(api, null);
     }
 
-    public InAppBillingV3Vendor(@NonNull final String packageName,
+    public InAppBillingV3Vendor(@NonNull final InAppBillingV3API api,
                                 @Nullable final String developerPayload) {
-        this.packageName = Check.notNull(packageName, "Package Name");
+        this.api = Check.notNull(api, "API Interface");
         this.developerPayload = developerPayload;
         available = false;
-        initialized = false;
     }
 
     @Override
@@ -108,51 +92,25 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
         Check.notNull(listener, "Initialization Listener");
         initializationListener = listener;
 
-        if (initialized) {
+        if (api.available()) {
             initializationListener.initialized();
             return;
         }
 
         log("Initializing In-app billing v3...");
-
-        final Intent serviceIntent
-                = new Intent("com.android.vending.billing.InAppBillingService.BIND");
-        serviceIntent.setPackage("com.android.vending");
-
-        final PackageManager packageManager = activity.getPackageManager();
-        if (packageManager == null) {
-            logAndDisable("No package manager received");
-            return;
-        } else {
-            final List<ResolveInfo> intentServices
-                    = packageManager.queryIntentServices(serviceIntent, 0);
-            if (intentServices == null || intentServices.isEmpty()) {
-                logAndDisable("No service to receive the intent");
-                return;
-            }
-        }
-
-        try {
-            available = activity
-                    .bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
-            initialized = true;
-        } catch (SecurityException e) {
-            logAndDisable("Your app does not have the billing permission!");
-        }
+        available = api.initialize(activity, lifecycleListener);
     }
 
     @Override
     public void dispose(@NonNull final Activity activity) {
         log("Disposing self...");
         Check.notNull(activity, "Activity");
-        if (inAppBillingService != null) {
-            activity.unbindService(serviceConnection);
-        }
+        api.dispose(activity);
     }
 
     @Override
     public boolean available() {
-        return initialized && available && canPurchaseAnything();
+        return available && api.available() && canPurchaseAnything();
     }
 
     @Override
@@ -177,8 +135,8 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
 
     @Override
     public void purchase(@NonNull final Activity activity,
-                            @NonNull final Product product,
-                            @NonNull final PurchaseListener listener) {
+                         @NonNull final Product product,
+                         @NonNull final PurchaseListener listener) {
         Check.notNull(activity, "Activity");
         Check.notNull(product, "Product");
         Check.notNull(listener, "Purchase Listener");
@@ -192,9 +150,7 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
         final String type = product.isSubscription ? PRODUCT_TYPE_SUBSCRIPTION : PRODUCT_TYPE_ITEM;
         try {
             //noinspection ConstantConditions
-            final Bundle buyBundle = inAppBillingService
-                    .getBuyIntent(API_VERSION, packageName, product.sku, type, developerPayload);
-
+            final Bundle buyBundle = api.getBuyIntent(product.sku, type, developerPayload);
             final int response = getResponseCode(buyBundle);
             if (response != BILLING_RESPONSE_RESULT_OK) {
                 log("Couldn't purchase product! code:" + response);
@@ -238,8 +194,7 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
         try {
             log("Consuming " + purchase.sku + " " + purchase.token);
             //noinspection ConstantConditions
-            final int response
-                    = inAppBillingService.consumePurchase(API_VERSION, packageName, purchase.token);
+            final int response = api.consumePurchase(purchase.token);
             if (response == BILLING_RESPONSE_RESULT_OK) {
                 log("Successfully consumed purchase!");
                 listener.success(purchase);
@@ -256,6 +211,14 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
     @Override
     public void getInventory(@NonNull final Activity activity,
                              @NonNull final InventoryListener listener) {
+        getInventory(activity, null, null, listener);
+    }
+
+    @Override
+    public void getInventory(@NonNull final Activity activity,
+                             @Nullable final List<String> itemSkus,
+                             @Nullable final List<String> subSkus,
+                             @NonNull final InventoryListener listener) {
         Check.notNull(activity, "Activity");
         Check.notNull(listener, "Inventory Listener");
         throwIfUninitialized();
@@ -265,6 +228,15 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
             log("Querying inventory...");
             inventory.addPurchases(getPurchases(PRODUCT_TYPE_ITEM));
             inventory.addPurchases(getPurchases(PRODUCT_TYPE_SUBSCRIPTION));
+
+            if (itemSkus != null && !itemSkus.isEmpty()) {
+                inventory.addProducts(getProductsWithType(itemSkus, PRODUCT_TYPE_ITEM));
+            }
+
+            if (subSkus!= null && !subSkus.isEmpty()) {
+                inventory.addProducts(getProductsWithType(subSkus, PRODUCT_TYPE_SUBSCRIPTION));
+            }
+
             listener.success(inventory);
         } catch (RemoteException | ApiException e) {
             listener.failure(INVENTORY_QUERY_FAILURE);
@@ -285,8 +257,7 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
         final List<GooglePlayPurchase> purchaseList = new ArrayList<>();
         do {
             //noinspection ConstantConditions
-            final Bundle purchases
-                    = inAppBillingService.getPurchases(API_VERSION, packageName, type, paginationToken);
+            final Bundle purchases = api.getPurchases(type, paginationToken);
 
             final int response = getResponseCode(purchases);
             log("Got response: " + response);
@@ -311,23 +282,17 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
                 return Collections.emptyList();
             }
 
-
+            final List<Product> purchasedProducts = getProductsWithType(purchasedSkus, type);
 
             for (int i = 0; i < purchaseDataList.size(); ++i) {
                 final String purchaseData = purchaseDataList.get(i);
                 final String sku = purchasedSkus.get(i);
                 final String signature = signatureList.get(i);
-
+                final Product product = purchasedProducts.get(i);
+                // TODO: Should make the product aligns with sku
                 log("Found purchase: " + sku);
 
                 // TODO: Security verification?
-                final Product product;
-                if (type.equals(PRODUCT_TYPE_ITEM)) {
-                    product = Product.item(sku);
-                } else {
-                    product = Product.subscription(sku);
-                }
-
                 purchaseList.add(GooglePlayPurchase.of(product, purchaseData, signature));
             }
 
@@ -340,14 +305,50 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
         return Collections.unmodifiableList(purchaseList);
     }
 
-    private List<Product> getProducts(@NonNull final List<String> skus) {
+    private List<Product> getProductsWithType(@NonNull final List<String> skus,
+                                              @NonNull final String type)
+            throws RemoteException, ApiException {
         throwIfUninitialized();
         Check.notNull(skus, "SKU list");
-        log("Retrieving sku details for " + skus.size() + " skus");
-
-        for (int i = 0; i < skus.size(); ++i) {
-            
+        Check.notNull(type, "Product type");
+        log("Retrieving sku details for " + skus.size() + " " + type + " skus");
+        if (!type.equals(PRODUCT_TYPE_ITEM) && !type.equals(PRODUCT_TYPE_SUBSCRIPTION)) {
+            throw new IllegalArgumentException("Invalid product type " + type);
         }
+
+        final List<Product> products = new ArrayList<>();
+        for (int i = 0; i < skus.size(); i += 20) {
+            final ArrayList<String> page
+                    // Terrible un-needed forced cast because of bundle api
+                    = new ArrayList<>(skus.subList(i, Math.min(skus.size(), i + 20)));
+            final Bundle skuQuery = new Bundle();
+            skuQuery.putStringArrayList(REQUEST_SKU_DETAILS_ITEM_LIST, page);
+
+            //noinspection ConstantConditions
+            final Bundle skuDetails = api.getSkuDetails(type, skuQuery);
+
+            final int response = getResponseCode(skuDetails);
+            log("Got response: " + response);
+            if (response != BILLING_RESPONSE_RESULT_OK
+                    || !skuDetails.containsKey(RESPONSE_GET_SKU_DETAILS_LIST)) {
+                throw new ApiException(response);
+            }
+
+            final ArrayList<String> detailsList
+                    = skuDetails.getStringArrayList(RESPONSE_GET_SKU_DETAILS_LIST);
+            if (detailsList == null) continue;
+
+            for (final String detail : detailsList) {
+                log("Parsing sku details: " + detail);
+                try {
+                    products.add(GooglePlayProduct.of(detail, type.equals(PRODUCT_TYPE_SUBSCRIPTION)));
+                } catch (JSONException e) {
+                    log("Couldn't parse sku: " + detail);
+                }
+            }
+        }
+
+        return Collections.unmodifiableList(products);
     }
 
     @Override
@@ -393,7 +394,7 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
     }
 
     private void throwIfUninitialized() {
-        if (inAppBillingService == null || !initialized) {
+        if (!api.available()) {
             throw new IllegalStateException("Trying to purchase without initializing first!");
         }
     }

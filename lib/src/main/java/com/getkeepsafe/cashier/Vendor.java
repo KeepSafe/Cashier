@@ -7,6 +7,8 @@ import android.support.annotation.Nullable;
 
 import com.getkeepsafe.cashier.logging.Logger;
 
+import java.util.List;
+
 public interface Vendor extends VendorConstants {
     interface InitializationListener {
         void initialized();
@@ -21,6 +23,10 @@ public interface Vendor extends VendorConstants {
                  @NonNull Purchase purchase,
                  @NonNull ConsumeListener listener);
     void getInventory(@NonNull Activity activity, @NonNull InventoryListener listener);
+    void getInventory(@NonNull Activity activity,
+                      @Nullable List<String> itemSkus,
+                      @Nullable List<String> subSkus,
+                      @NonNull InventoryListener listener);
     void setLogger(@Nullable Logger logger);
 
     boolean available();

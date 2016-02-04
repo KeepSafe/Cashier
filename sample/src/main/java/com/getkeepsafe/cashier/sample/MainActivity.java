@@ -12,6 +12,8 @@ import android.widget.Toast;
 
 import com.getkeepsafe.cashier.Cashier;
 import com.getkeepsafe.cashier.ConsumeListener;
+import com.getkeepsafe.cashier.Inventory;
+import com.getkeepsafe.cashier.InventoryListener;
 import com.getkeepsafe.cashier.Product;
 import com.getkeepsafe.cashier.Purchase;
 import com.getkeepsafe.cashier.PurchaseListener;
@@ -21,14 +23,15 @@ import com.getkeepsafe.cashier.logging.LogCatLogger;
 public class MainActivity extends AppCompatActivity {
     private TextView ownedSku;
     private Cashier cashier;
-    private Purchase testPurchase;
     private ProgressDialog progressDialog;
+    private Purchase purchasedProduct;
 
     private PurchaseListener purchaseListener = new PurchaseListener() {
         @Override
         public void success(@NonNull final Purchase purchase) {
             Toast.makeText(MainActivity.this, "Purchase success", Toast.LENGTH_SHORT).show();
             setOwnedSku(purchase.sku, purchase.orderId, purchase.token);
+            purchasedProduct = purchase;
         }
 
         @Override
@@ -60,19 +63,57 @@ public class MainActivity extends AppCompatActivity {
     private ConsumeListener consumeListener = new ConsumeListener() {
         @Override
         public void success(@NonNull final Purchase purchase) {
-            Toast.makeText(MainActivity.this, "Purchase consumed!", Toast.LENGTH_SHORT).show();
-            setOwnedSku();
-            if (progressDialog != null) {
-                progressDialog.dismiss();
-            }
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(MainActivity.this, "Purchase consumed!", Toast.LENGTH_SHORT).show();
+                    setOwnedSku();
+                    if (progressDialog != null) {
+                        progressDialog.dismiss();
+                    }
+                }
+            });
         }
 
         @Override
         public void failure(@NonNull final Purchase purchase, final int code) {
-            Toast.makeText(MainActivity.this, "Did not consume purchase! " + code, Toast.LENGTH_SHORT).show();
-            if (progressDialog != null) {
-                progressDialog.dismiss();
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(MainActivity.this, "Did not consume purchase! " + code, Toast.LENGTH_SHORT).show();
+                    if (progressDialog != null) {
+                        progressDialog.dismiss();
+                    }
+                }
+            });
+        }
+    };
+
+    private InventoryListener inventoryListener = new InventoryListener() {
+        @Override
+        public void success(@NonNull final Inventory inventory) {
+            if (!inventory.purchases().isEmpty()) {
+                purchasedProduct = inventory.purchases().get(0);
+                setOwnedSku(purchasedProduct.sku, purchasedProduct.orderId, purchasedProduct.token);
+            } else {
+                setOwnedSku();
             }
+        }
+
+        @Override
+        public void failure(final int code) {
+            final String message;
+            switch (code) {
+                case Vendor.INVENTORY_QUERY_FAILURE:
+                default:
+                    message = "Couldn't query the inventory for your vendor!";
+                    break;
+                case Vendor.INVENTORY_QUERY_MALFORMED_RESPONSE:
+                    message = "Query was successful but the vendor returned a malformed response";
+                    break;
+            }
+
+            Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
         }
     };
 
@@ -83,13 +124,19 @@ public class MainActivity extends AppCompatActivity {
         ownedSku = (TextView) findViewById(R.id.current_owned_sku);
         final Button purchaseItem = (Button) findViewById(R.id.buy_item);
         final Button consumeItem = (Button) findViewById(R.id.consume_item);
+        final Button queryPurchases = (Button) findViewById(R.id.query_purchases);
 
         cashier = Cashier.forGooglePlay(this)
                 .withLogger(new LogCatLogger())
                 .build();
 
-        final Product testProduct = Product.item("android.test.purchased");
-        testPurchase = new Purchase(testProduct, "", "inapp:" + getPackageName() + ":android.test.purchased");
+        final Product testProduct = Product.item(
+                "android.test.purchased",
+                "$0.99",
+                "USD",
+                "Test product",
+                "This is a test product",
+                990_000L);
 
         setOwnedSku();
         purchaseItem.setOnClickListener(new View.OnClickListener() {
@@ -102,12 +149,28 @@ public class MainActivity extends AppCompatActivity {
         consumeItem.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (purchasedProduct == null) {
+                    Toast.makeText(MainActivity.this, "You need to buy first!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
                 progressDialog = new ProgressDialog(MainActivity.this);
                 progressDialog.setIndeterminate(true);
                 progressDialog.setTitle("Consuming item, please wait...");
                 progressDialog.show();
-                // TODO: Thread
-                cashier.consume(testPurchase, consumeListener);
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        cashier.consume(purchasedProduct, consumeListener);
+                    }
+                }).start();
+            }
+        });
+
+        queryPurchases.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                cashier.getInventory(inventoryListener);
             }
         });
     }

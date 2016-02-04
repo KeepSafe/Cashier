@@ -5,12 +5,21 @@
     android:layout_height="match_parent">
 
     <Button
+        android:id="@+id/query_purchases"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:layout_gravity="center"
+        android:layout_marginTop="32dp"
+        android:text="Query inventory"/>
+
+    <Button
         android:id="@+id/buy_item"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:gravity="center"
         android:layout_gravity="center"
-        android:layout_marginTop="80dp"
+        android:layout_marginTop="32dp"
         android:text="Purchase item"/>
 
     <Button
@@ -19,7 +28,7 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:layout_gravity="center"
-        android:layout_marginTop="80dp"
+        android:layout_marginTop="32dp"
         android:text="Consume item"/>
 
     <TextView
@@ -28,7 +37,7 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:layout_gravity="center"
-        android:layout_marginTop="80dp"
+        android:layout_marginTop="32dp"
         android:text="Currently owned SKU:"/>
 
 </LinearLayout>

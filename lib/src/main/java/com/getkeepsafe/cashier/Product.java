@@ -46,4 +46,14 @@ public class Product {
         this.isSubscription = isSubscription;
         this.microsPrice = microsPrice;
     }
+
+    public Product(@NonNull final Product product) {
+        this(product.sku,
+                product.price,
+                product.currency,
+                product.name,
+                product.description,
+                product.isSubscription,
+                product.microsPrice);
+    }
 }
