@@ -3,7 +3,6 @@ package com.getkeepsafe.cashier;
 import android.app.Activity;
 import android.content.Intent;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 import com.getkeepsafe.cashier.googleplay.GooglePlayConstants;
 import com.getkeepsafe.cashier.googleplay.InAppBillingV3Vendor;
@@ -11,65 +10,104 @@ import com.getkeepsafe.cashier.googleplay.ProductionInAppBillingV3API;
 import com.getkeepsafe.cashier.logging.Logger;
 import com.getkeepsafe.cashier.utilities.Check;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class Cashier {
+    private static VendorFactory vendorFactory;
+    private static VendorFactory debugVendorFactory;
+    private static boolean debug;
+
     private final Activity activity;
     private final Vendor vendor;
 
-    public static Builder forGooglePlay(@NonNull final Activity activity) {
-        Check.notNull(activity, "Activity");
-        return forGooglePlay(activity, null);
+    static {
+        debug = false;
+        vendorFactory = new VendorFactory() {
+            @Override
+            public Vendor get(@NonNull final String id) throws VendorMissingException {
+                Check.notNull(id, "Vendor ID");
+                if (debug) {
+                    return debugVendorFactory.get(id);
+                }
+
+                if (id.equals(GooglePlayConstants.VENDOR_PACKAGE)) {
+                    return new InAppBillingV3Vendor(new ProductionInAppBillingV3API());
+                }
+
+                throw new VendorMissingException(id);
+            }
+        };
+
+        debugVendorFactory = new VendorFactory() {
+            @Override
+            public Vendor get(@NonNull String id) throws VendorMissingException {
+                if (id.equals(GooglePlayConstants.VENDOR_PACKAGE)) {
+                    // TODO: TestInAppBillingV3API
+                    return new InAppBillingV3Vendor(new ProductionInAppBillingV3API());
+                }
+
+                throw new VendorMissingException(id);
+            }
+        };
     }
 
-    public static Builder forGooglePlay(@NonNull final Activity activity,
-                                        @Nullable final String developerPayload) {
+    public void setDebugMode(final boolean status) {
+        debug = status;
+    }
+
+    public static void setVendorFactory(@NonNull final VendorFactory factory) {
+        vendorFactory = factory;
+    }
+
+    public static void setDebugVendorFactory(@NonNull final VendorFactory factory) {
+        debugVendorFactory = factory;
+    }
+
+    public static Builder forGooglePlay(@NonNull final Activity activity) {
         Check.notNull(activity, "Activity");
         return new Builder(activity).forVendor(
-                new InAppBillingV3Vendor(
-                        new ProductionInAppBillingV3API(activity.getPackageName()),
-                        developerPayload));
+                new InAppBillingV3Vendor(new ProductionInAppBillingV3API()));
     }
 
     public static Builder forAppInstaller(@NonNull final Activity activity)
-            throws VendorMissingException {
-        return forAppInstaller(activity, null);
-    }
-
-    public static Builder forAppInstaller(@NonNull final Activity activity,
-                                          @Nullable final String developerPayload)
-            throws VendorMissingException {
+            throws VendorFactory.VendorMissingException {
         Check.notNull(activity, "Activity");
         final String installer = activity
                 .getPackageManager()
                 .getInstallerPackageName(activity.getPackageName());
-        return new Builder(activity)
-                .forVendor(idToVendor(installer, activity, developerPayload));
+        return new Builder(activity).forVendor(vendorFactory.get(installer));
     }
 
-    public static Builder forPurchase(@NonNull final Activity activity,
-                                      @NonNull final Purchase purchase)
-            throws VendorMissingException {
-        return forPurchase(activity, purchase, null);
+    public static Builder forProduct(@NonNull final Activity activity,
+                                     @NonNull final Product product)
+            throws VendorFactory.VendorMissingException {
+        Check.notNull(product, "Product");
+        return new Builder(activity).forVendor(vendorFactory.get(product.vendorId));
     }
 
-    public static Builder forPurchase(@NonNull final Activity activity,
-                                      @NonNull final Purchase purchase,
-                                      @Nullable final String developerPayload)
-            throws VendorMissingException {
-        Check.notNull(purchase, "Purchase");
-        return new Builder(activity)
-                .forVendor(idToVendor(purchase.vendorId, activity, developerPayload));
+    public static Product productFromJson(@NonNull final String json)
+            throws JSONException, VendorFactory.VendorMissingException {
+        return productFromJson(new JSONObject(json));
     }
 
-    private static Vendor idToVendor(@NonNull final String id,
-                              @NonNull final Activity activity,
-                              @Nullable final String developerPayload)
-            throws VendorMissingException {
-        if (id.equals(GooglePlayConstants.VENDOR_PACKAGE)) {
-            return new InAppBillingV3Vendor(
-                    new ProductionInAppBillingV3API(activity.getPackageName()), developerPayload);
-        }
+    public static Product productFromJson(@NonNull final JSONObject json)
+            throws JSONException, VendorFactory.VendorMissingException {
+        final String vendorId = json.getString(Product.KEY_VENDOR_ID);
+        final Vendor vendor = vendorFactory.get(vendorId);
+        return vendor.getProductFrom(json);
+    }
 
-        throw new VendorMissingException(id);
+    public static Purchase purchaseFromJson(@NonNull final String json)
+            throws JSONException, VendorFactory.VendorMissingException {
+        return purchaseFromJson(new JSONObject(json));
+    }
+
+    public static Purchase purchaseFromJson(@NonNull final JSONObject json)
+            throws JSONException, VendorFactory.VendorMissingException {
+        final String vendorId = json.getString(Product.KEY_VENDOR_ID);
+        final Vendor vendor = vendorFactory.get(vendorId);
+        return vendor.getPurchaseFrom(json);
     }
 
     // TODO: Flesh out
@@ -164,20 +202,6 @@ public class Cashier {
             }
 
             return new Cashier(activity, vendor);
-        }
-    }
-
-    public static class VendorMissingException extends Exception {
-        public final String vendorId;
-
-        public VendorMissingException(@NonNull final String vendorId) {
-            this(vendorId, null);
-        }
-
-        public VendorMissingException(@NonNull final String vendorId,
-                                      @Nullable final String message) {
-            super(message);
-            this.vendorId = Check.notNull(vendorId, "Vendor ID");
         }
     }
 }

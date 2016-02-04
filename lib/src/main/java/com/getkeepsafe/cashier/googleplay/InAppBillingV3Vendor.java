@@ -22,19 +22,21 @@ import com.getkeepsafe.cashier.logging.Logger;
 import com.getkeepsafe.cashier.utilities.Check;
 
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.UUID;
 
 public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
-    @Nullable
-    private final String developerPayload;
     private final InAppBillingV3API api;
 
     @Nullable
     private Logger logger;
+    @Nullable
+    private String developerPayload;
     private Product pendingProduct;
     private PurchaseListener purchaseListener;
     private InitializationListener initializationListener;
@@ -75,13 +77,7 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
     };
 
     public InAppBillingV3Vendor(@NonNull final InAppBillingV3API api) {
-        this(api, null);
-    }
-
-    public InAppBillingV3Vendor(@NonNull final InAppBillingV3API api,
-                                @Nullable final String developerPayload) {
         this.api = Check.notNull(api, "API Interface");
-        this.developerPayload = developerPayload;
         available = false;
     }
 
@@ -156,6 +152,7 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
         final String type = product.isSubscription ? PRODUCT_TYPE_SUBSCRIPTION : PRODUCT_TYPE_ITEM;
         try {
             //noinspection ConstantConditions
+            developerPayload = UUID.randomUUID().toString();
             final Bundle buyBundle = api.getBuyIntent(product.sku, type, developerPayload);
             final int response = getResponseCode(buyBundle);
             if (response != BILLING_RESPONSE_RESULT_OK) {
@@ -393,10 +390,17 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
 
         final int responseCode = getResponseCode(data);
         if (resultCode == Activity.RESULT_OK && responseCode == BILLING_RESPONSE_RESULT_OK) {
-            log("Successful purchase of " + pendingProduct.sku + "!");
-
             try {
-                purchaseListener.success(GooglePlayPurchase.of(pendingProduct, data));
+                final GooglePlayPurchase purchase = GooglePlayPurchase.of(pendingProduct, data);
+                if (!purchase.developerPayload.equals(developerPayload)) {
+                    purchaseListener.failure(pendingProduct,
+                            new Vendor.Error(Vendor.PURCHASE_SUCCESS_RESULT_MALFORMED,
+                                    BILLING_RESPONSE_RESULT_ERROR));
+                }
+
+                log("Successful purchase of " + pendingProduct.sku + "!");
+                purchaseListener.success(purchase);
+                developerPayload = null;
             } catch (JSONException e) {
                 purchaseListener.failure(pendingProduct,
                         new Vendor.Error(Vendor.PURCHASE_SUCCESS_RESULT_MALFORMED,
@@ -411,6 +415,26 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
         }
 
         return true;
+    }
+
+    @Override
+    public Product getProductFrom(@NonNull final JSONObject json) throws JSONException {
+        final Product product = new Product(Check.notNull(json, "Product JSON"));
+        if (!product.vendorId.equals(VENDOR_PACKAGE)) {
+            throw new IllegalArgumentException("This product does not belong to Google Play");
+        }
+
+        return product;
+    }
+
+    @Override
+    public Purchase getPurchaseFrom(@NonNull final JSONObject json) throws JSONException {
+        final GooglePlayPurchase purchase = new GooglePlayPurchase(Check.notNull(json, "Purchase JSON"));
+        if (!purchase.vendorId.equals(VENDOR_PACKAGE)) {
+            throw new IllegalArgumentException("This purchase does not belong to Google Play");
+        }
+
+        return purchase;
     }
 
     private void throwIfUninitialized() {

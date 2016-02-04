@@ -7,6 +7,9 @@ import android.support.annotation.Nullable;
 
 import com.getkeepsafe.cashier.logging.Logger;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.List;
 
 public interface Vendor extends VendorConstants {
@@ -44,4 +47,7 @@ public interface Vendor extends VendorConstants {
     boolean available();
     boolean canPurchase(@NonNull Product product);
     boolean onActivityResult(final int requestCode, final int resultCode, final Intent data);
+
+    Product getProductFrom(@NonNull final JSONObject json) throws JSONException;
+    Purchase getPurchaseFrom(@NonNull final JSONObject json) throws JSONException;
 }

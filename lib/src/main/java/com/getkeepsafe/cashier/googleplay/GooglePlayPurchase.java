@@ -2,7 +2,6 @@ package com.getkeepsafe.cashier.googleplay;
 
 import android.content.Intent;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 import com.getkeepsafe.cashier.Product;
 import com.getkeepsafe.cashier.Purchase;
@@ -12,6 +11,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class GooglePlayPurchase extends Purchase implements GooglePlayConstants {
+    public static final String GP_KEY_PACKAGE_NAME = "gp-package-name";
+    public static final String GP_KEY_DATA_SIG = "gp-data-signature";
+    public static final String GP_KEY_AUTO_RENEW = "gp-auto-renewing";
+    public static final String GP_KEY_PURCHASE_TIME = "gp-purchase-time";
+    public static final String GP_KEY_PURCHASE_STATE = "gp-purchase-state";
+
     /** The application package from which the purchase originated */
     public final String packageName;
 
@@ -20,9 +25,6 @@ public class GooglePlayPurchase extends Purchase implements GooglePlayConstants 
      * of the developer.
      */
     public final String dataSignature;
-
-    /** A developer-specified string that contains supplemental information about an order. */
-    public final String developerPayload;
 
     /**
      * Indicates whether a subscription renews automatically. {@code false} indicates a canceled
@@ -67,7 +69,7 @@ public class GooglePlayPurchase extends Purchase implements GooglePlayConstants 
         final JSONObject data = new JSONObject(purchaseData);
         final String packageName = data.getString("packageName");
         final String purchaseToken = data.getString("purchaseToken");
-        final String developerPayload = data.optString("developerPayload");
+        final String developerPayload = data.getString("developerPayload");
         final String orderId = data.getString("orderId");
         final String sku = data.getString("productId");
         if (!sku.equals(product.sku)) {
@@ -99,17 +101,29 @@ public class GooglePlayPurchase extends Purchase implements GooglePlayConstants 
                                @NonNull final String token,
                                @NonNull final String packageName,
                                @NonNull final String dataSignature,
-                               @Nullable final String developerPayload,
+                               @NonNull final String developerPayload,
                                final long purchaseTime,
                                final int purchaseState,
                                final boolean autoRenewing) throws JSONException {
-        super(product, VENDOR_PACKAGE, orderId, token);
+        super(product, orderId, token, developerPayload);
         this.packageName = Check.notNull(packageName);
         this.dataSignature = Check.notNull(dataSignature);
-        this.developerPayload = developerPayload;
         this.autoRenewing = autoRenewing;
         this.purchaseTime = purchaseTime;
         this.purchaseState = purchaseState;
+    }
+
+    public GooglePlayPurchase(@NonNull final String json) throws JSONException {
+        this(new JSONObject(Check.notNull(json, "Google Play Purchase JSON")));
+    }
+
+    public GooglePlayPurchase(@NonNull final JSONObject json) throws JSONException {
+        super(json);
+        packageName = json.getString(GP_KEY_PACKAGE_NAME);
+        dataSignature = json.getString(GP_KEY_DATA_SIG);
+        autoRenewing = json.getBoolean(GP_KEY_AUTO_RENEW);
+        purchaseTime = json.getLong(GP_KEY_PURCHASE_TIME);
+        purchaseState = json.getInt(GP_KEY_PURCHASE_STATE);
     }
 
     public boolean purchased() {
@@ -124,18 +138,15 @@ public class GooglePlayPurchase extends Purchase implements GooglePlayConstants 
         return purchaseState == 2;
     }
 
+    @NonNull
     @Override
-    protected JSONObject constructJson() throws JSONException {
-        final JSONObject object = super.constructJson();
-        object.put("package-name", packageName);
-        object.put("data-signature", dataSignature);
-        object.put("auto-renewing", autoRenewing);
-        object.put("purchase-time", purchaseTime);
-        object.put("purchase-state", purchaseState);
-
-        if (developerPayload != null) {
-            object.put("developer-payload", developerPayload);
-        }
+    protected JSONObject serializeToJson() throws JSONException {
+        final JSONObject object = super.serializeToJson();
+        object.put(GP_KEY_PACKAGE_NAME, packageName);
+        object.put(GP_KEY_DATA_SIG, dataSignature);
+        object.put(GP_KEY_AUTO_RENEW, autoRenewing);
+        object.put(GP_KEY_PURCHASE_TIME, purchaseTime);
+        object.put(GP_KEY_PURCHASE_STATE, purchaseState);
 
         return object;
     }

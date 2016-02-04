@@ -19,6 +19,8 @@ import com.getkeepsafe.cashier.Product;
 import com.getkeepsafe.cashier.Purchase;
 import com.getkeepsafe.cashier.PurchaseListener;
 import com.getkeepsafe.cashier.Vendor;
+import com.getkeepsafe.cashier.VendorFactory;
+import com.getkeepsafe.cashier.googleplay.GooglePlayConstants;
 import com.getkeepsafe.cashier.logging.LogCatLogger;
 
 import org.json.JSONException;
@@ -40,11 +42,11 @@ public class MainActivity extends AppCompatActivity {
             cashier.dispose();
             try {
                 cashier = Cashier
-                        .forPurchase(MainActivity.this, purchasedProduct)
+                        .forProduct(MainActivity.this, purchasedProduct)
                         .withLogger(new LogCatLogger())
                         .build();
-            } catch (Cashier.VendorMissingException e) {
-                // Won't happen in the sample
+            } catch (VendorFactory.VendorMissingException e) {
+                // Won't happen in sample
             }
         }
 
@@ -142,17 +144,23 @@ public class MainActivity extends AppCompatActivity {
         final Button consumeItem = (Button) findViewById(R.id.consume_item);
         final Button queryPurchases = (Button) findViewById(R.id.query_purchases);
 
-        cashier = Cashier.forGooglePlay(this)
-                .withLogger(new LogCatLogger())
-                .build();
-
-        final Product testProduct = Product.item(
+        final Product testProduct = new Product(
+                GooglePlayConstants.VENDOR_PACKAGE,
                 "android.test.purchased",
                 "$0.99",
                 "USD",
                 "Test product",
                 "This is a test product",
+                false,
                 990_000L);
+
+        try {
+            cashier = Cashier.forProduct(this, testProduct)
+                    .withLogger(new LogCatLogger())
+                    .build();
+        } catch (VendorFactory.VendorMissingException e) {
+            // Wont happen in sample
+        }
 
         setOwnedSku();
         purchaseItem.setOnClickListener(new View.OnClickListener() {

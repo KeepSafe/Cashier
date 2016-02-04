@@ -51,13 +51,10 @@ public class ProductionInAppBillingV3API extends InAppBillingV3API implements Go
         }
     };
 
-    public ProductionInAppBillingV3API(@NonNull final String packageName) {
-        super(packageName);
-    }
-
     @Override
     public boolean initialize(@NonNull final Activity activity,
                               @Nullable final LifecycleListener listener) {
+        final boolean superInited = super.initialize(activity, listener);
         this.listener = listener;
         if (available()) {
             if (listener != null) {
@@ -82,7 +79,8 @@ public class ProductionInAppBillingV3API extends InAppBillingV3API implements Go
             }
         }
 
-        return activity.bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
+        return superInited
+                && activity.bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
     }
 
     @Override
@@ -210,7 +208,9 @@ public class ProductionInAppBillingV3API extends InAppBillingV3API implements Go
         return billing.consumePurchase(API_VERSION, packageName, purchaseToken);
     }
 
-    private void throwIfUnavailable() {
+    @Override
+    protected void throwIfUnavailable() {
+        super.throwIfUnavailable();
         if (!available()) {
             throw new IllegalStateException("Trying to use API when unavailable");
         }

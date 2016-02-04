@@ -6,24 +6,21 @@ import android.os.RemoteException;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.getkeepsafe.cashier.utilities.Check;
-
 public abstract class InAppBillingV3API {
     protected static final int API_VERSION = 3;
 
-    protected final String packageName;
+    protected String packageName;
 
     public interface LifecycleListener {
         void initialized(final boolean success);
         void disconnected();
     }
 
-    public InAppBillingV3API(@NonNull final String packageName) {
-        this.packageName = Check.notNull(packageName, "Package Name");
+    public boolean initialize(@NonNull final Activity activity,
+                              @Nullable final LifecycleListener listener) {
+        this.packageName = activity.getPackageName();
+        return true;
     }
-
-    public abstract boolean initialize(@NonNull final Activity activity,
-                                       @Nullable final LifecycleListener listener);
 
     public abstract boolean available();
 
@@ -44,4 +41,10 @@ public abstract class InAppBillingV3API {
             throws RemoteException;
 
     public abstract int consumePurchase(@NonNull final String purchaseToken) throws RemoteException;
+
+    protected void throwIfUnavailable() {
+        if (packageName == null) {
+            throw new IllegalStateException("You did not specify the package name");
+        }
+    }
 }
