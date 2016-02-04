@@ -1,5 +1,7 @@
 package com.getkeepsafe.cashier;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -8,7 +10,7 @@ import com.getkeepsafe.cashier.utilities.Check;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class Purchase extends Product {
+public class Purchase extends Product implements Parcelable {
     public static final String KEY_ORDER_ID = "order-id";
     public static final String KEY_TOKEN = "token";
     public static final String KEY_DEV_PAYLOAD = "developer-payload";
@@ -62,4 +64,37 @@ public class Purchase extends Product {
         object.put(KEY_EXTRAS, extras);
         return object;
     }
+
+    // Parcelable
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        super.writeToParcel(dest, flags);
+        dest.writeString(this.orderId);
+        dest.writeString(this.token);
+        dest.writeString(this.developerPayload);
+        dest.writeString(this.extras);
+    }
+
+    protected Purchase(Parcel in) {
+        super(in);
+        this.orderId = in.readString();
+        this.token = in.readString();
+        this.developerPayload = in.readString();
+        this.extras = in.readString();
+    }
+
+    public static final Creator<Purchase> CREATOR = new Creator<Purchase>() {
+        public Purchase createFromParcel(Parcel source) {
+            return new Purchase(source);
+        }
+
+        public Purchase[] newArray(int size) {
+            return new Purchase[size];
+        }
+    };
 }

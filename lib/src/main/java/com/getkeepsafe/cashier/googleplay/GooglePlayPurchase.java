@@ -1,6 +1,8 @@
 package com.getkeepsafe.cashier.googleplay;
 
 import android.content.Intent;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 
 import com.getkeepsafe.cashier.Product;
@@ -10,7 +12,7 @@ import com.getkeepsafe.cashier.utilities.Check;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class GooglePlayPurchase extends Purchase implements GooglePlayConstants {
+public class GooglePlayPurchase extends Purchase implements GooglePlayConstants, Parcelable {
     public static final String GP_KEY_PACKAGE_NAME = "gp-package-name";
     public static final String GP_KEY_DATA_SIG = "gp-data-signature";
     public static final String GP_KEY_AUTO_RENEW = "gp-auto-renewing";
@@ -150,4 +152,39 @@ public class GooglePlayPurchase extends Purchase implements GooglePlayConstants 
 
         return object;
     }
+
+    // Parcelable
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        super.writeToParcel(dest, flags);
+        dest.writeString(this.packageName);
+        dest.writeString(this.dataSignature);
+        dest.writeByte(autoRenewing ? (byte) 1 : (byte) 0);
+        dest.writeLong(this.purchaseTime);
+        dest.writeInt(this.purchaseState);
+    }
+
+    protected GooglePlayPurchase(Parcel in) {
+        super(in);
+        this.packageName = in.readString();
+        this.dataSignature = in.readString();
+        this.autoRenewing = in.readByte() != 0;
+        this.purchaseTime = in.readLong();
+        this.purchaseState = in.readInt();
+    }
+
+    public static final Creator<GooglePlayPurchase> CREATOR = new Creator<GooglePlayPurchase>() {
+        public GooglePlayPurchase createFromParcel(Parcel source) {
+            return new GooglePlayPurchase(source);
+        }
+
+        public GooglePlayPurchase[] newArray(int size) {
+            return new GooglePlayPurchase[size];
+        }
+    };
 }

@@ -1,5 +1,7 @@
 package com.getkeepsafe.cashier;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 
 import com.getkeepsafe.cashier.utilities.Check;
@@ -7,7 +9,7 @@ import com.getkeepsafe.cashier.utilities.Check;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class Product {
+public class Product implements Parcelable {
     public static final String KEY_VENDOR_ID = "vendor-id";
     public static final String KEY_SKU = "sku";
     public static final String KEY_PRICE = "price";
@@ -88,4 +90,45 @@ public class Product {
     public String toJson() throws JSONException {
         return serializeToJson().toString();
     }
+
+    // Parcelable
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(this.vendorId);
+        dest.writeString(this.sku);
+        dest.writeString(this.price);
+        dest.writeString(this.currency);
+        dest.writeString(this.name);
+        dest.writeString(this.description);
+        dest.writeByte(isSubscription ? (byte) 1 : (byte) 0);
+        dest.writeLong(this.microsPrice);
+    }
+
+    protected Product(Parcel in) {
+        this.vendorId = in.readString();
+        this.sku = in.readString();
+        this.price = in.readString();
+        this.currency = in.readString();
+        this.name = in.readString();
+        this.description = in.readString();
+        this.isSubscription = in.readByte() != 0;
+        this.microsPrice = in.readLong();
+    }
+
+    public static final Creator<Product> CREATOR = new Creator<Product>() {
+        @Override
+        public Product createFromParcel(Parcel in) {
+            return new Product(in);
+        }
+
+        @Override
+        public Product[] newArray(int size) {
+            return new Product[size];
+        }
+    };
 }
