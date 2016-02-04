@@ -5,6 +5,9 @@ import android.support.annotation.Nullable;
 
 import com.getkeepsafe.cashier.utilities.Check;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class Purchase extends Product {
     public final String vendorId;
     public final String orderId;
@@ -29,5 +32,18 @@ public class Purchase extends Product {
 
     public void setExtras(final String extras) {
         this.extras = extras;
+    }
+
+    protected JSONObject constructJson() throws JSONException {
+        final JSONObject object = new JSONObject();
+        object.put("vendor-id", vendorId);
+        object.put("order-id", orderId);
+        object.put("token", token);
+        object.put("extras", extras);
+        return object;
+    }
+
+    public String toJson() throws JSONException {
+        return constructJson().toString();
     }
 }

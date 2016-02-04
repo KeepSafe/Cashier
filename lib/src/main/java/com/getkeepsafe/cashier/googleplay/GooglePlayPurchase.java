@@ -123,4 +123,20 @@ public class GooglePlayPurchase extends Purchase implements GooglePlayConstants 
     public boolean refunded() {
         return purchaseState == 2;
     }
+
+    @Override
+    protected JSONObject constructJson() throws JSONException {
+        final JSONObject object = super.constructJson();
+        object.put("package-name", packageName);
+        object.put("data-signature", dataSignature);
+        object.put("auto-renewing", autoRenewing);
+        object.put("purchase-time", purchaseTime);
+        object.put("purchase-state", purchaseState);
+
+        if (developerPayload != null) {
+            object.put("developer-payload", developerPayload);
+        }
+
+        return object;
+    }
 }

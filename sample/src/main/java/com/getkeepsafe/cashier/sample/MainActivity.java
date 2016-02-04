@@ -4,6 +4,7 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
@@ -20,6 +21,8 @@ import com.getkeepsafe.cashier.PurchaseListener;
 import com.getkeepsafe.cashier.Vendor;
 import com.getkeepsafe.cashier.logging.LogCatLogger;
 
+import org.json.JSONException;
+
 public class MainActivity extends AppCompatActivity {
     private TextView ownedSku;
     private Cashier cashier;
@@ -30,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void success(@NonNull final Purchase purchase) {
             Toast.makeText(MainActivity.this, "Purchase success", Toast.LENGTH_SHORT).show();
-            setOwnedSku(purchase.sku, purchase.orderId, purchase.token);
+            setOwnedSku(purchase);
             purchasedProduct = purchase;
 
             // This is unnecessary, just to show off how to get a cashier instance off a purchase
@@ -106,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
         public void success(@NonNull final Inventory inventory) {
             if (!inventory.purchases().isEmpty()) {
                 purchasedProduct = inventory.purchases().get(0);
-                setOwnedSku(purchasedProduct.sku, purchasedProduct.orderId, purchasedProduct.token);
+                setOwnedSku(purchasedProduct);
             } else {
                 Toast.makeText(MainActivity.this, "You have no purchased items", Toast.LENGTH_SHORT).show();
                 setOwnedSku();
@@ -202,15 +205,22 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setOwnedSku() {
-        setOwnedSku("None", "None", "None");
+        setOwnedSku(null);
     }
 
-    private void setOwnedSku(@NonNull final String sku,
-                             @NonNull final String orderId,
-                             @NonNull final String token) {
-        ownedSku.setText(
-                "Currently owned SKU: " + sku
-                + "\nOrder Id: " + orderId
-                + "\nToken: " + token);
+    private void setOwnedSku(@Nullable final Purchase purchase) {
+        if (purchase == null) {
+            ownedSku.setText("No owned sku");
+        } else {
+            try {
+                ownedSku.setText(
+                        "Currently owned SKU: " + purchase.sku
+                                + "\nOrder Id: " + purchase.orderId
+                                + "\nJSON: " + purchase.toJson());
+            } catch (JSONException e) {
+                // Shouldn't happen in the sample
+                throw new RuntimeException(e);
+            }
+        }
     }
 }
