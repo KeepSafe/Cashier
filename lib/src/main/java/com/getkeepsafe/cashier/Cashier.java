@@ -50,7 +50,7 @@ public class Cashier {
             @Override
             public void initialized() {
                 if (!vendor.available() || !vendor.canPurchase(product)) {
-                    listener.failure(product, Vendor.PURCHASE_UNAVAILABLE);
+                    listener.failure(product, new Vendor.Error(Vendor.PURCHASE_UNAVAILABLE, -1));
                     return;
                 }
 

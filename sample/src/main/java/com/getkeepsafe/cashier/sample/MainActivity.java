@@ -35,14 +35,14 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public void failure(@NonNull final Product product, final int code) {
+        public void failure(@NonNull final Product product, @NonNull final Vendor.Error error) {
             final String message;
-            switch (code) {
+            switch (error.code) {
                 case Vendor.PURCHASE_CANCELED:
                     message = "Purchase canceled";
                     break;
                 case Vendor.PURCHASE_FAILURE:
-                    message = "Purchase failed " + code;
+                    message = "Purchase failed " + error.code;
                     break;
                 case Vendor.PURCHASE_ALREADY_OWNED:
                     message = "You already own " + product.sku + "!";
@@ -77,11 +77,11 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public void failure(@NonNull final Purchase purchase, final int code) {
+        public void failure(@NonNull final Purchase purchase, @NonNull final Vendor.Error error) {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    Toast.makeText(MainActivity.this, "Did not consume purchase! " + code, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "Did not consume purchase! " + error.code, Toast.LENGTH_SHORT).show();
                     if (progressDialog != null) {
                         progressDialog.dismiss();
                     }
@@ -102,9 +102,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public void failure(final int code) {
+        public void failure(@NonNull final Vendor.Error error) {
             final String message;
-            switch (code) {
+            switch (error.code) {
                 case Vendor.INVENTORY_QUERY_FAILURE:
                 default:
                     message = "Couldn't query the inventory for your vendor!";

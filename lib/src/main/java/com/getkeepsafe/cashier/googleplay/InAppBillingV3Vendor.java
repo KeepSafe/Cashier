@@ -154,14 +154,14 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
             final int response = getResponseCode(buyBundle);
             if (response != BILLING_RESPONSE_RESULT_OK) {
                 log("Couldn't purchase product! code:" + response);
-                listener.failure(product, purchaseCode(response));
+                listener.failure(product, purchaseError(response));
                 return;
             }
 
             final PendingIntent pendingIntent = buyBundle.getParcelable(RESPONSE_BUY_INTENT);
             if (pendingIntent == null) {
                 log("Received no pending intent!");
-                listener.failure(product, purchaseCode(response));
+                listener.failure(product, purchaseError(response));
                 return;
             }
 
@@ -174,7 +174,7 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
                     new Intent(), 0, 0, 0);
         } catch (RemoteException | IntentSender.SendIntentException e) {
             log("Failed to launch purchase!\n" + Log.getStackTraceString(e));
-            listener.failure(product, purchaseCode(BILLING_RESPONSE_RESULT_ERROR));
+            listener.failure(product, purchaseError(BILLING_RESPONSE_RESULT_ERROR));
         }
     }
 
@@ -200,11 +200,11 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
                 listener.success(purchase);
             } else {
                 log("Couldn't consume purchase! " + response);
-                listener.failure(purchase, consumeCode(response));
+                listener.failure(purchase, consumeError(response));
             }
         } catch (RemoteException e) {
             log("Couldn't consume purchase! " + Log.getStackTraceString(e));
-            listener.failure(purchase, consumeCode(BILLING_RESPONSE_RESULT_ERROR));
+            listener.failure(purchase, consumeError(BILLING_RESPONSE_RESULT_ERROR));
         }
     }
 
@@ -239,9 +239,9 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
 
             listener.success(inventory);
         } catch (RemoteException | ApiException e) {
-            listener.failure(INVENTORY_QUERY_FAILURE);
+            listener.failure(new Vendor.Error(INVENTORY_QUERY_FAILURE, -1));
         } catch (JSONException e) {
-            listener.failure(INVENTORY_QUERY_MALFORMED_RESPONSE);
+            listener.failure(new Vendor.Error(INVENTORY_QUERY_MALFORMED_RESPONSE, -1));
         }
     }
 
@@ -369,7 +369,7 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
         }
 
         if (data == null) {
-            purchaseListener.failure(pendingProduct, purchaseCode(BILLING_RESPONSE_RESULT_ERROR));
+            purchaseListener.failure(pendingProduct, purchaseError(BILLING_RESPONSE_RESULT_ERROR));
             return true;
         }
 
@@ -380,14 +380,16 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
             try {
                 purchaseListener.success(GooglePlayPurchase.of(pendingProduct, data));
             } catch (JSONException e) {
-                purchaseListener.failure(pendingProduct, Vendor.PURCHASE_SUCCESS_RESULT_MALFORMED);
+                purchaseListener.failure(pendingProduct,
+                        new Vendor.Error(Vendor.PURCHASE_SUCCESS_RESULT_MALFORMED,
+                                BILLING_RESPONSE_RESULT_ERROR));
             }
         } else if (resultCode == Activity.RESULT_OK) {
             log("Purchase failed! " + responseCode);
-            purchaseListener.failure(pendingProduct, purchaseCode(responseCode));
+            purchaseListener.failure(pendingProduct, purchaseError(responseCode));
         } else {
             log("Purchase canceled! " + responseCode);
-            purchaseListener.failure(pendingProduct, purchaseCode(responseCode));
+            purchaseListener.failure(pendingProduct, purchaseError(responseCode));
         }
 
         return true;
@@ -435,38 +437,53 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
         }
     }
 
-    private int purchaseCode(final int response) {
+    private Vendor.Error purchaseError(final int response) {
+        final int code;
         switch (response) {
             case BILLING_RESPONSE_RESULT_BILLING_UNAVAILABLE:
             case BILLING_RESPONSE_RESULT_ITEM_UNAVAILABLE:
-                return Vendor.PURCHASE_UNAVAILABLE;
+                code = Vendor.PURCHASE_UNAVAILABLE;
+                break;
             case BILLING_RESPONSE_RESULT_USER_CANCELED:
-                return Vendor.PURCHASE_CANCELED;
+                code = Vendor.PURCHASE_CANCELED;
+                break;
             case BILLING_RESPONSE_RESULT_ITEM_ALREADY_OWNED:
-                return Vendor.PURCHASE_ALREADY_OWNED;
+                code = Vendor.PURCHASE_ALREADY_OWNED;
+                break;
             case BILLING_RESPONSE_RESULT_ITEM_NOT_OWNED:
-                return Vendor.PURCHASE_NOT_OWNED;
+                code = Vendor.PURCHASE_NOT_OWNED;
+                break;
             case BILLING_RESPONSE_RESULT_DEVELOPER_ERROR:
             case BILLING_RESPONSE_RESULT_ERROR:
             default:
-                return Vendor.PURCHASE_FAILURE;
+                code = Vendor.PURCHASE_FAILURE;
+                break;
         }
+
+        return new Vendor.Error(code, response);
     }
 
-    private int consumeCode(final int response) {
+    private Vendor.Error consumeError(final int response) {
+        final int code;
         switch (response) {
             case BILLING_RESPONSE_RESULT_BILLING_UNAVAILABLE:
             case BILLING_RESPONSE_RESULT_ITEM_UNAVAILABLE:
-                return Vendor.CONSUME_UNAVAILABLE;
+                code = Vendor.CONSUME_UNAVAILABLE;
+                break;
             case BILLING_RESPONSE_RESULT_USER_CANCELED:
-                return Vendor.CONSUME_CANCELED;
+                code = Vendor.CONSUME_CANCELED;
+                break;
             case BILLING_RESPONSE_RESULT_ITEM_NOT_OWNED:
-                return Vendor.CONSUME_NOT_OWNED;
+                code = Vendor.CONSUME_NOT_OWNED;
+                break;
             case BILLING_RESPONSE_RESULT_DEVELOPER_ERROR:
             case BILLING_RESPONSE_RESULT_ERROR:
             default:
-                return Vendor.CONSUME_FAILURE;
+                code = Vendor.CONSUME_FAILURE;
+                break;
         }
+
+        return new Vendor.Error(code, response);
     }
 
     private void log(@NonNull final String message) {

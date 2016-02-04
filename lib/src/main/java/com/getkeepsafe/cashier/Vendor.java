@@ -14,6 +14,16 @@ public interface Vendor extends VendorConstants {
         void initialized();
     }
 
+    class Error {
+        public final int code;
+        public final int vendorCode;
+
+        public Error(final int code, final int vendorCode) {
+            this.code = code;
+            this.vendorCode = vendorCode;
+        }
+    }
+
     void initialize(@NonNull Activity activity, @NonNull InitializationListener listener);
     void dispose(@NonNull Activity activity);
     void purchase(@NonNull Activity activity,
