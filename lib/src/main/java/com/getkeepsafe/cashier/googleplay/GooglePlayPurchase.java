@@ -103,7 +103,7 @@ public class GooglePlayPurchase extends Purchase implements GooglePlayConstants 
                                final long purchaseTime,
                                final int purchaseState,
                                final boolean autoRenewing) throws JSONException {
-        super(product, orderId, token);
+        super(product, VENDOR_ID, orderId, token);
         this.packageName = Check.notNull(packageName);
         this.dataSignature = Check.notNull(dataSignature);
         this.developerPayload = developerPayload;
