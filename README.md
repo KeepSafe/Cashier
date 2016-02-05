@@ -3,7 +3,7 @@
 
 A general billing provider for Android. Supports Google Play's in-app billing v3 and Amazon's in-app billing out of the box.
 
-**Min SDK:** 14
+**Min SDK:** 9
 
 ## Overview
 
