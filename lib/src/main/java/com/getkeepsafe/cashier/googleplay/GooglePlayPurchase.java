@@ -12,7 +12,8 @@ import com.getkeepsafe.cashier.utilities.Check;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class GooglePlayPurchase extends Purchase implements GooglePlayConstants, Parcelable {
+public class GooglePlayPurchase extends Purchase
+        implements GooglePlayConstants, GooglePlayConstants.PurchaseConstants, Parcelable {
     public static final String GP_KEY_PACKAGE_NAME = "gp-package-name";
     public static final String GP_KEY_DATA_SIG = "gp-data-signature";
     public static final String GP_KEY_AUTO_RENEW = "gp-auto-renewing";
@@ -69,19 +70,19 @@ public class GooglePlayPurchase extends Purchase implements GooglePlayConstants,
         Check.notNull(purchaseData, "Purchase Data");
         Check.notNull(dataSignature, "Signature");
         final JSONObject data = new JSONObject(purchaseData);
-        final String packageName = data.getString("packageName");
-        final String purchaseToken = data.getString("purchaseToken");
-        final String developerPayload = data.getString("developerPayload");
-        final String orderId = data.getString("orderId");
-        final String sku = data.getString("productId");
+        final String packageName = data.getString(PACKAGE_NAME);
+        final String purchaseToken = data.getString(PURCHASE_TOKEN);
+        final String developerPayload = data.getString(DEVELOPER_PAYLOAD);
+        final String orderId = data.getString(ORDER_ID);
+        final String sku = data.getString(PRODUCT_ID);
         if (!sku.equals(product.sku)) {
             throw new IllegalArgumentException("Received mismatched SKU! "
                     + sku + " vs " + product.sku);
         }
 
-        final boolean autoRenewing = data.optBoolean("autoRenewing", false);
-        final long purchaseTime = data.getLong("purchaseTime");
-        final int purchaseState = data.getInt("purchaseState");
+        final boolean autoRenewing = data.optBoolean(AUTO_RENEWING, false);
+        final long purchaseTime = data.getLong(PURCHASE_TIME);
+        final int purchaseState = data.getInt(PURCHASE_STATE);
 
         final GooglePlayPurchase purchase = new GooglePlayPurchase(
                 product,
@@ -151,6 +152,33 @@ public class GooglePlayPurchase extends Purchase implements GooglePlayConstants,
         object.put(GP_KEY_PURCHASE_STATE, purchaseState);
 
         return object;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        GooglePlayPurchase that = (GooglePlayPurchase) o;
+
+        if (autoRenewing != that.autoRenewing) return false;
+        if (purchaseTime != that.purchaseTime) return false;
+        if (purchaseState != that.purchaseState) return false;
+        if (!packageName.equals(that.packageName)) return false;
+        return dataSignature.equals(that.dataSignature);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + packageName.hashCode();
+        result = 31 * result + dataSignature.hashCode();
+        result = 31 * result + (autoRenewing ? 1 : 0);
+        result = 31 * result + (int) (purchaseTime ^ (purchaseTime >>> 32));
+        result = 31 * result + purchaseState;
+        return result;
     }
 
     // Parcelable

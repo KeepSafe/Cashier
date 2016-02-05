@@ -91,6 +91,37 @@ public class Product implements Parcelable {
         return serializeToJson().toString();
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Product product = (Product) o;
+
+        if (isSubscription != product.isSubscription) return false;
+        if (microsPrice != product.microsPrice) return false;
+        if (!vendorId.equals(product.vendorId)) return false;
+        if (!sku.equals(product.sku)) return false;
+        if (!price.equals(product.price)) return false;
+        if (!currency.equals(product.currency)) return false;
+        if (!name.equals(product.name)) return false;
+        return description.equals(product.description);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = vendorId.hashCode();
+        result = 31 * result + sku.hashCode();
+        result = 31 * result + price.hashCode();
+        result = 31 * result + currency.hashCode();
+        result = 31 * result + name.hashCode();
+        result = 31 * result + description.hashCode();
+        result = 31 * result + (isSubscription ? 1 : 0);
+        result = 31 * result + (int) (microsPrice ^ (microsPrice >>> 32));
+        return result;
+    }
+
     // Parcelable
     @Override
     public int describeContents() {

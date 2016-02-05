@@ -6,10 +6,13 @@ import android.os.RemoteException;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.getkeepsafe.cashier.utilities.Check;
+
 public abstract class InAppBillingV3API {
     protected static final int API_VERSION = 3;
 
     protected String packageName;
+    protected InAppBillingV3Vendor vendor;
 
     public interface LifecycleListener {
         void initialized(final boolean success);
@@ -17,8 +20,10 @@ public abstract class InAppBillingV3API {
     }
 
     public boolean initialize(@NonNull final Activity activity,
+                              @NonNull final InAppBillingV3Vendor vendor,
                               @Nullable final LifecycleListener listener) {
         this.packageName = activity.getPackageName();
+        this.vendor = Check.notNull(vendor, "IAB Vendor");
         return true;
     }
 

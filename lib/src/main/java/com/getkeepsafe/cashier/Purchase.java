@@ -65,6 +65,31 @@ public class Purchase extends Product implements Parcelable {
         return object;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        Purchase purchase = (Purchase) o;
+
+        if (!orderId.equals(purchase.orderId)) return false;
+        if (!token.equals(purchase.token)) return false;
+        if (!developerPayload.equals(purchase.developerPayload)) return false;
+        return extras != null ? extras.equals(purchase.extras) : purchase.extras == null;
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + orderId.hashCode();
+        result = 31 * result + token.hashCode();
+        result = 31 * result + developerPayload.hashCode();
+        result = 31 * result + (extras != null ? extras.hashCode() : 0);
+        return result;
+    }
+
     // Parcelable
     @Override
     public int describeContents() {

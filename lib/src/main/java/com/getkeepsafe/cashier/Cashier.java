@@ -15,54 +15,25 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class Cashier {
-    private static VendorFactory vendorFactory;
-    private static VendorFactory debugVendorFactory;
-    private static boolean debug;
+    private static VendorFactory vendorFactory = new VendorFactory() {
+        @Override
+        public Vendor get(@NonNull final String id) throws VendorFactory.VendorMissingException
+        {
+            Check.notNull(id, "Vendor ID");
+
+            if (id.equals(GooglePlayConstants.VENDOR_PACKAGE)) {
+                return new InAppBillingV3Vendor(new ProductionInAppBillingV3API());
+            }
+
+            throw new VendorFactory.VendorMissingException(id);
+        }
+    };
 
     private final Activity activity;
     private final Vendor vendor;
 
-    static {
-        debug = false;
-        vendorFactory = new VendorFactory() {
-            @Override
-            public Vendor get(@NonNull final String id) throws VendorMissingException {
-                Check.notNull(id, "Vendor ID");
-                if (debug) {
-                    return debugVendorFactory.get(id);
-                }
-
-                if (id.equals(GooglePlayConstants.VENDOR_PACKAGE)) {
-                    return new InAppBillingV3Vendor(new ProductionInAppBillingV3API());
-                }
-
-                throw new VendorMissingException(id);
-            }
-        };
-
-        debugVendorFactory = new VendorFactory() {
-            @Override
-            public Vendor get(@NonNull String id) throws VendorMissingException {
-                if (id.equals(GooglePlayConstants.VENDOR_PACKAGE)) {
-                    // TODO: TestInAppBillingV3API
-                    return new InAppBillingV3Vendor(new ProductionInAppBillingV3API());
-                }
-
-                throw new VendorMissingException(id);
-            }
-        };
-    }
-
-    public void setDebugMode(final boolean status) {
-        debug = status;
-    }
-
     public static void setVendorFactory(@NonNull final VendorFactory factory) {
         vendorFactory = factory;
-    }
-
-    public static void setDebugVendorFactory(@NonNull final VendorFactory factory) {
-        debugVendorFactory = factory;
     }
 
     public static Builder forGooglePlay(@NonNull final Activity activity) {

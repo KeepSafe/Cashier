@@ -8,6 +8,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -20,15 +21,19 @@ import com.getkeepsafe.cashier.Purchase;
 import com.getkeepsafe.cashier.PurchaseListener;
 import com.getkeepsafe.cashier.Vendor;
 import com.getkeepsafe.cashier.VendorFactory;
+import com.getkeepsafe.cashier.googleplay.FakeInAppBillingV3Api;
 import com.getkeepsafe.cashier.googleplay.GooglePlayConstants;
+import com.getkeepsafe.cashier.googleplay.InAppBillingV3Vendor;
 import com.getkeepsafe.cashier.logging.LogCatLogger;
 
 import org.json.JSONException;
 
 public class MainActivity extends AppCompatActivity {
+    private Switch useFake;
     private TextView ownedSku;
     private Cashier cashier;
     private ProgressDialog progressDialog;
+    private Product testProduct;
     private Purchase purchasedProduct;
 
     private static final String DEV_PAYLOAD = "hello-cashier!";
@@ -47,14 +52,7 @@ public class MainActivity extends AppCompatActivity {
 
             // This is unnecessary, just to show off how to get a cashier instance off a purchase
             cashier.dispose();
-            try {
-                cashier = Cashier
-                        .forProduct(MainActivity.this, purchasedProduct)
-                        .withLogger(new LogCatLogger())
-                        .build();
-            } catch (VendorFactory.VendorMissingException e) {
-                // Won't happen in sample
-            }
+            initCashier();
         }
 
         @Override
@@ -65,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
                     message = "Purchase canceled";
                     break;
                 case Vendor.PURCHASE_FAILURE:
-                    message = "Purchase failed " + error.code;
+                    message = "Purchase failed " + error.vendorCode;
                     break;
                 case Vendor.PURCHASE_ALREADY_OWNED:
                     message = "You already own " + product.sku + "!";
@@ -147,11 +145,12 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstance);
         setContentView(R.layout.activity_main);
         ownedSku = (TextView) findViewById(R.id.current_owned_sku);
+        useFake = (Switch) findViewById(R.id.use_fake);
         final Button purchaseItem = (Button) findViewById(R.id.buy_item);
         final Button consumeItem = (Button) findViewById(R.id.consume_item);
         final Button queryPurchases = (Button) findViewById(R.id.query_purchases);
 
-        final Product testProduct = new Product(
+        testProduct = new Product(
                 GooglePlayConstants.VENDOR_PACKAGE,
                 "android.test.purchased",
                 "$0.99",
@@ -160,6 +159,9 @@ public class MainActivity extends AppCompatActivity {
                 "This is a test product",
                 false,
                 990_000L);
+
+        // For test mode
+        FakeInAppBillingV3Api.testProducts.add(testProduct);
 
         try {
             cashier = Cashier.forProduct(this, testProduct)
@@ -204,6 +206,17 @@ public class MainActivity extends AppCompatActivity {
                 cashier.getInventory(inventoryListener);
             }
         });
+
+        useFake.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (cashier != null) {
+                    cashier.dispose();
+                }
+
+                initCashier();
+            }
+        });
     }
 
     @Override
@@ -216,6 +229,34 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (!cashier.onActivityResult(requestCode, resultCode, data)) {
             super.onActivityResult(requestCode, resultCode, data);
+        }
+    }
+
+    private void initCashier() {
+        if (useFake.isChecked()) {
+            cashier = new Cashier.Builder(MainActivity.this)
+                    .forVendor(
+                            new InAppBillingV3Vendor(
+                                    new FakeInAppBillingV3Api(MainActivity.this)))
+                    .withLogger(new LogCatLogger())
+                    .build();
+        } else if (purchasedProduct != null) {
+            try {
+                cashier = Cashier
+                        .forProduct(MainActivity.this, purchasedProduct)
+                        .withLogger(new LogCatLogger())
+                        .build();
+            } catch (VendorFactory.VendorMissingException e) {
+                // Won't happen in sample
+            }
+        } else {
+            try {
+                cashier = Cashier.forProduct(MainActivity.this, testProduct)
+                        .withLogger(new LogCatLogger())
+                        .build();
+            } catch (VendorFactory.VendorMissingException e) {
+                // Shouldn't happen in sample
+            }
         }
     }
 

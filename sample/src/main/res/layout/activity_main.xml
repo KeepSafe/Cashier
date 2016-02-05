@@ -4,32 +4,52 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <Button
-        android:id="@+id/query_purchases"
+    <Switch
+        android:id="@+id/use_fake"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:gravity="center"
         android:layout_gravity="center"
-        android:layout_marginTop="32dp"
-        android:text="Query inventory"/>
+        android:layout_marginTop="16dp"
+        android:text="Use Fake Checkout    "/>
 
-    <Button
-        android:id="@+id/buy_item"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
         android:gravity="center"
         android:layout_gravity="center"
-        android:layout_marginTop="32dp"
-        android:text="Purchase item"/>
+        android:weightSum="3"
+        android:orientation="horizontal">
 
-    <Button
-        android:id="@+id/consume_item"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:layout_gravity="center"
-        android:layout_marginTop="32dp"
-        android:text="Consume item"/>
+        <Button
+            android:id="@+id/query_purchases"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:layout_gravity="center"
+            android:text="Query inventory"/>
+
+        <Button
+            android:id="@+id/buy_item"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:layout_gravity="center"
+            android:text="Purchase item"/>
+
+        <Button
+            android:id="@+id/consume_item"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:layout_gravity="center"
+            android:text="Consume item"/>
+
+    </LinearLayout>
 
     <TextView
         android:id="@+id/current_owned_sku"

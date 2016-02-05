@@ -53,8 +53,9 @@ public class ProductionInAppBillingV3API extends InAppBillingV3API implements Go
 
     @Override
     public boolean initialize(@NonNull final Activity activity,
+                              @NonNull final InAppBillingV3Vendor vendor,
                               @Nullable final LifecycleListener listener) {
-        final boolean superInited = super.initialize(activity, listener);
+        final boolean superInited = super.initialize(activity, vendor, listener);
         this.listener = listener;
         if (available()) {
             if (listener != null) {
@@ -91,7 +92,11 @@ public class ProductionInAppBillingV3API extends InAppBillingV3API implements Go
     @Override
     public void dispose(@NonNull final Activity activity) {
         Check.notNull(activity, "Activity");
-        activity.unbindService(serviceConnection);
+        try {
+            activity.unbindService(serviceConnection);
+        } catch (IllegalArgumentException e) {
+            // Never bound to begin with, ok
+        }
         billing = null;
     }
 

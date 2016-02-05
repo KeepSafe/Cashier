@@ -94,13 +94,13 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
         Check.notNull(listener, "Initialization Listener");
         initializationListener = listener;
 
-        if (api.available()) {
-            initializationListener.initialized();
+        if (available()) {
+            listener.initialized();
             return;
         }
 
         log("Initializing In-app billing v3...");
-        available = api.initialize(activity, lifecycleListener);
+        available = api.initialize(activity, this, lifecycleListener);
     }
 
     @Override
@@ -108,6 +108,7 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
         log("Disposing self...");
         Check.notNull(activity, "Activity");
         api.dispose(activity);
+        available = false;
     }
 
     @Override

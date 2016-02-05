@@ -46,4 +46,19 @@ public interface GooglePlayConstants {
         String DESCRIPTION = "description";
         String PRICE_MICRO = "price_amount_micros";
     }
+
+    interface PurchaseConstants {
+        String AUTO_RENEWING = "autoRenewing";
+        String ORDER_ID = "orderId";
+        String PACKAGE_NAME = "packageName";
+        String PRODUCT_ID = "productId";
+        String PURCHASE_TIME = "purchaseTime";
+        String PURCHASE_STATE = "purchaseState";
+        String DEVELOPER_PAYLOAD = "developerPayload";
+        String PURCHASE_TOKEN = "purchaseToken";
+
+        int PURCHASE_STATE_PURCHASED = 0;
+        int PURCHASE_STATE_CANCELED = 1;
+        int PURCHASE_STATE_REFUNDED = 2;
+    }
 }

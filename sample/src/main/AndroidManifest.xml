@@ -17,6 +17,10 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name="com.getkeepsafe.cashier.googleplay.FakeInAppBillingV3CheckoutActivity"
+            android:theme="@style/Cashier.FakeCheckoutThemne"/>
+
     </application>
 
 </manifest>
