@@ -32,5 +32,23 @@ public class GooglePlayProduct
                 Long.parseLong(microsPrice));
     }
 
+    public static Product of(@NonNull final String sku,
+                             @NonNull final String price,
+                             @NonNull final String currency,
+                             @NonNull final String name,
+                             @NonNull final String description,
+                             final boolean isSubscription,
+                             final long microsPrice) {
+        return new Product(
+                VENDOR_PACKAGE,
+                sku,
+                price,
+                currency,
+                name,
+                description,
+                isSubscription,
+                microsPrice);
+    }
+
     private GooglePlayProduct() {}
 }
