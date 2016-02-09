@@ -147,6 +147,10 @@ public class Cashier {
         });
     }
 
+    public String vendorId() {
+        return vendor.id();
+    }
+
     public void dispose() {
         vendor.dispose(activity);
     }
