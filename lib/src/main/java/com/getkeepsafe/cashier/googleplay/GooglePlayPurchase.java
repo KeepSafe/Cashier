@@ -141,6 +141,19 @@ public class GooglePlayPurchase extends Purchase
         return purchaseState == 2;
     }
 
+    public String toGoogleReceiptJson() throws JSONException {
+        final JSONObject data = new JSONObject();
+        data.put(PACKAGE_NAME, packageName);
+        data.put(PURCHASE_TOKEN, token);
+        data.put(DEVELOPER_PAYLOAD, developerPayload);
+        data.put(ORDER_ID, orderId);
+        data.put(PRODUCT_ID, sku);
+        data.put(AUTO_RENEWING, autoRenewing);
+        data.put(PURCHASE_TIME, purchaseTime);
+        data.put(PURCHASE_STATE, purchaseState);
+        return data.toString();
+    }
+
     @NonNull
     @Override
     protected JSONObject serializeToJson() throws JSONException {
