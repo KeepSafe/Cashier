@@ -1,6 +1,5 @@
 package com.getkeepsafe.cashier.googleplay;
 
-import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.RemoteException;
@@ -28,10 +27,10 @@ public class FakeInAppBillingV3Api extends InAppBillingV3API implements GooglePl
     }
 
     @Override
-    public boolean initialize(@NonNull final Activity activity,
+    public boolean initialize(@NonNull final Context context,
                               @NonNull final InAppBillingV3Vendor vendor,
                               @Nullable final LifecycleListener listener) {
-        super.initialize(activity, vendor, listener);
+        super.initialize(context, vendor, listener);
 
         if (available()) {
             if (listener != null) {
@@ -50,7 +49,7 @@ public class FakeInAppBillingV3Api extends InAppBillingV3API implements GooglePl
     }
 
     @Override
-    public void dispose(@NonNull final Activity activity) {}
+    public void dispose(@NonNull final Context context) {}
 
     @Override
     public int isBillingSupported(@NonNull final String itemType) throws RemoteException {

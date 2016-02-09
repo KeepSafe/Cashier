@@ -1,6 +1,5 @@
 package com.getkeepsafe.cashier.googleplay;
 
-import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -52,10 +51,10 @@ public class ProductionInAppBillingV3API extends InAppBillingV3API implements Go
     };
 
     @Override
-    public boolean initialize(@NonNull final Activity activity,
+    public boolean initialize(@NonNull final Context context,
                               @NonNull final InAppBillingV3Vendor vendor,
                               @Nullable final LifecycleListener listener) {
-        final boolean superInited = super.initialize(activity, vendor, listener);
+        final boolean superInited = super.initialize(context, vendor, listener);
         this.listener = listener;
         if (available()) {
             if (listener != null) {
@@ -69,7 +68,7 @@ public class ProductionInAppBillingV3API extends InAppBillingV3API implements Go
                 = new Intent("com.android.vending.billing.InAppBillingService.BIND");
         serviceIntent.setPackage("com.android.vending");
 
-        final PackageManager packageManager = activity.getPackageManager();
+        final PackageManager packageManager = context.getPackageManager();
         if (packageManager == null) {
             return false;
         } else {
@@ -81,7 +80,7 @@ public class ProductionInAppBillingV3API extends InAppBillingV3API implements Go
         }
 
         return superInited
-                && activity.bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
+                && context.bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
     }
 
     @Override
@@ -90,10 +89,10 @@ public class ProductionInAppBillingV3API extends InAppBillingV3API implements Go
     }
 
     @Override
-    public void dispose(@NonNull final Activity activity) {
-        Check.notNull(activity, "Activity");
+    public void dispose(@NonNull final Context context) {
+        Check.notNull(context, "Context");
         try {
-            activity.unbindService(serviceConnection);
+            context.unbindService(serviceConnection);
         } catch (IllegalArgumentException e) {
             // Never bound to begin with, ok
         }

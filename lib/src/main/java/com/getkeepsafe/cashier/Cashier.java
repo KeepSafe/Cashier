@@ -1,6 +1,7 @@
 package com.getkeepsafe.cashier;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -13,6 +14,8 @@ import com.getkeepsafe.cashier.utilities.Check;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.List;
 
 public class Cashier {
     private static VendorFactory vendorFactory = new VendorFactory() {
@@ -29,7 +32,7 @@ public class Cashier {
         }
     };
 
-    private final Activity activity;
+    private final Context context;
     private final Vendor vendor;
 
     public static void setVendorFactory(@NonNull final VendorFactory factory) {
@@ -93,9 +96,9 @@ public class Cashier {
 //                new InAppBillingV3Vendor())
 //    }
 
-    private Cashier(@NonNull final Activity activity,
-                   @NonNull final Vendor vendor) {
-        this.activity = Check.notNull(activity, "Activity");
+    private Cashier(@NonNull final Context context,
+                    @NonNull final Vendor vendor) {
+        this.context = Check.notNull(context, "Context");
         this.vendor = Check.notNull(vendor, "Vendor");
     }
 
@@ -108,7 +111,8 @@ public class Cashier {
                          @NonNull final PurchaseListener listener) {
         Check.notNull(product, "Product");
         Check.notNull(listener, "Listener");
-        vendor.initialize(activity, new Vendor.InitializationListener() {
+        final Activity activity = (Activity) context;
+        vendor.initialize(context, new Vendor.InitializationListener() {
             @Override
             public void initialized() {
                 if (!vendor.available() || !vendor.canPurchase(product)) {
@@ -127,8 +131,8 @@ public class Cashier {
         if (purchase.isSubscription) {
             throw new IllegalArgumentException("Cannot consume a subscription type!");
         }
-
-        vendor.initialize(activity, new Vendor.InitializationListener() {
+        final Activity activity = (Activity) context;
+        vendor.initialize(context, new Vendor.InitializationListener() {
             @Override
             public void initialized() {
                 vendor.consume(activity, purchase, listener);
@@ -137,12 +141,18 @@ public class Cashier {
     }
 
     public void getInventory(@NonNull final InventoryListener listener) {
+        getInventory(null, null, listener);
+    }
+
+    public void getInventory(@Nullable final List<String> itemSkus,
+                             @Nullable final List<String> subSkus,
+                             @NonNull final InventoryListener listener) {
         Check.notNull(listener, "Listener");
 
-        vendor.initialize(activity, new Vendor.InitializationListener() {
+        vendor.initialize(context, new Vendor.InitializationListener() {
             @Override
             public void initialized() {
-                vendor.getInventory(activity, listener);
+                vendor.getInventory(context, itemSkus, subSkus, listener);
             }
         });
     }
@@ -152,7 +162,7 @@ public class Cashier {
     }
 
     public void dispose() {
-        vendor.dispose(activity);
+        vendor.dispose(context);
     }
 
     public boolean onActivityResult(final int requestCode, final int resultCode, final Intent data) {

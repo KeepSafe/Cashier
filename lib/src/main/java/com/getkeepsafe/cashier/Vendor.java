@@ -1,6 +1,7 @@
 package com.getkeepsafe.cashier;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -29,23 +30,22 @@ public interface Vendor extends VendorConstants {
 
     @NonNull
     String id();
-    void initialize(@NonNull Activity activity, @NonNull InitializationListener listener);
-    void dispose(@NonNull Activity activity);
-    void purchase(@NonNull Activity activity,
-                  @NonNull Product product,
-                  @NonNull PurchaseListener listener);
+    void initialize(@NonNull Context context, @NonNull InitializationListener listener);
+    void dispose(@NonNull Context context);
     void purchase(@NonNull Activity activity,
                   @NonNull Product product,
                   @Nullable String developerPayload,
                   @NonNull PurchaseListener listener);
+
     void consume(@NonNull Activity activity,
                  @NonNull Purchase purchase,
                  @NonNull ConsumeListener listener);
-    void getInventory(@NonNull Activity activity, @NonNull InventoryListener listener);
-    void getInventory(@NonNull Activity activity,
+
+    void getInventory(@NonNull Context context,
                       @Nullable List<String> itemSkus,
                       @Nullable List<String> subSkus,
                       @NonNull InventoryListener listener);
+
     void setLogger(@Nullable Logger logger);
 
     boolean available();

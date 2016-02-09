@@ -1,6 +1,7 @@
 package com.getkeepsafe.cashier.googleplay;
 
 import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.support.annotation.NonNull;
@@ -19,17 +20,17 @@ public abstract class InAppBillingV3API {
         void disconnected();
     }
 
-    public boolean initialize(@NonNull final Activity activity,
+    public boolean initialize(@NonNull final Context context,
                               @NonNull final InAppBillingV3Vendor vendor,
                               @Nullable final LifecycleListener listener) {
-        this.packageName = activity.getPackageName();
+        this.packageName = context.getPackageName();
         this.vendor = Check.notNull(vendor, "IAB Vendor");
         return true;
     }
 
     public abstract boolean available();
 
-    public abstract void dispose(@NonNull final Activity activity);
+    public abstract void dispose(@NonNull final Context context);
 
     public abstract int isBillingSupported(@NonNull final String itemType) throws RemoteException;
 

@@ -2,6 +2,7 @@ package com.getkeepsafe.cashier.googleplay;
 
 import android.app.Activity;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.os.Bundle;
@@ -88,9 +89,9 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
     }
 
     @Override
-    public void initialize(@NonNull final Activity activity,
+    public void initialize(@NonNull final Context context,
                            @NonNull final InitializationListener listener) {
-        Check.notNull(activity, "Activity");
+        Check.notNull(context, "Activity");
         Check.notNull(listener, "Initialization Listener");
         initializationListener = listener;
 
@@ -100,14 +101,14 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
         }
 
         log("Initializing In-app billing v3...");
-        available = api.initialize(activity, this, lifecycleListener);
+        available = api.initialize(context, this, lifecycleListener);
     }
 
     @Override
-    public void dispose(@NonNull final Activity activity) {
+    public void dispose(@NonNull final Context context) {
         log("Disposing self...");
-        Check.notNull(activity, "Activity");
-        api.dispose(activity);
+        Check.notNull(context, "Activity");
+        api.dispose(context);
         available = false;
     }
 
@@ -134,13 +135,6 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
         // TODO: Maybe query inventory and match skus
 
         return true;
-    }
-
-    @Override
-    public void purchase(@NonNull final Activity activity,
-                         @NonNull final Product product,
-                         @NonNull final PurchaseListener listener) {
-        purchase(activity, product, null, listener);
     }
 
     @Override
@@ -225,17 +219,11 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
     }
 
     @Override
-    public void getInventory(@NonNull final Activity activity,
-                             @NonNull final InventoryListener listener) {
-        getInventory(activity, null, null, listener);
-    }
-
-    @Override
-    public void getInventory(@NonNull final Activity activity,
+    public void getInventory(@NonNull final Context context,
                              @Nullable final List<String> itemSkus,
                              @Nullable final List<String> subSkus,
                              @NonNull final InventoryListener listener) {
-        Check.notNull(activity, "Activity");
+        Check.notNull(context, "Context");
         Check.notNull(listener, "Inventory Listener");
         throwIfUninitialized();
 
