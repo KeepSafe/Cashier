@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.getkeepsafe.cashier.googleplay.FakeInAppBillingV3Api;
 import com.getkeepsafe.cashier.googleplay.GooglePlayConstants;
 import com.getkeepsafe.cashier.googleplay.InAppBillingV3Vendor;
 import com.getkeepsafe.cashier.googleplay.ProductionInAppBillingV3API;
@@ -39,26 +40,32 @@ public class Cashier {
         vendorFactory = factory;
     }
 
-    public static Builder forGooglePlay(@NonNull final Activity activity) {
-        Check.notNull(activity, "Activity");
-        return new Builder(activity).forVendor(
-                new InAppBillingV3Vendor(new ProductionInAppBillingV3API()));
+    public static Builder forGooglePlay(@NonNull final Context context) {
+        Check.notNull(context, "Context");
+        return new Builder(context)
+                .forVendor(new InAppBillingV3Vendor(new ProductionInAppBillingV3API()));
     }
 
-    public static Builder forAppInstaller(@NonNull final Activity activity)
+    public static Builder forDebugGooglePlay(@NonNull final Context context) {
+        return new Builder(context)
+                .forVendor(new InAppBillingV3Vendor(new FakeInAppBillingV3Api(context)));
+    }
+
+    public static Builder forAppInstaller(@NonNull final Context context)
             throws VendorFactory.VendorMissingException {
-        Check.notNull(activity, "Activity");
-        final String installer = activity
+        Check.notNull(context, "Context");
+        final String installer = context
                 .getPackageManager()
-                .getInstallerPackageName(activity.getPackageName());
-        return new Builder(activity).forVendor(vendorFactory.get(installer));
+                .getInstallerPackageName(context.getPackageName());
+        return new Builder(context).forVendor(vendorFactory.get(installer));
     }
 
-    public static Builder forProduct(@NonNull final Activity activity,
+    public static Builder forProduct(@NonNull final Context context,
                                      @NonNull final Product product)
             throws VendorFactory.VendorMissingException {
+        Check.notNull(context, "Context");
         Check.notNull(product, "Product");
-        return new Builder(activity).forVendor(vendorFactory.get(product.vendorId));
+        return new Builder(context).forVendor(vendorFactory.get(product.vendorId));
     }
 
     public static Product productFromJson(@NonNull final String json)
@@ -84,17 +91,6 @@ public class Cashier {
         final Vendor vendor = vendorFactory.get(vendorId);
         return vendor.getPurchaseFrom(json);
     }
-
-    // TODO: Flesh out
-//    public static Builder forDebugGooglePlay(@NonNull final Activity activity) {
-//        return forDebugGooglePlay(activity, null);
-//    }
-//
-//    public static Builder forDebugGooglePlay(@NonNull final Activity activity,
-//                                             @Nullable final String developerPayload) {
-//        return new Builder(activity).forVendor(
-//                new InAppBillingV3Vendor())
-//    }
 
     private Cashier(@NonNull final Context context,
                     @NonNull final Vendor vendor) {
@@ -170,12 +166,12 @@ public class Cashier {
     }
 
     public static class Builder {
-        private final Activity activity;
+        private final Context context;
         private Vendor vendor;
         private Logger logger;
 
-        public Builder(final Activity activity) {
-            this.activity = Check.notNull(activity, "Activity");
+        public Builder(final Context context) {
+            this.context = Check.notNull(context, "Context");
         }
 
         public Builder forVendor(final Vendor vendor) {
@@ -193,7 +189,7 @@ public class Cashier {
                 vendor.setLogger(logger);
             }
 
-            return new Cashier(activity, vendor);
+            return new Cashier(context, vendor);
         }
     }
 }

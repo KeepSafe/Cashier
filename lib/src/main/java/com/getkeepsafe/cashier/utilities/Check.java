@@ -1,8 +1,8 @@
 package com.getkeepsafe.cashier.utilities;
 
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+// TODO: Not sure if this should exist, most likely not
 public class Check {
     private Check() {
         throw new AssertionError("No Instances.");
