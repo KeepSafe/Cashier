@@ -72,7 +72,7 @@ public class FakeInAppBillingV3CheckoutActivity extends Activity implements Goog
                     data.putExtra(RESPONSE_CODE, BILLING_RESPONSE_RESULT_OK);
                     data.putExtra(RESPONSE_INAPP_PURCHASE_DATA, purchaseData());
                     data.putExtra(RESPONSE_INAPP_SIGNATURE, "TEST-DATA-SIGNATURE-" + product.sku);
-                    FakeInAppBillingV3Api.testPurchases.add(GooglePlayPurchase.of(product, data));
+                    FakeInAppBillingV3Api.addTestPurchase(GooglePlayPurchase.of(product, data));
                 } catch (JSONException e) {
                     // Library error, if it happens, promote to RuntimeException
                     throw new RuntimeException(e);

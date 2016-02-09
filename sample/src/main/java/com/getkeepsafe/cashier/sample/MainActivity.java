@@ -161,7 +161,7 @@ public class MainActivity extends AppCompatActivity {
                 990_000L);
 
         // For test mode
-        FakeInAppBillingV3Api.testProducts.add(testProduct);
+        FakeInAppBillingV3Api.addTestProduct(testProduct);
 
         try {
             cashier = Cashier.forProduct(this, testProduct)

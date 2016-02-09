@@ -17,10 +17,18 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class FakeInAppBillingV3Api extends InAppBillingV3API implements GooglePlayConstants {
-    public static final Set<Product> testProducts = new HashSet<>();
-    public static final Set<GooglePlayPurchase> testPurchases = new HashSet<>();
+    private static final Set<Product> testProducts = new HashSet<>();
+    private static final Set<GooglePlayPurchase> testPurchases = new HashSet<>();
 
     private final Context context;
+
+    public static void addTestProduct(@NonNull final Product product) {
+        testProducts.add(product);
+    }
+
+    public static void addTestPurchase(@NonNull final GooglePlayPurchase purchase) {
+        testPurchases.add(purchase);
+    }
 
     public FakeInAppBillingV3Api(@NonNull final Context context) {
         this.context = Check.notNull(context, "Context");
