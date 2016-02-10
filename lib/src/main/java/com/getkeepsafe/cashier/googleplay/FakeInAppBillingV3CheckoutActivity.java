@@ -85,6 +85,14 @@ public class FakeInAppBillingV3CheckoutActivity extends Activity implements Goog
     }
 
     @Override
+    public void onSaveInstanceState(final Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putParcelable(ARGUMENT_PRODUCT, product);
+        savedInstanceState.putString(ARGUMENT_PACKAGE, packageName);
+        savedInstanceState.putString(ARGUMENT_DEV_PAYLOAD, developerPayload);
+    }
+
+    @Override
     public void onBackPressed() {
         final Intent data = new Intent();
         data.putExtra(RESPONSE_CODE, BILLING_RESPONSE_RESULT_USER_CANCELED);
