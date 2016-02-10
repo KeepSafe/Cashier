@@ -397,6 +397,7 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
                     purchaseListener.failure(pendingProduct,
                             new Vendor.Error(Vendor.PURCHASE_SUCCESS_RESULT_MALFORMED,
                                     BILLING_RESPONSE_RESULT_ERROR));
+                    return true;
                 }
 
                 log("Successful purchase of " + pendingProduct.sku + "!");

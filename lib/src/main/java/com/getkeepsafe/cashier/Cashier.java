@@ -116,7 +116,8 @@ public class Cashier {
                     return;
                 }
 
-                vendor.purchase(activity, product, developerPayload, listener);
+                final String payload = developerPayload == null ? "" : developerPayload;
+                vendor.purchase(activity, product, payload, listener);
             }
         });
     }
