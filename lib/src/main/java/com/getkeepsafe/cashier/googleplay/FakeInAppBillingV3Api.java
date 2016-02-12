@@ -147,7 +147,7 @@ public class FakeInAppBillingV3Api extends InAppBillingV3API implements GooglePl
             if (purchase.isSubscription == (itemType.equals(PRODUCT_TYPE_SUBSCRIPTION))) {
                 try {
                     skus.add(purchase.sku);
-                    purchaseData.add(purchaseJson(purchase));
+                    purchaseData.add(purchase.toGoogleReceiptJson());
                     dataSignatures.add("TEST-DATA-SIGNATURE-" + purchase.sku);
                 } catch (JSONException e) {
                     // This is a library error, promote to RuntimeException
@@ -173,20 +173,6 @@ public class FakeInAppBillingV3Api extends InAppBillingV3API implements GooglePl
         }
 
         return BILLING_RESPONSE_RESULT_ITEM_NOT_OWNED;
-    }
-
-    private String purchaseJson(@NonNull final GooglePlayPurchase purchase) throws JSONException {
-        final JSONObject object = new JSONObject();
-        object.put(PurchaseConstants.AUTO_RENEWING, purchase.autoRenewing);
-        object.put(PurchaseConstants.ORDER_ID, purchase.orderId);
-        object.put(PurchaseConstants.PACKAGE_NAME, purchase.packageName);
-        object.put(PurchaseConstants.PRODUCT_ID, purchase.sku);
-        object.put(PurchaseConstants.PURCHASE_TIME, purchase.purchaseTime);
-        object.put(PurchaseConstants.PURCHASE_STATE, purchase.purchaseState);
-        object.put(PurchaseConstants.DEVELOPER_PAYLOAD, purchase.developerPayload);
-        object.put(PurchaseConstants.PURCHASE_TOKEN, purchase.token);
-        return object.toString();
-
     }
 
     private String productJson(@NonNull final Product product) throws JSONException {
