@@ -14,13 +14,10 @@ public class Purchase extends Product implements Parcelable {
     public static final String KEY_ORDER_ID = "order-id";
     public static final String KEY_TOKEN = "token";
     public static final String KEY_DEV_PAYLOAD = "developer-payload";
-    public static final String KEY_EXTRAS = "extras";
 
     public final String orderId;
     public final String token;
     public final String developerPayload;
-
-    private String extras;
 
     public Purchase(@NonNull final Product product,
                     @NonNull final String orderId,
@@ -42,16 +39,6 @@ public class Purchase extends Product implements Parcelable {
         orderId = json.getString(KEY_ORDER_ID);
         token = json.getString(KEY_TOKEN);
         developerPayload = json.getString(KEY_DEV_PAYLOAD);
-        extras = json.optString(KEY_EXTRAS);
-    }
-
-    @Nullable
-    public String getExtras() {
-         return extras;
-    }
-
-    public void setExtras(final String extras) {
-        this.extras = extras;
     }
 
     @NonNull
@@ -61,7 +48,6 @@ public class Purchase extends Product implements Parcelable {
         object.put(KEY_ORDER_ID, orderId);
         object.put(KEY_TOKEN, token);
         object.put(KEY_DEV_PAYLOAD, developerPayload);
-        object.put(KEY_EXTRAS, extras);
         return object;
     }
 
@@ -75,9 +61,7 @@ public class Purchase extends Product implements Parcelable {
 
         if (!orderId.equals(purchase.orderId)) return false;
         if (!token.equals(purchase.token)) return false;
-        if (!developerPayload.equals(purchase.developerPayload)) return false;
-        return extras != null ? extras.equals(purchase.extras) : purchase.extras == null;
-
+        return developerPayload.equals(purchase.developerPayload);
     }
 
     @Override
@@ -86,7 +70,6 @@ public class Purchase extends Product implements Parcelable {
         result = 31 * result + orderId.hashCode();
         result = 31 * result + token.hashCode();
         result = 31 * result + developerPayload.hashCode();
-        result = 31 * result + (extras != null ? extras.hashCode() : 0);
         return result;
     }
 
@@ -102,7 +85,6 @@ public class Purchase extends Product implements Parcelable {
         dest.writeString(this.orderId);
         dest.writeString(this.token);
         dest.writeString(this.developerPayload);
-        dest.writeString(this.extras);
     }
 
     protected Purchase(Parcel in) {
@@ -110,7 +92,6 @@ public class Purchase extends Product implements Parcelable {
         this.orderId = in.readString();
         this.token = in.readString();
         this.developerPayload = in.readString();
-        this.extras = in.readString();
     }
 
     public static final Creator<Purchase> CREATOR = new Creator<Purchase>() {

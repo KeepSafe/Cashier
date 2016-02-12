@@ -94,7 +94,6 @@ public class GooglePlayPurchase extends Purchase
                 purchaseTime,
                 purchaseState,
                 autoRenewing);
-        purchase.setExtras(purchaseData);
 
         return purchase;
     }
