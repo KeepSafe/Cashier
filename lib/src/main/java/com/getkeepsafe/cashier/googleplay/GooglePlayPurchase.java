@@ -72,7 +72,7 @@ public class GooglePlayPurchase extends Purchase
         final JSONObject data = new JSONObject(purchaseData);
         final String packageName = data.getString(PACKAGE_NAME);
         final String purchaseToken = data.getString(PURCHASE_TOKEN);
-        final String developerPayload = data.getString(DEVELOPER_PAYLOAD);
+        final String developerPayload = data.optString(DEVELOPER_PAYLOAD, "");
         final String orderId = data.getString(ORDER_ID);
         final String sku = data.getString(PRODUCT_ID);
         if (!sku.equals(product.sku)) {
