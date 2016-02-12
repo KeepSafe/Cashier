@@ -50,8 +50,8 @@ public interface Vendor extends VendorConstants {
 
     boolean available();
     boolean canPurchase(@NonNull Product product);
-    boolean onActivityResult(final int requestCode, final int resultCode, final Intent data);
+    boolean onActivityResult(int requestCode, int resultCode, Intent data);
 
-    Product getProductFrom(@NonNull final JSONObject json) throws JSONException;
-    Purchase getPurchaseFrom(@NonNull final JSONObject json) throws JSONException;
+    Product getProductFrom(@NonNull JSONObject json) throws JSONException;
+    Purchase getPurchaseFrom(@NonNull JSONObject json) throws JSONException;
 }

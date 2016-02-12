@@ -6,7 +6,7 @@ import android.support.annotation.Nullable;
 import com.getkeepsafe.cashier.utilities.Check;
 
 public interface VendorFactory {
-    Vendor get(@NonNull final String id) throws VendorMissingException;
+    Vendor get(@NonNull String id) throws VendorMissingException;
 
     class VendorMissingException extends Exception {
         public final String vendorId;

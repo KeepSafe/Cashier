@@ -4,5 +4,5 @@ import android.support.annotation.NonNull;
 
 public interface InventoryListener {
     void success(@NonNull Inventory inventory);
-    void failure(@NonNull final Vendor.Error error);
+    void failure(@NonNull Vendor.Error error);
 }

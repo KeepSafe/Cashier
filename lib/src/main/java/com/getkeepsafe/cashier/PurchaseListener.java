@@ -4,5 +4,5 @@ import android.support.annotation.NonNull;
 
 public interface PurchaseListener {
     void success(@NonNull Purchase purchase);
-    void failure(@NonNull Product product, @NonNull final Vendor.Error error);
+    void failure(@NonNull Product product, @NonNull Vendor.Error error);
 }
