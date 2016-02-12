@@ -4,5 +4,5 @@ import android.support.annotation.NonNull;
 
 public interface Logger {
     void setTag(@NonNull String tag);
-    void log(@NonNull  String message);
+    void log(@NonNull String message);
 }
