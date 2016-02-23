@@ -1,0 +1,30 @@
+language: android
+
+sudo: false
+
+addons:
+  apt:
+    packages:
+      - oracle-java8-installer
+
+jdk:
+  - oraclejdk8
+
+install: true
+
+android:
+  components:
+  - platform-tools
+  - tools
+  - build-tools-23.0.2
+  - android-23
+
+  - extra-google-m2repository
+  - extra-android-m2repository
+  - extra-android-support
+
+script: 
+  - jdk_switcher use oraclejdk8
+  - export JAVA8_HOME=$JAVA_HOME
+  - $JAVA8_HOME/bin/javac -version
+  - ./gradlew testDebug
