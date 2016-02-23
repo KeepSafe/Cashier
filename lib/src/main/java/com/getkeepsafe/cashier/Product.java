@@ -78,6 +78,7 @@ public class Product implements Parcelable {
     protected JSONObject serializeToJson() throws JSONException {
         final JSONObject object = new JSONObject();
         object.put(KEY_VENDOR_ID, vendorId);
+        object.put(KEY_NAME, name);
         object.put(KEY_SKU, sku);
         object.put(KEY_PRICE, price);
         object.put(KEY_CURRENCY, currency);

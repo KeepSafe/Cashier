@@ -19,6 +19,7 @@ public class GooglePlayPurchase extends Purchase
     public static final String GP_KEY_AUTO_RENEW = "gp-auto-renewing";
     public static final String GP_KEY_PURCHASE_TIME = "gp-purchase-time";
     public static final String GP_KEY_PURCHASE_STATE = "gp-purchase-state";
+    public static final String GP_KEY_PURCHASE_DATA = "gp-purchase-data";
 
     /** The application package from which the purchase originated */
     public final String packageName;
@@ -49,6 +50,12 @@ public class GooglePlayPurchase extends Purchase
      * </ul>
      */
     public final int purchaseState;
+
+    /**
+     * The original purchase data receipt from Google Play. This is useful for data signature
+     * validation
+     */
+    public final String purchaseData;
 
     public static GooglePlayPurchase of(@NonNull final Product product,
                                         @NonNull final Intent purchaseIntent)
@@ -84,18 +91,17 @@ public class GooglePlayPurchase extends Purchase
         final long purchaseTime = data.getLong(PURCHASE_TIME);
         final int purchaseState = data.getInt(PURCHASE_STATE);
 
-        final GooglePlayPurchase purchase = new GooglePlayPurchase(
+        return new GooglePlayPurchase(
                 product,
                 orderId,
                 purchaseToken,
                 packageName,
                 dataSignature,
                 developerPayload,
+                purchaseData,
                 purchaseTime,
                 purchaseState,
                 autoRenewing);
-
-        return purchase;
     }
 
     private GooglePlayPurchase(@NonNull final Product product,
@@ -104,12 +110,14 @@ public class GooglePlayPurchase extends Purchase
                                @NonNull final String packageName,
                                @NonNull final String dataSignature,
                                @NonNull final String developerPayload,
+                               @NonNull final String purchaseData,
                                final long purchaseTime,
                                final int purchaseState,
                                final boolean autoRenewing) throws JSONException {
         super(product, orderId, token, developerPayload);
         this.packageName = Check.notNull(packageName);
         this.dataSignature = Check.notNull(dataSignature);
+        this.purchaseData = Check.notNull(purchaseData);
         this.autoRenewing = autoRenewing;
         this.purchaseTime = purchaseTime;
         this.purchaseState = purchaseState;
@@ -126,6 +134,7 @@ public class GooglePlayPurchase extends Purchase
         autoRenewing = json.getBoolean(GP_KEY_AUTO_RENEW);
         purchaseTime = json.getLong(GP_KEY_PURCHASE_TIME);
         purchaseState = json.getInt(GP_KEY_PURCHASE_STATE);
+        purchaseData = json.getString(GP_KEY_PURCHASE_DATA);
     }
 
     public boolean purchased() {
@@ -140,19 +149,6 @@ public class GooglePlayPurchase extends Purchase
         return purchaseState == 2;
     }
 
-    public String toGoogleReceiptJson() throws JSONException {
-        final JSONObject data = new JSONObject();
-        data.put(PACKAGE_NAME, packageName);
-        data.put(PURCHASE_TOKEN, token);
-        data.put(DEVELOPER_PAYLOAD, developerPayload);
-        data.put(ORDER_ID, orderId);
-        data.put(PRODUCT_ID, sku);
-        data.put(AUTO_RENEWING, autoRenewing);
-        data.put(PURCHASE_TIME, purchaseTime);
-        data.put(PURCHASE_STATE, purchaseState);
-        return data.toString();
-    }
-
     @NonNull
     @Override
     protected JSONObject serializeToJson() throws JSONException {
@@ -162,6 +158,7 @@ public class GooglePlayPurchase extends Purchase
         object.put(GP_KEY_AUTO_RENEW, autoRenewing);
         object.put(GP_KEY_PURCHASE_TIME, purchaseTime);
         object.put(GP_KEY_PURCHASE_STATE, purchaseState);
+        object.put(GP_KEY_PURCHASE_DATA, purchaseData);
 
         return object;
     }
@@ -177,6 +174,7 @@ public class GooglePlayPurchase extends Purchase
         if (autoRenewing != that.autoRenewing) return false;
         if (purchaseTime != that.purchaseTime) return false;
         if (purchaseState != that.purchaseState) return false;
+        if (!purchaseData.equals(that.purchaseData)) return false;
         if (!packageName.equals(that.packageName)) return false;
         return dataSignature.equals(that.dataSignature);
 
@@ -190,6 +188,7 @@ public class GooglePlayPurchase extends Purchase
         result = 31 * result + (autoRenewing ? 1 : 0);
         result = 31 * result + (int) (purchaseTime ^ (purchaseTime >>> 32));
         result = 31 * result + purchaseState;
+        result = 31 * result + purchaseData.hashCode();
         return result;
     }
 
@@ -207,6 +206,7 @@ public class GooglePlayPurchase extends Purchase
         dest.writeByte(autoRenewing ? (byte) 1 : (byte) 0);
         dest.writeLong(this.purchaseTime);
         dest.writeInt(this.purchaseState);
+        dest.writeString(this.purchaseData);
     }
 
     protected GooglePlayPurchase(Parcel in) {
@@ -216,6 +216,7 @@ public class GooglePlayPurchase extends Purchase
         this.autoRenewing = in.readByte() != 0;
         this.purchaseTime = in.readLong();
         this.purchaseState = in.readInt();
+        this.purchaseData = in.readString();
     }
 
     public static final Creator<GooglePlayPurchase> CREATOR = new Creator<GooglePlayPurchase>() {

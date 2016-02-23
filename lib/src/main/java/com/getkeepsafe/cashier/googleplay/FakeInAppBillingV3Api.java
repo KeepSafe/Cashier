@@ -145,14 +145,9 @@ public class FakeInAppBillingV3Api extends InAppBillingV3API implements GooglePl
 
         for (final GooglePlayPurchase purchase : testPurchases) {
             if (purchase.isSubscription == (itemType.equals(PRODUCT_TYPE_SUBSCRIPTION))) {
-                try {
-                    skus.add(purchase.sku);
-                    purchaseData.add(purchase.toGoogleReceiptJson());
-                    dataSignatures.add("TEST-DATA-SIGNATURE-" + purchase.sku);
-                } catch (JSONException e) {
-                    // This is a library error, promote to RuntimeException
-                    throw new RuntimeException(e);
-                }
+                skus.add(purchase.sku);
+                purchaseData.add(purchase.purchaseData);
+                dataSignatures.add("TEST-DATA-SIGNATURE-" + purchase.sku);
             }
         }
 

@@ -66,7 +66,7 @@ public class ProductionInAppBillingV3API extends InAppBillingV3API implements Go
 
         final Intent serviceIntent
                 = new Intent("com.android.vending.billing.InAppBillingService.BIND");
-        serviceIntent.setPackage("com.android.vending");
+        serviceIntent.setPackage(GooglePlayConstants.VENDOR_PACKAGE);
 
         final PackageManager packageManager = context.getPackageManager();
         if (packageManager == null) {
