@@ -42,4 +42,10 @@ public interface VendorConstants {
 
     /** Inventory query returned a malformed response */
     int INVENTORY_QUERY_MALFORMED_RESPONSE = 1;
+
+    /**
+     * Cannot query the inventory, either due to no network connectivity or vendor being
+     * unavailable
+     */
+    int INVENTORY_QUERY_UNAVAILABLE = 2;
 }

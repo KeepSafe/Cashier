@@ -16,6 +16,7 @@ import java.util.List;
 public interface Vendor extends VendorConstants {
     interface InitializationListener {
         void initialized();
+        void unavailable();
     }
 
     class Error {

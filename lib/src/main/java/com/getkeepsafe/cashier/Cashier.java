@@ -119,6 +119,12 @@ public class Cashier {
                 final String payload = developerPayload == null ? "" : developerPayload;
                 vendor.purchase(activity, product, payload, listener);
             }
+
+            @Override
+            public void unavailable() {
+                listener.failure(product,
+                        new Vendor.Error(VendorConstants.PURCHASE_UNAVAILABLE, -1));
+            }
         });
     }
 
@@ -133,6 +139,12 @@ public class Cashier {
             @Override
             public void initialized() {
                 vendor.consume(activity, purchase, listener);
+            }
+
+            @Override
+            public void unavailable() {
+                listener.failure(purchase,
+                        new Vendor.Error(VendorConstants.CONSUME_UNAVAILABLE, -1));
             }
         });
     }
@@ -150,6 +162,11 @@ public class Cashier {
             @Override
             public void initialized() {
                 vendor.getInventory(context, itemSkus, subSkus, listener);
+            }
+
+            @Override
+            public void unavailable() {
+                listener.failure(new Vendor.Error(VendorConstants.INVENTORY_QUERY_UNAVAILABLE, -1));
             }
         });
     }

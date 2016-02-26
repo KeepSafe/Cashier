@@ -102,6 +102,10 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
 
         log("Initializing In-app billing v3...");
         available = api.initialize(context, this, lifecycleListener);
+
+        if (!available) {
+            initializationListener.unavailable();
+        }
     }
 
     @Override
