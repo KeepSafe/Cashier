@@ -1,5 +1,9 @@
-![cashier](web/ic_launcher.png) 
-# Cashier [![Build Status](https://travis-ci.com/KeepSafe/Cashier.svg?token=GKHJnCCyj3zqzwTu3uMu&branch=master)](https://travis-ci.com/KeepSafe/Cashier)
+<h1 align="center">
+	<img src="web/ic_launcher.png" alt="Cashier"><br/>
+	Cashier 
+</h1>
+
+[![Build Status](https://travis-ci.com/KeepSafe/Cashier.svg?token=GKHJnCCyj3zqzwTu3uMu&branch=master)](https://travis-ci.com/KeepSafe/Cashier)
 
 A general billing provider for Android. Supports Google Play's in-app billing v3 and Amazon's in-app billing out of the box.
 
