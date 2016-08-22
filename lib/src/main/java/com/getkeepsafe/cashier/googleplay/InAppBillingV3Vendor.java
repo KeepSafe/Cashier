@@ -349,8 +349,11 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
 
             final int response = getResponseCode(skuDetails);
             log("Got response: " + response);
-            if (response != BILLING_RESPONSE_RESULT_OK
-                    || !skuDetails.containsKey(RESPONSE_GET_SKU_DETAILS_LIST)) {
+            if (skuDetails == null) {
+                continue;
+            }
+
+            if (response != BILLING_RESPONSE_RESULT_OK || !skuDetails.containsKey(RESPONSE_GET_SKU_DETAILS_LIST)) {
                 throw new ApiException(response);
             }
 
