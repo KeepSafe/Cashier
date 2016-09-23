@@ -18,6 +18,7 @@ import com.getkeepsafe.cashier.utilities.Check;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.security.Security;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
@@ -113,7 +114,17 @@ public class ProductionInAppBillingV3API extends InAppBillingV3API implements Go
         // The workaround below only applies to inapp products as there are no static testing
         // subscription products
         if (itemType.equals(PRODUCT_TYPE_SUBSCRIPTION)) {
-            return billing.getSkuDetails(API_VERSION, packageName, itemType, skus);
+            try {
+                return billing.getSkuDetails(API_VERSION, packageName, itemType, skus);
+            } catch (SecurityException e) {
+                // There exists some sort of issue with Google Play not having the correct
+                // permissions: https://github.com/googlesamples/android-play-billing/issues/26
+                // Unfortunately, Google has been completely silent on this issue, so I do not know
+                // what to do outside of signaling that the call failed
+                final Bundle result = new Bundle();
+                result.putInt(RESPONSE_CODE, BILLING_RESPONSE_RESULT_BILLING_UNAVAILABLE);
+                return result;
+            }
         }
 
         // Workaround for static testing bug:
