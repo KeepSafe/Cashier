@@ -7,6 +7,8 @@ import org.robolectric.manifest.AndroidManifest;
 import org.robolectric.res.FileFsFile;
 import org.robolectric.res.FsFile;
 
+import java.io.File;
+
 /**
  * This exists solely for this issue: https://github.com/robolectric/robolectric/issues/2581
  */
@@ -23,13 +25,11 @@ public class LibraryProjectRobolectricTestRunner extends RobolectricTestRunner {
         if (androidManifestFile.exists()) {
             return appManifest;
         } else {
-            androidManifestFile = FileFsFile.from(getModuleRootPath(config), appManifest.getAndroidManifestFile().getPath().replace("full", "aapt"));
+            androidManifestFile = FileFsFile.from(config.buildDir(),
+                    appManifest.getAndroidManifestFile().getPath()
+                            .replace("build" + File.separatorChar, "")
+                            .replace("full", "aapt"));
             return new AndroidManifest(androidManifestFile, appManifest.getResDirectory(), appManifest.getAssetsDirectory());
         }
-    }
-
-    private String getModuleRootPath(Config config) {
-        String moduleRoot = config.constants().getResource("").toString().replace("file:", "");
-        return moduleRoot.substring(0, moduleRoot.indexOf("/build"));
     }
 }

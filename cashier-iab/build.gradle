@@ -20,7 +20,7 @@ android {
                 exceptionFormat 'full'
                 showStackTraces true
                 showCauses true
-                events "passed", "skipped", "failed"
+                events "passed", "skipped", "failed", "standardError"
             }
         }
     }
