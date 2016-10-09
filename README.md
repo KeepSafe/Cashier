@@ -1,5 +1,5 @@
 <h1 align="center">
-	<img src="web/ic_launcher.png" alt="Cashier"><br/>
+	<img src=".github/ic_launcher.png" alt="Cashier"><br/>
 	Cashier 
 </h1>
 
