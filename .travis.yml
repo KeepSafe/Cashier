@@ -27,4 +27,5 @@ script:
   - jdk_switcher use oraclejdk8
   - export JAVA8_HOME=$JAVA_HOME
   - $JAVA8_HOME/bin/javac -version
+  - pwd
   - ./gradlew testReleaseUnitTest
