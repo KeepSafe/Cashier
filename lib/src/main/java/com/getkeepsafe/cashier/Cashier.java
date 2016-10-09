@@ -3,8 +3,8 @@ package com.getkeepsafe.cashier;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+
+
 
 import com.getkeepsafe.cashier.googleplay.FakeInAppBillingV3Api;
 import com.getkeepsafe.cashier.googleplay.GooglePlayConstants;
@@ -21,7 +21,7 @@ import java.util.List;
 public class Cashier {
     private static VendorFactory vendorFactory = new VendorFactory() {
         @Override
-        public Vendor get(@NonNull final String id) throws VendorFactory.VendorMissingException
+        public Vendor get(final String id) throws VendorFactory.VendorMissingException
         {
             Check.notNull(id, "Vendor ID");
 
@@ -36,22 +36,22 @@ public class Cashier {
     private final Context context;
     private final Vendor vendor;
 
-    public static void setVendorFactory(@NonNull final VendorFactory factory) {
+    public static void setVendorFactory(final VendorFactory factory) {
         vendorFactory = factory;
     }
 
-    public static Builder forGooglePlay(@NonNull final Context context) {
+    public static Builder forGooglePlay(final Context context) {
         Check.notNull(context, "Context");
         return new Builder(context)
                 .forVendor(new InAppBillingV3Vendor(new ProductionInAppBillingV3API()));
     }
 
-    public static Builder forDebugGooglePlay(@NonNull final Context context) {
+    public static Builder forDebugGooglePlay(final Context context) {
         return new Builder(context)
                 .forVendor(new InAppBillingV3Vendor(new FakeInAppBillingV3Api(context)));
     }
 
-    public static Builder forAppInstaller(@NonNull final Context context)
+    public static Builder forAppInstaller(final Context context)
             throws VendorFactory.VendorMissingException {
         Check.notNull(context, "Context");
         final String installer = context
@@ -60,51 +60,51 @@ public class Cashier {
         return new Builder(context).forVendor(vendorFactory.get(installer));
     }
 
-    public static Builder forProduct(@NonNull final Context context,
-                                     @NonNull final Product product)
+    public static Builder forProduct(final Context context,
+                                     final Product product)
             throws VendorFactory.VendorMissingException {
         Check.notNull(context, "Context");
         Check.notNull(product, "Product");
         return new Builder(context).forVendor(vendorFactory.get(product.vendorId));
     }
 
-    public static Product productFromJson(@NonNull final String json)
+    public static Product productFromJson(final String json)
             throws JSONException, VendorFactory.VendorMissingException {
         return productFromJson(new JSONObject(json));
     }
 
-    public static Product productFromJson(@NonNull final JSONObject json)
+    public static Product productFromJson(final JSONObject json)
             throws JSONException, VendorFactory.VendorMissingException {
         final String vendorId = json.getString(Product.KEY_VENDOR_ID);
         final Vendor vendor = vendorFactory.get(vendorId);
         return vendor.getProductFrom(json);
     }
 
-    public static Purchase purchaseFromJson(@NonNull final String json)
+    public static Purchase purchaseFromJson(final String json)
             throws JSONException, VendorFactory.VendorMissingException {
         return purchaseFromJson(new JSONObject(json));
     }
 
-    public static Purchase purchaseFromJson(@NonNull final JSONObject json)
+    public static Purchase purchaseFromJson(final JSONObject json)
             throws JSONException, VendorFactory.VendorMissingException {
         final String vendorId = json.getString(Product.KEY_VENDOR_ID);
         final Vendor vendor = vendorFactory.get(vendorId);
         return vendor.getPurchaseFrom(json);
     }
 
-    private Cashier(@NonNull final Context context,
-                    @NonNull final Vendor vendor) {
+    private Cashier(final Context context,
+                    final Vendor vendor) {
         this.context = Check.notNull(context, "Context");
         this.vendor = Check.notNull(vendor, "Vendor");
     }
 
-    public void purchase(@NonNull final Product product, @NonNull final PurchaseListener listener) {
+    public void purchase(final Product product, final PurchaseListener listener) {
         purchase(product, null, listener);
     }
 
-    public void purchase(@NonNull final Product product,
-                         @Nullable final String developerPayload,
-                         @NonNull final PurchaseListener listener) {
+    public void purchase(final Product product,
+                         final String developerPayload,
+                         final PurchaseListener listener) {
         Check.notNull(product, "Product");
         Check.notNull(listener, "Listener");
         final Activity activity = (Activity) context;
@@ -128,7 +128,7 @@ public class Cashier {
         });
     }
 
-    public void consume(@NonNull final Purchase purchase, @NonNull final ConsumeListener listener) {
+    public void consume(final Purchase purchase, final ConsumeListener listener) {
         Check.notNull(purchase, "Purchase");
         Check.notNull(listener, "Listener");
         if (purchase.isSubscription) {
@@ -149,13 +149,13 @@ public class Cashier {
         });
     }
 
-    public void getInventory(@NonNull final InventoryListener listener) {
+    public void getInventory(final InventoryListener listener) {
         getInventory(null, null, listener);
     }
 
-    public void getInventory(@Nullable final List<String> itemSkus,
-                             @Nullable final List<String> subSkus,
-                             @NonNull final InventoryListener listener) {
+    public void getInventory(final List<String> itemSkus,
+                             final List<String> subSkus,
+                             final InventoryListener listener) {
         Check.notNull(listener, "Listener");
 
         vendor.initialize(context, new Vendor.InitializationListener() {

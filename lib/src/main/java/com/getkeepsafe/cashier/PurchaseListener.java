@@ -1,8 +1,8 @@
 package com.getkeepsafe.cashier;
 
-import android.support.annotation.NonNull;
+
 
 public interface PurchaseListener {
-    void success(@NonNull Purchase purchase);
-    void failure(@NonNull Product product, @NonNull Vendor.Error error);
+    void success(Purchase purchase);
+    void failure(Product product, Vendor.Error error);
 }

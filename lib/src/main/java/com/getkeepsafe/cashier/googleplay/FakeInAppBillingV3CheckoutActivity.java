@@ -5,8 +5,8 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+
+
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -28,9 +28,9 @@ public class FakeInAppBillingV3CheckoutActivity extends Activity implements Goog
     private String packageName;
     private String developerPayload;
 
-    public static PendingIntent pendingIntent(@NonNull final Context context,
-                                              @NonNull final Product product,
-                                              @Nullable final String developerPayload) {
+    public static PendingIntent pendingIntent(final Context context,
+                                              final Product product,
+                                              final String developerPayload) {
         final Intent intent = new Intent(context, FakeInAppBillingV3CheckoutActivity.class);
         intent.putExtra(ARGUMENT_PRODUCT, product);
         intent.putExtra(ARGUMENT_PACKAGE, context.getPackageName());
@@ -114,7 +114,7 @@ public class FakeInAppBillingV3CheckoutActivity extends Activity implements Goog
         return object.toString();
     }
 
-    private void setResultCompat(final int result, @Nullable final Intent data) {
+    private void setResultCompat(final int result, final Intent data) {
         if (getParent() == null) {
             setResult(result, data);
         } else {

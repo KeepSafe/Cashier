@@ -3,7 +3,7 @@ package com.getkeepsafe.cashier.googleplay;
 import android.content.Intent;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.support.annotation.NonNull;
+
 
 import com.getkeepsafe.cashier.Product;
 import com.getkeepsafe.cashier.Purchase;
@@ -57,8 +57,8 @@ public class GooglePlayPurchase extends Purchase
      */
     public final String purchaseData;
 
-    public static GooglePlayPurchase of(@NonNull final Product product,
-                                        @NonNull final Intent purchaseIntent)
+    public static GooglePlayPurchase of(final Product product,
+                                        final Intent purchaseIntent)
             throws JSONException {
         Check.notNull(product, "Product");
         final String purchaseData = Check.notNull(purchaseIntent, "Purchase Intent")
@@ -70,9 +70,9 @@ public class GooglePlayPurchase extends Purchase
                 Check.notNull(dataSignature, "Purchase Data"));
     }
 
-    public static GooglePlayPurchase of(@NonNull final Product product,
-                                        @NonNull final String purchaseData,
-                                        @NonNull final String dataSignature) throws JSONException {
+    public static GooglePlayPurchase of(final Product product,
+                                        final String purchaseData,
+                                        final String dataSignature) throws JSONException {
         Check.notNull(product, "Product");
         Check.notNull(purchaseData, "Purchase Data");
         Check.notNull(dataSignature, "Signature");
@@ -104,13 +104,13 @@ public class GooglePlayPurchase extends Purchase
                 autoRenewing);
     }
 
-    private GooglePlayPurchase(@NonNull final Product product,
-                               @NonNull final String orderId,
-                               @NonNull final String token,
-                               @NonNull final String packageName,
-                               @NonNull final String dataSignature,
-                               @NonNull final String developerPayload,
-                               @NonNull final String purchaseData,
+    private GooglePlayPurchase(final Product product,
+                               final String orderId,
+                               final String token,
+                               final String packageName,
+                               final String dataSignature,
+                               final String developerPayload,
+                               final String purchaseData,
                                final long purchaseTime,
                                final int purchaseState,
                                final boolean autoRenewing) throws JSONException {
@@ -123,11 +123,11 @@ public class GooglePlayPurchase extends Purchase
         this.purchaseState = purchaseState;
     }
 
-    public GooglePlayPurchase(@NonNull final String json) throws JSONException {
+    public GooglePlayPurchase(final String json) throws JSONException {
         this(new JSONObject(Check.notNull(json, "Google Play Purchase JSON")));
     }
 
-    public GooglePlayPurchase(@NonNull final JSONObject json) throws JSONException {
+    public GooglePlayPurchase(final JSONObject json) throws JSONException {
         super(json);
         packageName = json.getString(GP_KEY_PACKAGE_NAME);
         dataSignature = json.getString(GP_KEY_DATA_SIG);
@@ -149,7 +149,6 @@ public class GooglePlayPurchase extends Purchase
         return purchaseState == 2;
     }
 
-    @NonNull
     @Override
     protected JSONObject serializeToJson() throws JSONException {
         final JSONObject object = super.serializeToJson();

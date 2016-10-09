@@ -1,6 +1,6 @@
 package com.getkeepsafe.cashier.googleplay;
 
-import android.support.annotation.NonNull;
+
 
 import com.getkeepsafe.cashier.Product;
 import com.getkeepsafe.cashier.utilities.Check;
@@ -10,7 +10,7 @@ import org.json.JSONObject;
 
 public class GooglePlayProduct
         implements GooglePlayConstants, GooglePlayConstants.ProductConstants {
-    public static Product of(@NonNull final String skuDetailJson,
+    public static Product of(final String skuDetailJson,
                              final boolean isSubscription) throws JSONException {
         final JSONObject json = new JSONObject(Check.notNull(skuDetailJson, "SKU JSON"));
         final String sku = json.getString(SKU);
@@ -32,11 +32,11 @@ public class GooglePlayProduct
                 Long.parseLong(microsPrice));
     }
 
-    public static Product of(@NonNull final String sku,
-                             @NonNull final String price,
-                             @NonNull final String currency,
-                             @NonNull final String name,
-                             @NonNull final String description,
+    public static Product of(final String sku,
+                             final String price,
+                             final String currency,
+                             final String name,
+                             final String description,
                              final boolean isSubscription,
                              final long microsPrice) {
         return new Product(

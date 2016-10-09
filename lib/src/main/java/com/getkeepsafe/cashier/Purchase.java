@@ -2,8 +2,8 @@ package com.getkeepsafe.cashier;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+
+
 
 import com.getkeepsafe.cashier.utilities.Check;
 
@@ -19,21 +19,21 @@ public class Purchase extends Product implements Parcelable {
     public final String token;
     public final String developerPayload;
 
-    public Purchase(@NonNull final Product product,
-                    @NonNull final String orderId,
-                    @NonNull final String token,
-                    @NonNull final String developerPayload) {
+    public Purchase(final Product product,
+                    final String orderId,
+                    final String token,
+                    final String developerPayload) {
         super(product);
         this.orderId = Check.notNull(orderId, "Order ID");
         this.token = Check.notNull(token, "Token");
         this.developerPayload = Check.notNull(developerPayload, "Developer Payload");
     }
 
-    public Purchase(@NonNull final String json) throws JSONException {
+    public Purchase(final String json) throws JSONException {
         this(new JSONObject(Check.notNull(json, "Purchase JSON")));
     }
 
-    public Purchase(@NonNull final JSONObject json) throws JSONException {
+    public Purchase(final JSONObject json) throws JSONException {
         super(json);
 
         orderId = json.getString(KEY_ORDER_ID);
@@ -41,7 +41,6 @@ public class Purchase extends Product implements Parcelable {
         developerPayload = json.getString(KEY_DEV_PAYLOAD);
     }
 
-    @NonNull
     @Override
     protected JSONObject serializeToJson() throws JSONException {
         final JSONObject object = super.serializeToJson();

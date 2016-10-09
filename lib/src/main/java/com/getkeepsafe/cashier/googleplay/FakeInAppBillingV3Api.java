@@ -3,8 +3,8 @@ package com.getkeepsafe.cashier.googleplay;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.RemoteException;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+
+
 
 import com.getkeepsafe.cashier.Product;
 import com.getkeepsafe.cashier.utilities.Check;
@@ -22,22 +22,22 @@ public class FakeInAppBillingV3Api extends InAppBillingV3API implements GooglePl
 
     private final Context context;
 
-    public static void addTestProduct(@NonNull final Product product) {
+    public static void addTestProduct(final Product product) {
         testProducts.add(product);
     }
 
-    public static void addTestPurchase(@NonNull final GooglePlayPurchase purchase) {
+    public static void addTestPurchase(final GooglePlayPurchase purchase) {
         testPurchases.add(purchase);
     }
 
-    public FakeInAppBillingV3Api(@NonNull final Context context) {
+    public FakeInAppBillingV3Api(final Context context) {
         this.context = Check.notNull(context, "Context");
     }
 
     @Override
-    public boolean initialize(@NonNull final Context context,
-                              @NonNull final InAppBillingV3Vendor vendor,
-                              @Nullable final LifecycleListener listener) {
+    public boolean initialize(final Context context,
+                              final InAppBillingV3Vendor vendor,
+                              final LifecycleListener listener) {
         super.initialize(context, vendor, listener);
 
         if (available()) {
@@ -57,15 +57,15 @@ public class FakeInAppBillingV3Api extends InAppBillingV3API implements GooglePl
     }
 
     @Override
-    public void dispose(@NonNull final Context context) {}
+    public void dispose(final Context context) {}
 
     @Override
-    public int isBillingSupported(@NonNull final String itemType) throws RemoteException {
+    public int isBillingSupported(final String itemType) throws RemoteException {
         return BILLING_RESPONSE_RESULT_OK;
     }
 
     @Override
-    public Bundle getSkuDetails(@NonNull final String itemType, @NonNull final Bundle skus)
+    public Bundle getSkuDetails(final String itemType, final Bundle skus)
             throws RemoteException {
         final Bundle bundle = new Bundle();
         final ArrayList<String> skuList = skus.getStringArrayList(REQUEST_SKU_DETAILS_ITEM_LIST);
@@ -102,9 +102,9 @@ public class FakeInAppBillingV3Api extends InAppBillingV3API implements GooglePl
     }
 
     @Override
-    public Bundle getBuyIntent(@NonNull final String sku,
-                               @NonNull final String itemType,
-                               @Nullable final String developerPayload) throws RemoteException {
+    public Bundle getBuyIntent(final String sku,
+                               final String itemType,
+                               final String developerPayload) throws RemoteException {
         final Bundle bundle = new Bundle();
         Product buyMe = null;
         for (final Product product : testProducts) {
@@ -134,8 +134,8 @@ public class FakeInAppBillingV3Api extends InAppBillingV3API implements GooglePl
     }
 
     @Override
-    public Bundle getPurchases(@NonNull final String itemType,
-                               @Nullable final String paginationToken) throws RemoteException {
+    public Bundle getPurchases(final String itemType,
+                               final String paginationToken) throws RemoteException {
         final Bundle bundle = new Bundle();
         bundle.putInt(RESPONSE_CODE, BILLING_RESPONSE_RESULT_OK);
 
@@ -159,7 +159,7 @@ public class FakeInAppBillingV3Api extends InAppBillingV3API implements GooglePl
     }
 
     @Override
-    public int consumePurchase(@NonNull final String purchaseToken) throws RemoteException {
+    public int consumePurchase(final String purchaseToken) throws RemoteException {
         for (final GooglePlayPurchase purchase : testPurchases) {
             if (purchase.token.equals(purchaseToken)) {
                 testPurchases.remove(purchase);
@@ -170,7 +170,7 @@ public class FakeInAppBillingV3Api extends InAppBillingV3API implements GooglePl
         return BILLING_RESPONSE_RESULT_ITEM_NOT_OWNED;
     }
 
-    private String productJson(@NonNull final Product product) throws JSONException {
+    private String productJson(final Product product) throws JSONException {
         final JSONObject object = new JSONObject();
         object.put(ProductConstants.SKU, product.sku);
         object.put(ProductConstants.PRICE, product.price);

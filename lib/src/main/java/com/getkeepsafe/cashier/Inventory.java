@@ -1,6 +1,6 @@
 package com.getkeepsafe.cashier;
 
-import android.support.annotation.NonNull;
+
 
 import com.getkeepsafe.cashier.utilities.Check;
 
@@ -22,11 +22,11 @@ public class Inventory {
         return Collections.unmodifiableList(purchases);
     }
 
-    public void addPurchase(@NonNull final Purchase purchase) {
+    public void addPurchase(final Purchase purchase) {
         purchases.add(Check.notNull(purchase, "Purchase"));
     }
 
-    public void addPurchases(@NonNull final Collection<? extends Purchase> purchases) {
+    public void addPurchases(final Collection<? extends Purchase> purchases) {
         this.purchases.addAll(Check.notNull(purchases, "Purchases"));
     }
 
@@ -34,11 +34,11 @@ public class Inventory {
         return Collections.unmodifiableList(products);
     }
 
-    public void addProduct(@NonNull final Product product) {
+    public void addProduct(final Product product) {
         products.add(Check.notNull(product, "Product"));
     }
 
-    public void addProducts(@NonNull final Collection<? extends Product> products) {
+    public void addProducts(final Collection<? extends Product> products) {
         this.products.addAll(Check.notNull(products, "Products"));
     }
 }

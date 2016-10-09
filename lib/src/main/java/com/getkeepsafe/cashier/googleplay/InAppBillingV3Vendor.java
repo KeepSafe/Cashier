@@ -7,8 +7,8 @@ import android.content.Intent;
 import android.content.IntentSender;
 import android.os.Bundle;
 import android.os.RemoteException;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+
+
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -34,9 +34,7 @@ import java.util.UUID;
 public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
     private final InAppBillingV3API api;
 
-    @Nullable
     private Logger logger;
-    @Nullable
     private String developerPayload;
     private Product pendingProduct;
     private PurchaseListener purchaseListener;
@@ -77,20 +75,19 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
         }
     };
 
-    public InAppBillingV3Vendor(@NonNull final InAppBillingV3API api) {
+    public InAppBillingV3Vendor(final InAppBillingV3API api) {
         this.api = Check.notNull(api, "API Interface");
         available = false;
     }
 
-    @NonNull
     @Override
     public String id() {
         return VENDOR_PACKAGE;
     }
 
     @Override
-    public void initialize(@NonNull final Context context,
-                           @NonNull final InitializationListener listener) {
+    public void initialize(final Context context,
+                           final InitializationListener listener) {
         Check.notNull(context, "Activity");
         Check.notNull(listener, "Initialization Listener");
         initializationListener = listener;
@@ -109,7 +106,7 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
     }
 
     @Override
-    public void dispose(@NonNull final Context context) {
+    public void dispose(final Context context) {
         log("Disposing self...");
         Check.notNull(context, "Activity");
         api.dispose(context);
@@ -122,7 +119,7 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
     }
 
     @Override
-    public boolean canPurchase(@NonNull final Product product) {
+    public boolean canPurchase(final Product product) {
         Check.notNull(product, "Product");
         if (!canPurchaseAnything()) {
             return false;
@@ -142,10 +139,10 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
     }
 
     @Override
-    public void purchase(@NonNull final Activity activity,
-                         @NonNull final Product product,
-                         @Nullable final String developerPayload,
-                         @NonNull final PurchaseListener listener) {
+    public void purchase(final Activity activity,
+                         final Product product,
+                         final String developerPayload,
+                         final PurchaseListener listener) {
         Check.notNull(activity, "Activity");
         Check.notNull(product, "Product");
         Check.notNull(listener, "Purchase Listener");
@@ -193,9 +190,9 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
     }
 
     @Override
-    public void consume(@NonNull final Activity activity,
-                        @NonNull final Purchase purchase,
-                        @NonNull final ConsumeListener listener) {
+    public void consume(final Activity activity,
+                        final Purchase purchase,
+                        final ConsumeListener listener) {
         Check.notNull(activity, "Activity");
         Check.notNull(purchase, "Purchase");
         Check.notNull(listener, "Consume Listener");
@@ -223,10 +220,10 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
     }
 
     @Override
-    public void getInventory(@NonNull final Context context,
-                             @Nullable final List<String> itemSkus,
-                             @Nullable final List<String> subSkus,
-                             @NonNull final InventoryListener listener) {
+    public void getInventory(final Context context,
+                             final List<String> itemSkus,
+                             final List<String> subSkus,
+                             final InventoryListener listener) {
         Check.notNull(context, "Context");
         Check.notNull(listener, "Inventory Listener");
         throwIfUninitialized();
@@ -253,7 +250,7 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
         }
     }
 
-    private List<GooglePlayPurchase> getPurchases(@NonNull final String type)
+    private List<GooglePlayPurchase> getPurchases(final String type)
             throws RemoteException, ApiException, JSONException {
         throwIfUninitialized();
         if (type.equals(PRODUCT_TYPE_ITEM)) {
@@ -325,8 +322,8 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
         return Collections.unmodifiableList(purchaseList);
     }
 
-    private List<Product> getProductsWithType(@NonNull final List<String> skus,
-                                              @NonNull final String type)
+    private List<Product> getProductsWithType(final List<String> skus,
+                                              final String type)
             throws RemoteException, ApiException {
         throwIfUninitialized();
         Check.notNull(skus, "SKU list");
@@ -375,7 +372,7 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
     }
 
     @Override
-    public void setLogger(@Nullable final Logger logger) {
+    public void setLogger(final Logger logger) {
         this.logger = logger;
         if (this.logger != null) {
             this.logger.setTag("InAppBillingV3");
@@ -427,7 +424,7 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
     }
 
     @Override
-    public Product getProductFrom(@NonNull final JSONObject json) throws JSONException {
+    public Product getProductFrom(final JSONObject json) throws JSONException {
         final Product product = new Product(Check.notNull(json, "Product JSON"));
         if (!product.vendorId.equals(VENDOR_PACKAGE)) {
             throw new IllegalArgumentException("This product does not belong to Google Play");
@@ -437,7 +434,7 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
     }
 
     @Override
-    public Purchase getPurchaseFrom(@NonNull final JSONObject json) throws JSONException {
+    public Purchase getPurchaseFrom(final JSONObject json) throws JSONException {
         final GooglePlayPurchase purchase = new GooglePlayPurchase(Check.notNull(json, "Purchase JSON"));
         if (!purchase.vendorId.equals(VENDOR_PACKAGE)) {
             throw new IllegalArgumentException("This purchase does not belong to Google Play");
@@ -456,17 +453,17 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
         return canPurchaseItems || canSubscribe;
     }
 
-    private void logAndDisable(@NonNull final String message) {
+    private void logAndDisable(final String message) {
         log(message);
         available = false;
     }
 
-    private int getResponseCode(@NonNull final Intent intent) {
+    private int getResponseCode(final Intent intent) {
         final Bundle extras = intent.getExtras();
         return getResponseCode(extras);
     }
 
-    private int getResponseCode(@Nullable final Bundle bundle) {
+    private int getResponseCode(final Bundle bundle) {
         if (bundle == null) {
             log("Null response code from bundle, assuming OK (known issue)");
             return BILLING_RESPONSE_RESULT_OK;
@@ -537,7 +534,7 @@ public class InAppBillingV3Vendor implements Vendor, GooglePlayConstants {
         return new Vendor.Error(code, response);
     }
 
-    private void log(@NonNull final String message) {
+    private void log(final String message) {
         if (logger == null) return;
         logger.log(message);
     }

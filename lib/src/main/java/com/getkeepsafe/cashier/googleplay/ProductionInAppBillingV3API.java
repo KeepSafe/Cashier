@@ -9,8 +9,8 @@ import android.content.pm.ResolveInfo;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+
+
 
 import com.android.vending.billing.IInAppBillingService;
 import com.getkeepsafe.cashier.utilities.Check;
@@ -27,10 +27,8 @@ import java.util.TreeMap;
 
 @SuppressWarnings("ConstantConditions")
 public class ProductionInAppBillingV3API extends InAppBillingV3API implements GooglePlayConstants {
-    @Nullable
     private IInAppBillingService billing;
 
-    @Nullable
     private LifecycleListener listener;
 
     private final ServiceConnection serviceConnection = new ServiceConnection() {
@@ -52,9 +50,9 @@ public class ProductionInAppBillingV3API extends InAppBillingV3API implements Go
     };
 
     @Override
-    public boolean initialize(@NonNull final Context context,
-                              @NonNull final InAppBillingV3Vendor vendor,
-                              @Nullable final LifecycleListener listener) {
+    public boolean initialize(final Context context,
+                              final InAppBillingV3Vendor vendor,
+                              final LifecycleListener listener) {
         final boolean superInited = super.initialize(context, vendor, listener);
         this.listener = listener;
         if (available()) {
@@ -90,7 +88,7 @@ public class ProductionInAppBillingV3API extends InAppBillingV3API implements Go
     }
 
     @Override
-    public void dispose(@NonNull final Context context) {
+    public void dispose(final Context context) {
         Check.notNull(context, "Context");
         try {
             context.unbindService(serviceConnection);
@@ -101,14 +99,14 @@ public class ProductionInAppBillingV3API extends InAppBillingV3API implements Go
     }
 
     @Override
-    public int isBillingSupported(@NonNull final String itemType) throws RemoteException {
+    public int isBillingSupported(final String itemType) throws RemoteException {
         throwIfUnavailable();
         return billing.isBillingSupported(API_VERSION, packageName, itemType);
     }
 
     @Override
-    public Bundle getSkuDetails(@NonNull final String itemType,
-                                @NonNull final Bundle skus) throws RemoteException {
+    public Bundle getSkuDetails(final String itemType,
+                                final Bundle skus) throws RemoteException {
         throwIfUnavailable();
 
         // The workaround below only applies to inapp products as there are no static testing
@@ -190,7 +188,7 @@ public class ProductionInAppBillingV3API extends InAppBillingV3API implements Go
         return result;
     }
 
-    private String testJsonOf(@NonNull final String sku) throws JSONException {
+    private String testJsonOf(final String sku) throws JSONException {
         Check.notNull(sku, "SKU");
         final JSONObject object = new JSONObject();
         object.put(ProductConstants.SKU, sku);
@@ -203,22 +201,22 @@ public class ProductionInAppBillingV3API extends InAppBillingV3API implements Go
     }
 
     @Override
-    public Bundle getBuyIntent(@NonNull final String sku,
-                               @NonNull final String itemType,
-                               @Nullable final String developerPayload) throws RemoteException {
+    public Bundle getBuyIntent(final String sku,
+                               final String itemType,
+                               final String developerPayload) throws RemoteException {
         throwIfUnavailable();
         return billing.getBuyIntent(API_VERSION, packageName, sku, itemType, developerPayload);
     }
 
     @Override
-    public Bundle getPurchases(@NonNull final String itemType,
-                               @Nullable final String paginationToken) throws RemoteException {
+    public Bundle getPurchases(final String itemType,
+                               final String paginationToken) throws RemoteException {
         throwIfUnavailable();
         return billing.getPurchases(API_VERSION, packageName, itemType, paginationToken);
     }
 
     @Override
-    public int consumePurchase(@NonNull final String purchaseToken) throws RemoteException {
+    public int consumePurchase(final String purchaseToken) throws RemoteException {
         throwIfUnavailable();
         return billing.consumePurchase(API_VERSION, packageName, purchaseToken);
     }

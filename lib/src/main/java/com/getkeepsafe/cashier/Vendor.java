@@ -3,8 +3,8 @@ package com.getkeepsafe.cashier;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+
+
 
 import com.getkeepsafe.cashier.logging.Logger;
 
@@ -29,30 +29,29 @@ public interface Vendor extends VendorConstants {
         }
     }
 
-    @NonNull
     String id();
-    void initialize(@NonNull Context context, @NonNull InitializationListener listener);
-    void dispose(@NonNull Context context);
-    void purchase(@NonNull Activity activity,
-                  @NonNull Product product,
-                  @Nullable String developerPayload,
-                  @NonNull PurchaseListener listener);
+    void initialize(Context context, InitializationListener listener);
+    void dispose(Context context);
+    void purchase(Activity activity,
+                  Product product,
+                  String developerPayload,
+                  PurchaseListener listener);
 
-    void consume(@NonNull Activity activity,
-                 @NonNull Purchase purchase,
-                 @NonNull ConsumeListener listener);
+    void consume(Activity activity,
+                 Purchase purchase,
+                 ConsumeListener listener);
 
-    void getInventory(@NonNull Context context,
-                      @Nullable List<String> itemSkus,
-                      @Nullable List<String> subSkus,
-                      @NonNull InventoryListener listener);
+    void getInventory(Context context,
+                      List<String> itemSkus,
+                      List<String> subSkus,
+                      InventoryListener listener);
 
-    void setLogger(@Nullable Logger logger);
+    void setLogger(Logger logger);
 
     boolean available();
-    boolean canPurchase(@NonNull Product product);
+    boolean canPurchase(Product product);
     boolean onActivityResult(int requestCode, int resultCode, Intent data);
 
-    Product getProductFrom(@NonNull JSONObject json) throws JSONException;
-    Purchase getPurchaseFrom(@NonNull JSONObject json) throws JSONException;
+    Product getProductFrom(JSONObject json) throws JSONException;
+    Purchase getPurchaseFrom(JSONObject json) throws JSONException;
 }

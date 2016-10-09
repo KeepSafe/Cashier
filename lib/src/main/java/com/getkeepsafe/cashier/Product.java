@@ -2,7 +2,7 @@ package com.getkeepsafe.cashier;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.support.annotation.NonNull;
+
 
 import com.getkeepsafe.cashier.utilities.Check;
 
@@ -28,11 +28,11 @@ public class Product implements Parcelable {
     public final boolean isSubscription;
     public final long microsPrice;
 
-    public Product(@NonNull final String json) throws JSONException {
+    public Product(final String json) throws JSONException {
         this(new JSONObject(Check.notNull(json, "Product JSON")));
     }
 
-    public Product(@NonNull final JSONObject json) throws JSONException {
+    public Product(final JSONObject json) throws JSONException {
         Check.notNull(json, "Product JSON");
 
         vendorId = json.getString(KEY_VENDOR_ID);
@@ -45,12 +45,12 @@ public class Product implements Parcelable {
         microsPrice = json.getLong(KEY_MICRO_PRICE);
     }
 
-    public Product(@NonNull final String vendorId,
-                   @NonNull final String sku,
-                   @NonNull final String price,
-                   @NonNull final String currency,
-                   @NonNull final String name,
-                   @NonNull final String description,
+    public Product(final String vendorId,
+                   final String sku,
+                   final String price,
+                   final String currency,
+                   final String name,
+                   final String description,
                    final boolean isSubscription,
                    final long microsPrice) {
         this.vendorId = Check.notNull(vendorId, "Vendor ID");
@@ -63,7 +63,7 @@ public class Product implements Parcelable {
         this.microsPrice = microsPrice;
     }
 
-    public Product(@NonNull final Product product) {
+    public Product(final Product product) {
         this(product.vendorId,
                 product.sku,
                 product.price,
@@ -74,7 +74,6 @@ public class Product implements Parcelable {
                 product.microsPrice);
     }
 
-    @NonNull
     protected JSONObject serializeToJson() throws JSONException {
         final JSONObject object = new JSONObject();
         object.put(KEY_VENDOR_ID, vendorId);

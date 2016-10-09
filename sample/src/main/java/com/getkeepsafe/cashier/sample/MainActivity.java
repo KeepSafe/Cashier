@@ -3,8 +3,8 @@ package com.getkeepsafe.cashier.sample;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+
+
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
 
     private PurchaseListener purchaseListener = new PurchaseListener() {
         @Override
-        public void success(@NonNull final Purchase purchase) {
+        public void success(final Purchase purchase) {
             Toast.makeText(MainActivity.this, "Purchase success", Toast.LENGTH_SHORT).show();
             setOwnedSku(purchase);
             purchasedProduct = purchase;
@@ -56,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public void failure(@NonNull final Product product, @NonNull final Vendor.Error error) {
+        public void failure(final Product product, final Vendor.Error error) {
             final String message;
             switch (error.code) {
                 case Vendor.PURCHASE_CANCELED:
@@ -83,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
 
     private ConsumeListener consumeListener = new ConsumeListener() {
         @Override
-        public void success(@NonNull final Purchase purchase) {
+        public void success(final Purchase purchase) {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -98,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public void failure(@NonNull final Purchase purchase, @NonNull final Vendor.Error error) {
+        public void failure(final Purchase purchase, final Vendor.Error error) {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -113,7 +113,7 @@ public class MainActivity extends AppCompatActivity {
 
     private InventoryListener inventoryListener = new InventoryListener() {
         @Override
-        public void success(@NonNull final Inventory inventory) {
+        public void success(final Inventory inventory) {
             if (!inventory.purchases().isEmpty()) {
                 purchasedProduct = inventory.purchases().get(0);
                 setOwnedSku(purchasedProduct);
@@ -124,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public void failure(@NonNull final Vendor.Error error) {
+        public void failure(final Vendor.Error error) {
             final String message;
             switch (error.code) {
                 case Vendor.INVENTORY_QUERY_FAILURE:
@@ -264,7 +264,7 @@ public class MainActivity extends AppCompatActivity {
         setOwnedSku(null);
     }
 
-    private void setOwnedSku(@Nullable final Purchase purchase) {
+    private void setOwnedSku(final Purchase purchase) {
         if (purchase == null) {
             ownedSku.setText("No owned sku");
         } else {

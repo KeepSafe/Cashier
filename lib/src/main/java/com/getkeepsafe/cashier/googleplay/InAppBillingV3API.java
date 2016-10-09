@@ -4,8 +4,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.RemoteException;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+
+
 
 import com.getkeepsafe.cashier.utilities.Check;
 
@@ -20,9 +20,9 @@ public abstract class InAppBillingV3API {
         void disconnected();
     }
 
-    public boolean initialize(@NonNull final Context context,
-                              @NonNull final InAppBillingV3Vendor vendor,
-                              @Nullable final LifecycleListener listener) {
+    public boolean initialize(final Context context,
+                              final InAppBillingV3Vendor vendor,
+                              final LifecycleListener listener) {
         this.packageName = context.getPackageName();
         this.vendor = Check.notNull(vendor, "IAB Vendor");
         return true;
@@ -30,23 +30,23 @@ public abstract class InAppBillingV3API {
 
     public abstract boolean available();
 
-    public abstract void dispose(@NonNull final Context context);
+    public abstract void dispose(final Context context);
 
-    public abstract int isBillingSupported(@NonNull final String itemType) throws RemoteException;
+    public abstract int isBillingSupported(final String itemType) throws RemoteException;
 
-    public abstract Bundle getSkuDetails(@NonNull final String itemType,
-                                         @NonNull final Bundle skus) throws RemoteException;
+    public abstract Bundle getSkuDetails(final String itemType,
+                                         final Bundle skus) throws RemoteException;
 
-    public abstract Bundle getBuyIntent(@NonNull final String sku,
-                                        @NonNull final String itemType,
-                                        @Nullable final String developerPayload)
+    public abstract Bundle getBuyIntent(final String sku,
+                                        final String itemType,
+                                        final String developerPayload)
             throws RemoteException;
 
-    public abstract Bundle getPurchases(@NonNull final String itemType,
-                                        @Nullable final String paginationToken)
+    public abstract Bundle getPurchases(final String itemType,
+                                        final String paginationToken)
             throws RemoteException;
 
-    public abstract int consumePurchase(@NonNull final String purchaseToken) throws RemoteException;
+    public abstract int consumePurchase(final String purchaseToken) throws RemoteException;
 
     protected void throwIfUnavailable() {
         if (packageName == null) {
