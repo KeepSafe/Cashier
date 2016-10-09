@@ -16,8 +16,8 @@ android:
   components:
   - platform-tools
   - tools
-  - build-tools-23.0.2
-  - android-23
+  - build-tools-24.0.2
+  - android-24
 
   - extra-google-m2repository
   - extra-android-m2repository
@@ -27,4 +27,4 @@ script:
   - jdk_switcher use oraclejdk8
   - export JAVA8_HOME=$JAVA_HOME
   - $JAVA8_HOME/bin/javac -version
-  - ./gradlew lib:testReleaseUnitTest
+  - ./gradlew testReleaseUnitTest
