@@ -19,7 +19,7 @@
 
         <activity
             android:name="com.getkeepsafe.cashier.iab.FakeInAppBillingV3CheckoutActivity"
-            android:theme="@style/Cashier.FakeCheckoutThemne"/>
+            android:theme="@style/Cashier.FakeCheckoutTheme"/>
 
     </application>
 
