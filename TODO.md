@@ -1,6 +1,5 @@
 In order of priority
 
-- Fake checkout theme is mispelled
 - Local signature check
 - Implement Amazon billing
 - Write tests for all classes
