@@ -35,5 +35,6 @@ dependencies {
 
     testCompile deps.robolectric
     testCompile deps.junit
+    testCompile deps.mockito
     testCompile deps.assertj
 }

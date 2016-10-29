@@ -57,9 +57,9 @@ public class MainActivity extends AppCompatActivity {
                 throw new RuntimeException("Library has a bug! Contact developers immediately!");
             }
 
-            // This is unnecessary, just to show off how to get a cashier instance off a purchase
-            cashier.dispose();
-            initCashier();
+//            // This is unnecessary, just to show off how to get a cashier instance off a purchase
+//            cashier.dispose();
+//            initCashier();
         }
 
         @Override
@@ -248,11 +248,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initCashier() {
+        if (cashier != null) {
+            cashier.dispose();
+        }
+
         if (useFake.isChecked()) {
             cashier = new Cashier.Builder(MainActivity.this)
                     .forVendor(
                             new InAppBillingV3Vendor(
-                                    new FakeInAppBillingV3Api(MainActivity.this)))
+                                    new FakeInAppBillingV3Api(MainActivity.this), FakeInAppBillingV3Api.TEST_PUBLIC_KEY))
                     .withLogger(new LogcatLogger())
                     .build();
         } else if (purchasedProduct != null) {

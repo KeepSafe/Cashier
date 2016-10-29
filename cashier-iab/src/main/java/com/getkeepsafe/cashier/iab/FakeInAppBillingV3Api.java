@@ -29,10 +29,33 @@ import static com.getkeepsafe.cashier.iab.InAppBillingConstants.RESPONSE_INAPP_P
 import static com.getkeepsafe.cashier.iab.InAppBillingConstants.RESPONSE_INAPP_SIGNATURE_LIST;
 
 public class FakeInAppBillingV3Api extends InAppBillingV3API {
+    public static final String TEST_PRIVATE_KEY =
+            "MIICdgIBADANBgkqhkiG9w0BAQEFAASCAmAwggJcAgEAAoGBALXolIcA1LIcYDnO\n" +
+            "2nfalbkOD2UAQ3KfqsdEGLddG2rW8Cyl2LIyiWVvQ6bp2q5qBoYCds9lBQT21uo1\n" +
+            "VHTcv4mnaLfdBjMlzecrK8y1FzRLKFXyoMqiau8wunFeqFsdzHQ774PbYyNgMGdr\n" +
+            "zUDXqIdQONL8Eq/0pgddk07uNxwbAgMBAAECgYAJInvK57zGkOw4Gu4XlK9uEomt\n" +
+            "Xb0FVYVC6mV/V7qXu+FlrJJcKHOD13mDOT0VAxf+xMLomT8OR8L1EeaC087+aeza\n" +
+            "twYUVx4d+J0cQ8xo3ILwY5Bg4/Y4R0gIbdKupHbhPKaLSAiMxilNKqNfY8upT2X/\n" +
+            "S4OFDDbm7aK8SlGPEQJBAN+YlMb4PS54aBpWgeAP8fzgtOL0Q157bmoQyCokiWv3\n" +
+            "OGa89LraifCtlsqmmAxyFbPzO2cFHYvzzEeU86XZVFkCQQDQRWQ0QJKJsfqxEeYG\n" +
+            "rq9e3TkY8uQeHz8BmgxRcYC0v43bl9ggAJAzh9h9o0X9da1YzkoQ0/cWUp5NK95F\n" +
+            "93WTAkEAxqm1/rcO/RwEOuqDyIXCVxF8Bm5K8UawCtNQVYlTBDeKyFW5B9AmYU6K\n" +
+            "vRGZ5Oz0dYd2TwlPgEqkRTGF7eSUOQJAfyK85oC8cz2oMMsiRdYAy8Hzht1Oj2y3\n" +
+            "g3zMJDNLRArix7fLgM2XOT2l1BwFL5HUPa+/2sHpxUCtzaIHz2Id7QJATyF+fzUR\n" +
+            "eVw04ogIsOIdG0ECrN5/3g9pQnAjxcReQ/4KVCpIE8lQFYjAzQYUkK9VOjX9LYp9\n" +
+            "DGEnpooCco1ZjA==";
+
+    public static final String TEST_PUBLIC_KEY =
+            "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC16JSHANSyHGA5ztp32pW5Dg9l\n" +
+            "AENyn6rHRBi3XRtq1vAspdiyMollb0Om6dquagaGAnbPZQUE9tbqNVR03L+Jp2i3\n" +
+            "3QYzJc3nKyvMtRc0SyhV8qDKomrvMLpxXqhbHcx0O++D22MjYDBna81A16iHUDjS\n" +
+            "/BKv9KYHXZNO7jccGwIDAQAB";
+
     private static final Set<Product> testProducts = new HashSet<>();
     private static final Set<InAppBillingPurchase> testPurchases = new HashSet<>();
 
     private final Context context;
+    private final String privateKey64;
 
     public static void addTestProduct(Product product) {
         testProducts.add(product);
@@ -43,13 +66,16 @@ public class FakeInAppBillingV3Api extends InAppBillingV3API {
     }
 
     public FakeInAppBillingV3Api(Context context) {
+        this(context, TEST_PRIVATE_KEY);
+    }
+
+    public FakeInAppBillingV3Api(Context context, String privateKey64) {
         this.context = context;
+        this.privateKey64 = privateKey64;
     }
 
     @Override
-    public boolean initialize(final Context context,
-                              final InAppBillingV3Vendor vendor,
-                              final LifecycleListener listener) {
+    public boolean initialize(Context context, InAppBillingV3Vendor vendor, LifecycleListener listener) {
         super.initialize(context, vendor, listener);
 
         if (available()) {
@@ -69,15 +95,15 @@ public class FakeInAppBillingV3Api extends InAppBillingV3API {
     }
 
     @Override
-    public void dispose(final Context context) {}
+    public void dispose(Context context) {}
 
     @Override
-    public int isBillingSupported(final String itemType) throws RemoteException {
+    public int isBillingSupported(String itemType) throws RemoteException {
         return BILLING_RESPONSE_RESULT_OK;
     }
 
     @Override
-    public Bundle getSkuDetails(final String itemType, final Bundle skus)
+    public Bundle getSkuDetails(String itemType, Bundle skus)
             throws RemoteException {
         final Bundle bundle = new Bundle();
         final ArrayList<String> skuList = skus.getStringArrayList(REQUEST_SKU_DETAILS_ITEM_LIST);
@@ -114,9 +140,8 @@ public class FakeInAppBillingV3Api extends InAppBillingV3API {
     }
 
     @Override
-    public Bundle getBuyIntent(final String sku,
-                               final String itemType,
-                               final String developerPayload) throws RemoteException {
+    public Bundle getBuyIntent(String sku, String itemType, String developerPayload)
+            throws RemoteException {
         final Bundle bundle = new Bundle();
         Product buyMe = null;
         for (final Product product : testProducts) {
@@ -141,13 +166,13 @@ public class FakeInAppBillingV3Api extends InAppBillingV3API {
 
         bundle.putInt(RESPONSE_CODE, BILLING_RESPONSE_RESULT_OK);
         bundle.putParcelable(RESPONSE_BUY_INTENT,
-                FakeInAppBillingV3CheckoutActivity.pendingIntent(context, buyMe, developerPayload));
+                FakeInAppBillingV3CheckoutActivity.pendingIntent(
+                        context, buyMe, developerPayload, privateKey64));
         return bundle;
     }
 
     @Override
-    public Bundle getPurchases(final String itemType,
-                               final String paginationToken) throws RemoteException {
+    public Bundle getPurchases(String itemType, String paginationToken) throws RemoteException {
         final Bundle bundle = new Bundle();
         bundle.putInt(RESPONSE_CODE, BILLING_RESPONSE_RESULT_OK);
 
@@ -160,7 +185,7 @@ public class FakeInAppBillingV3Api extends InAppBillingV3API {
             if (product.isSubscription() == itemType.equals(PRODUCT_TYPE_SUBSCRIPTION)) {
                 skus.add(product.sku());
                 purchaseData.add(purchase.purchaseData());
-                dataSignatures.add("TEST-DATA-SIGNATURE-" + product.sku());
+                dataSignatures.add(purchase.dataSignature());
             }
         }
 
@@ -172,7 +197,7 @@ public class FakeInAppBillingV3Api extends InAppBillingV3API {
     }
 
     @Override
-    public int consumePurchase(final String purchaseToken) throws RemoteException {
+    public int consumePurchase(String purchaseToken) throws RemoteException {
         for (final InAppBillingPurchase purchase : testPurchases) {
             if (purchase.token().equals(purchaseToken)) {
                 testPurchases.remove(purchase);
@@ -183,7 +208,7 @@ public class FakeInAppBillingV3Api extends InAppBillingV3API {
         return BILLING_RESPONSE_RESULT_ITEM_NOT_OWNED;
     }
 
-    private String productJson(final Product product) throws JSONException {
+    private String productJson(Product product) throws JSONException {
         final JSONObject object = new JSONObject();
         object.put(ProductConstants.SKU, product.sku());
         object.put(ProductConstants.PRICE, product.price());

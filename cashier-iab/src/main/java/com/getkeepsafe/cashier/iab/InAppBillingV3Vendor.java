@@ -8,9 +8,9 @@ import android.content.IntentSender;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.text.TextUtils;
+import android.util.Base64;
 import android.util.Log;
 
-import com.getkeepsafe.cashier.CashierPurchase;
 import com.getkeepsafe.cashier.ConsumeListener;
 import com.getkeepsafe.cashier.Inventory;
 import com.getkeepsafe.cashier.InventoryListener;
@@ -23,6 +23,9 @@ import com.getkeepsafe.cashier.logging.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -63,6 +66,7 @@ import static com.getkeepsafe.cashier.iab.InAppBillingConstants.VENDOR_PACKAGE;
 
 public class InAppBillingV3Vendor implements Vendor {
     private final InAppBillingV3API api;
+    private final String publicKey64;
 
     private Logger logger;
     private String developerPayload;
@@ -106,15 +110,24 @@ public class InAppBillingV3Vendor implements Vendor {
     };
 
     public InAppBillingV3Vendor() {
-        this(new ProductionInAppBillingV3API());
+        this(new ProductionInAppBillingV3API(), null);
+    }
+
+    public InAppBillingV3Vendor(String publicKey64) {
+        this(new ProductionInAppBillingV3API(), publicKey64);
     }
 
     public InAppBillingV3Vendor(InAppBillingV3API api) {
+        this(api, null);
+    }
+
+    public InAppBillingV3Vendor(InAppBillingV3API api, String publicKey64) {
         if (api == null) {
             throw new IllegalArgumentException("Null api");
         }
 
         this.api = api;
+        this.publicKey64 = publicKey64;
         available = false;
     }
 
@@ -345,8 +358,18 @@ public class InAppBillingV3Vendor implements Vendor {
                 }
 
                 log("Found purchase: " + sku);
+                if (!TextUtils.isEmpty(publicKey64)) {
+                    log("purchase data hash:" + Base64.encodeToString(purchaseData.getBytes(), Base64.DEFAULT));
+                    log("signature hash:" + Base64.encodeToString(signature.getBytes(), Base64.DEFAULT));
 
-                // TODO: Security verification?
+                    if (Security.verifySignature(publicKey64, purchaseData, signature)) {
+                        log("Purchase verified: " + sku);
+                    } else {
+                        log("Purchase not verified: " + sku);
+                        continue;
+                    }
+                }
+
                 purchaseList.add(InAppBillingPurchase.create(product, purchaseData, signature));
             }
 
@@ -431,7 +454,16 @@ public class InAppBillingV3Vendor implements Vendor {
         if (resultCode == Activity.RESULT_OK && responseCode == BILLING_RESPONSE_RESULT_OK) {
             try {
                 final InAppBillingPurchase purchase = InAppBillingPurchase.create(pendingProduct, data);
+                log("purchase data hash:" + Base64.encodeToString(purchase.purchaseData().getBytes(), Base64.DEFAULT));
+                log("signature hash:" + Base64.encodeToString(purchase.dataSignature().getBytes(), Base64.DEFAULT));
+
                 if (!purchase.developerPayload().equals(developerPayload)) {
+                    purchaseListener.failure(pendingProduct,
+                            new Vendor.Error(PURCHASE_SUCCESS_RESULT_MALFORMED,
+                                    BILLING_RESPONSE_RESULT_ERROR));
+                    return true;
+                } else if (!TextUtils.isEmpty(publicKey64)
+                        && Security.verifySignature(publicKey64, purchase.purchaseData(), purchase.dataSignature())) {
                     purchaseListener.failure(pendingProduct,
                             new Vendor.Error(PURCHASE_SUCCESS_RESULT_MALFORMED,
                                     BILLING_RESPONSE_RESULT_ERROR));
