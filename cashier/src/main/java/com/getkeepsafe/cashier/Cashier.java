@@ -150,7 +150,7 @@ public class Cashier {
         if (purchase.product().isSubscription()) {
             throw new IllegalArgumentException("Cannot consume a subscription type!");
         }
-        vendor.initialize(this.activity, new Vendor.InitializationListener() {
+        vendor.initialize(activity, new Vendor.InitializationListener() {
             @Override
             public void initialized() {
                 vendor.consume(activity, purchase, listener);
