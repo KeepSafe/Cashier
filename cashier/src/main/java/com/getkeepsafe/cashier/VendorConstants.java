@@ -46,8 +46,23 @@ public class VendorConstants {
     public static final int INVENTORY_QUERY_MALFORMED_RESPONSE = 1;
 
     /**
-     * Cannot query the inventory, either due to no network connectivity or vendor being
+     * Cannot query the inventory, either due to no network connectivity or the vendor being
      * unavailable
      */
     public static final int INVENTORY_QUERY_UNAVAILABLE = 2;
+
+    // Product details
+    /** Details for the product do not exist **/
+    public static final int PRODUCT_DETAILS_NOT_FOUND = 0;
+
+    /**
+     * Details for the product could not be retrieved either due to no network connectivity or
+     * the vendor being unavailable
+     */
+    public static final int PRODUCT_DETAILS_UNAVAILABLE = 1;
+
+    /**
+     * Unknown error while querying for the product details
+     */
+    public static final int PRODUCT_DETAILS_QUERY_FAILURE = 2;
 }

@@ -46,6 +46,8 @@ public interface Vendor {
                       List<String> subSkus,
                       InventoryListener listener);
 
+    void getProductDetails(Context context, String sku, boolean isSubscription, ProductDetailsListener listener);
+
     void setLogger(Logger logger);
 
     boolean available();
