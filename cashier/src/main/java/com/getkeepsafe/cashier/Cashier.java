@@ -96,9 +96,8 @@ public class Cashier {
     }
 
     private Cashier(Activity activity, Vendor vendor) {
-        if (activity == null || vendor == null) {
-            throw new IllegalArgumentException("Context or vendor is null");
-        }
+        Preconditions.checkNotNull(activity, "Activity is null");
+        Preconditions.checkNotNull(vendor, "Vendor is null");
         this.activity = activity;
         this.vendor = vendor;
     }
@@ -121,6 +120,8 @@ public class Cashier {
     public void purchase(final Product product,
                          final String developerPayload,
                          final PurchaseListener listener) {
+        Preconditions.checkNotNull(product, "Product is null");
+        Preconditions.checkNotNull(listener, "PurchaseListener is null");
         vendor.initialize(activity, new Vendor.InitializationListener() {
             @Override
             public void initialized() {
@@ -147,6 +148,8 @@ public class Cashier {
      * @param listener The {@link ConsumeListener} to handle the result
      */
     public void consume(final Purchase purchase, final ConsumeListener listener) {
+        Preconditions.checkNotNull(purchase, "Purchase is null");
+        Preconditions.checkNotNull(listener, "ConsumeListener is null");
         if (purchase.product().isSubscription()) {
             throw new IllegalArgumentException("Cannot consume a subscription type!");
         }
@@ -181,6 +184,7 @@ public class Cashier {
     public void getInventory(final List<String> itemSkus,
                              final List<String> subSkus,
                              final InventoryListener listener) {
+        Preconditions.checkNotNull(listener, "InventoryListener is null");
         vendor.initialize(activity, new Vendor.InitializationListener() {
             @Override
             public void initialized() {
@@ -190,6 +194,30 @@ public class Cashier {
             @Override
             public void unavailable() {
                 listener.failure(new Vendor.Error(VendorConstants.INVENTORY_QUERY_UNAVAILABLE, -1));
+            }
+        });
+    }
+
+    /**
+     * Returns a {@link Product} with up-to-date information for the given SKU or fails with
+     * {@link VendorConstants#PRODUCT_DETAILS_NOT_FOUND} if the SKU does not describe any
+     * current {@link Product}
+     * @param sku The SKU to lookup details for
+     * @param isSubscription Whether the SKU is for a subscription or consumable product
+     * @param listener The {@link ProductDetailsListener} to handle the result
+     */
+    public void getProductDetails(final String sku, final boolean isSubscription, final ProductDetailsListener listener) {
+        Preconditions.checkNotNull(sku, "SKU is null");
+        Preconditions.checkNotNull(listener, "ProductDetailsListener is null");
+        vendor.initialize(activity, new Vendor.InitializationListener() {
+            @Override
+            public void initialized() {
+                vendor.getProductDetails(activity, sku, isSubscription, listener);
+            }
+
+            @Override
+            public void unavailable() {
+                listener.failure(new Vendor.Error(VendorConstants.PRODUCT_DETAILS_UNAVAILABLE, -1));
             }
         });
     }

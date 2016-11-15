@@ -15,6 +15,7 @@ import com.getkeepsafe.cashier.ConsumeListener;
 import com.getkeepsafe.cashier.Inventory;
 import com.getkeepsafe.cashier.InventoryListener;
 import com.getkeepsafe.cashier.Product;
+import com.getkeepsafe.cashier.ProductDetailsListener;
 import com.getkeepsafe.cashier.Purchase;
 import com.getkeepsafe.cashier.PurchaseListener;
 import com.getkeepsafe.cashier.Vendor;
@@ -156,6 +157,7 @@ public class MainActivity extends AppCompatActivity {
         final Button purchaseItem = (Button) findViewById(R.id.buy_item);
         final Button consumeItem = (Button) findViewById(R.id.consume_item);
         final Button queryPurchases = (Button) findViewById(R.id.query_purchases);
+        final Button querySku = (Button) findViewById(R.id.query_sku);
 
         testProduct = Product.create(
                 InAppBillingConstants.VENDOR_PACKAGE,
@@ -222,6 +224,27 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        querySku.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                cashier.getProductDetails("android.test.purchased", false, new ProductDetailsListener() {
+                    @Override
+                    public void success(Product product) {
+                        try {
+                            ownedSku.setText(product.toJsonString());
+                        } catch (JSONException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+
+                    @Override
+                    public void failure(Vendor.Error error) {
+                        Toast.makeText(MainActivity.this, "Received error " + error.code + " " + error.vendorCode, Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        });
+
         useFake.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -232,6 +255,8 @@ public class MainActivity extends AppCompatActivity {
                 initCashier();
             }
         });
+
+
     }
 
     @Override

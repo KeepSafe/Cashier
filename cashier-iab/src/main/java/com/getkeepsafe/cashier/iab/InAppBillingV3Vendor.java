@@ -15,6 +15,7 @@ import com.getkeepsafe.cashier.ConsumeListener;
 import com.getkeepsafe.cashier.Inventory;
 import com.getkeepsafe.cashier.InventoryListener;
 import com.getkeepsafe.cashier.Product;
+import com.getkeepsafe.cashier.ProductDetailsListener;
 import com.getkeepsafe.cashier.Purchase;
 import com.getkeepsafe.cashier.PurchaseListener;
 import com.getkeepsafe.cashier.Vendor;
@@ -38,6 +39,8 @@ import static com.getkeepsafe.cashier.VendorConstants.CONSUME_NOT_OWNED;
 import static com.getkeepsafe.cashier.VendorConstants.CONSUME_UNAVAILABLE;
 import static com.getkeepsafe.cashier.VendorConstants.INVENTORY_QUERY_FAILURE;
 import static com.getkeepsafe.cashier.VendorConstants.INVENTORY_QUERY_MALFORMED_RESPONSE;
+import static com.getkeepsafe.cashier.VendorConstants.PRODUCT_DETAILS_NOT_FOUND;
+import static com.getkeepsafe.cashier.VendorConstants.PRODUCT_DETAILS_QUERY_FAILURE;
 import static com.getkeepsafe.cashier.VendorConstants.PURCHASE_ALREADY_OWNED;
 import static com.getkeepsafe.cashier.VendorConstants.PURCHASE_CANCELED;
 import static com.getkeepsafe.cashier.VendorConstants.PURCHASE_FAILURE;
@@ -295,9 +298,27 @@ public class InAppBillingV3Vendor implements Vendor {
 
             listener.success(inventory);
         } catch (RemoteException | ApiException e) {
-            listener.failure(new Vendor.Error(INVENTORY_QUERY_FAILURE, -1));
+            listener.failure(new Vendor.Error(INVENTORY_QUERY_FAILURE, codeFromException(e)));
         } catch (JSONException e) {
             listener.failure(new Vendor.Error(INVENTORY_QUERY_MALFORMED_RESPONSE, -1));
+        }
+    }
+
+    @Override
+    public void getProductDetails(Context context, String sku, boolean isSubscription,
+                                  ProductDetailsListener listener) {
+        throwIfUninitialized();
+        final String type = isSubscription ? PRODUCT_TYPE_SUBSCRIPTION : PRODUCT_TYPE_ITEM;
+        try {
+            final List<Product> productList = getProductsWithType(Collections.singletonList(sku), type);
+            if (productList.isEmpty()) {
+                listener.failure(new Vendor.Error(PRODUCT_DETAILS_NOT_FOUND, -1));
+                return;
+            }
+
+            listener.success(productList.get(0));
+        } catch (RemoteException | ApiException e) {
+            listener.failure(new Vendor.Error(PRODUCT_DETAILS_QUERY_FAILURE, codeFromException(e)));
         }
     }
 
@@ -547,6 +568,14 @@ public class InAppBillingV3Vendor implements Vendor {
             log(message);
             throw new RuntimeException(message);
         }
+    }
+
+    private int codeFromException(Exception e) {
+        if (e instanceof ApiException) {
+            return ((ApiException) e).code;
+        }
+
+        return -1;
     }
 
     private Vendor.Error purchaseError(final int response) {
