@@ -452,6 +452,7 @@ public class InAppBillingV3Vendor implements Vendor {
             try {
                 final InAppBillingPurchase purchase = InAppBillingPurchase.create(pendingProduct, data);
                 if (!purchase.developerPayload().equals(developerPayload)) {
+                    log("Developer payload mismatch!");
                     purchaseListener.failure(pendingProduct,
                             new Vendor.Error(PURCHASE_SUCCESS_RESULT_MALFORMED,
                                     BILLING_RESPONSE_RESULT_ERROR));
@@ -459,7 +460,8 @@ public class InAppBillingV3Vendor implements Vendor {
                 }
 
                 if (!TextUtils.isEmpty(publicKey64)
-                        && Security.verifySignature(publicKey64, purchase.purchaseData(), purchase.dataSignature())) {
+                        && !Security.verifySignature(publicKey64, purchase.purchaseData(), purchase.dataSignature())) {
+                    log("Local signature check failed!");
                     purchaseListener.failure(pendingProduct,
                             new Vendor.Error(PURCHASE_SUCCESS_RESULT_MALFORMED,
                                     BILLING_RESPONSE_RESULT_ERROR));
