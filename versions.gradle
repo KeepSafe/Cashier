@@ -17,6 +17,7 @@ ext {
 
             robolectric: 'org.robolectric:robolectric:3.1.2',
             junit:       'junit:junit:4.12',
+            mockito:     'org.mockito:mockito-core:2.2.9',
             assertj:     'com.squareup.assertj:assertj-android:1.1.1'
     ]
 }

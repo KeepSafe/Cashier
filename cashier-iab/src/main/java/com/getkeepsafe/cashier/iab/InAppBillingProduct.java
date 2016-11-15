@@ -14,9 +14,9 @@ import static com.getkeepsafe.cashier.iab.InAppBillingConstants.ProductConstants
 import static com.getkeepsafe.cashier.iab.InAppBillingConstants.VENDOR_PACKAGE;
 
 public class InAppBillingProduct {
-    public static Product of(String skuDetailJson, boolean isSubscription) throws JSONException {
+    public static Product create(String skuDetailJson, boolean isSubscription) throws JSONException {
         final JSONObject json = new JSONObject(skuDetailJson);
-        return of(json.getString(SKU),
+        return create(json.getString(SKU),
                 json.getString(PRICE),
                 json.getString(CURRENCY),
                 json.getString(NAME),
@@ -25,7 +25,7 @@ public class InAppBillingProduct {
                 Long.parseLong(json.getString(PRICE_MICRO)));
     }
 
-    public static Product of(String sku,
+    public static Product create(String sku,
                              String price,
                              String currency,
                              String name,
