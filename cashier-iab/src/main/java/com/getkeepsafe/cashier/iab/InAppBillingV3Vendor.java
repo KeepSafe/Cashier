@@ -359,13 +359,10 @@ public class InAppBillingV3Vendor implements Vendor {
 
                 log("Found purchase: " + sku);
                 if (!TextUtils.isEmpty(publicKey64)) {
-                    log("purchase data hash:" + Base64.encodeToString(purchaseData.getBytes(), Base64.DEFAULT));
-                    log("signature hash:" + Base64.encodeToString(signature.getBytes(), Base64.DEFAULT));
-
                     if (Security.verifySignature(publicKey64, purchaseData, signature)) {
-                        log("Purchase verified: " + sku);
+                        log("Purchase locally verified: " + sku);
                     } else {
-                        log("Purchase not verified: " + sku);
+                        log("Purchase not locally verified: " + sku);
                         continue;
                     }
                 }
@@ -420,7 +417,7 @@ public class InAppBillingV3Vendor implements Vendor {
             for (final String detail : detailsList) {
                 log("Parsing sku details: " + detail);
                 try {
-                    products.add(InAppBillingProduct.of(detail, type.equals(PRODUCT_TYPE_SUBSCRIPTION)));
+                    products.add(InAppBillingProduct.create(detail, type.equals(PRODUCT_TYPE_SUBSCRIPTION)));
                 } catch (JSONException e) {
                     log("Couldn't parse sku: " + detail);
                 }
@@ -454,15 +451,14 @@ public class InAppBillingV3Vendor implements Vendor {
         if (resultCode == Activity.RESULT_OK && responseCode == BILLING_RESPONSE_RESULT_OK) {
             try {
                 final InAppBillingPurchase purchase = InAppBillingPurchase.create(pendingProduct, data);
-                log("purchase data hash:" + Base64.encodeToString(purchase.purchaseData().getBytes(), Base64.DEFAULT));
-                log("signature hash:" + Base64.encodeToString(purchase.dataSignature().getBytes(), Base64.DEFAULT));
-
                 if (!purchase.developerPayload().equals(developerPayload)) {
                     purchaseListener.failure(pendingProduct,
                             new Vendor.Error(PURCHASE_SUCCESS_RESULT_MALFORMED,
                                     BILLING_RESPONSE_RESULT_ERROR));
                     return true;
-                } else if (!TextUtils.isEmpty(publicKey64)
+                }
+
+                if (!TextUtils.isEmpty(publicKey64)
                         && Security.verifySignature(publicKey64, purchase.purchaseData(), purchase.dataSignature())) {
                     purchaseListener.failure(pendingProduct,
                             new Vendor.Error(PURCHASE_SUCCESS_RESULT_MALFORMED,
