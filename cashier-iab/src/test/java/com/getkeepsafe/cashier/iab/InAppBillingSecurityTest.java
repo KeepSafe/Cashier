@@ -7,12 +7,32 @@ import org.junit.runner.RunWith;
 
 import java.security.PrivateKey;
 
-import static com.getkeepsafe.cashier.iab.FakeInAppBillingV3Api.TEST_PRIVATE_KEY;
-import static com.getkeepsafe.cashier.iab.FakeInAppBillingV3Api.TEST_PUBLIC_KEY;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(LibraryProjectRobolectricTestRunner.class)
 public class InAppBillingSecurityTest {
+    public static final String TEST_PRIVATE_KEY =
+            "MIICdgIBADANBgkqhkiG9w0BAQEFAASCAmAwggJcAgEAAoGBALXolIcA1LIcYDnO\n" +
+                    "2nfalbkOD2UAQ3KfqsdEGLddG2rW8Cyl2LIyiWVvQ6bp2q5qBoYCds9lBQT21uo1\n" +
+                    "VHTcv4mnaLfdBjMlzecrK8y1FzRLKFXyoMqiau8wunFeqFsdzHQ774PbYyNgMGdr\n" +
+                    "zUDXqIdQONL8Eq/0pgddk07uNxwbAgMBAAECgYAJInvK57zGkOw4Gu4XlK9uEomt\n" +
+                    "Xb0FVYVC6mV/V7qXu+FlrJJcKHOD13mDOT0VAxf+xMLomT8OR8L1EeaC087+aeza\n" +
+                    "twYUVx4d+J0cQ8xo3ILwY5Bg4/Y4R0gIbdKupHbhPKaLSAiMxilNKqNfY8upT2X/\n" +
+                    "S4OFDDbm7aK8SlGPEQJBAN+YlMb4PS54aBpWgeAP8fzgtOL0Q157bmoQyCokiWv3\n" +
+                    "OGa89LraifCtlsqmmAxyFbPzO2cFHYvzzEeU86XZVFkCQQDQRWQ0QJKJsfqxEeYG\n" +
+                    "rq9e3TkY8uQeHz8BmgxRcYC0v43bl9ggAJAzh9h9o0X9da1YzkoQ0/cWUp5NK95F\n" +
+                    "93WTAkEAxqm1/rcO/RwEOuqDyIXCVxF8Bm5K8UawCtNQVYlTBDeKyFW5B9AmYU6K\n" +
+                    "vRGZ5Oz0dYd2TwlPgEqkRTGF7eSUOQJAfyK85oC8cz2oMMsiRdYAy8Hzht1Oj2y3\n" +
+                    "g3zMJDNLRArix7fLgM2XOT2l1BwFL5HUPa+/2sHpxUCtzaIHz2Id7QJATyF+fzUR\n" +
+                    "eVw04ogIsOIdG0ECrN5/3g9pQnAjxcReQ/4KVCpIE8lQFYjAzQYUkK9VOjX9LYp9\n" +
+                    "DGEnpooCco1ZjA==";
+
+    public static final String TEST_PUBLIC_KEY =
+            "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC16JSHANSyHGA5ztp32pW5Dg9l\n" +
+                    "AENyn6rHRBi3XRtq1vAspdiyMollb0Om6dquagaGAnbPZQUE9tbqNVR03L+Jp2i3\n" +
+                    "3QYzJc3nKyvMtRc0SyhV8qDKomrvMLpxXqhbHcx0O++D22MjYDBna81A16iHUDjS\n" +
+                    "/BKv9KYHXZNO7jccGwIDAQAB";
+
     final String purchaseData = "{\"autoRenewing\":false,\"orderId\":\"7429c5e9-f8e7-4332-b39d-60ce2c215fef\",\"packageName\":\"com.getkeepsafe.cashier.sample\",\"productId\":\"android.test.purchased\",\"purchaseTime\":1476077957823,\"purchaseState\":0,\"developerPayload\":\"hello-cashier!\",\"purchaseToken\":\"15d12f9b-82fc-4977-b49c-aef730a10463\"}";
     final String purchaseSignature =
             "kqxUG9i+Omsm73jYjNBVppC9wpjQxLecl6jF8so0PLhwDnTElHuCFLXGlmCwT1pL70M3ZTkgGRxR\n" +
