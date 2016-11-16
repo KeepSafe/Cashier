@@ -18,7 +18,7 @@
         </activity>
 
         <activity
-            android:name="com.getkeepsafe.cashier.iab.FakeInAppBillingV3CheckoutActivity"
+            android:name="com.getkeepsafe.cashier.iab.debug.FakeInAppBillingV3CheckoutActivity"
             android:theme="@style/Cashier.FakeCheckoutTheme"/>
 
     </application>

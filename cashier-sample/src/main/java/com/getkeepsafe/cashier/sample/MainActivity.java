@@ -21,9 +21,9 @@ import com.getkeepsafe.cashier.PurchaseListener;
 import com.getkeepsafe.cashier.Vendor;
 import com.getkeepsafe.cashier.VendorFactory;
 import com.getkeepsafe.cashier.VendorMissingException;
-import com.getkeepsafe.cashier.iab.FakeInAppBillingV3Api;
 import com.getkeepsafe.cashier.iab.InAppBillingConstants;
 import com.getkeepsafe.cashier.iab.InAppBillingV3Vendor;
+import com.getkeepsafe.cashier.iab.debug.FakeInAppBillingV3Api;
 import com.getkeepsafe.cashier.logging.LogcatLogger;
 
 import org.json.JSONException;

@@ -5,6 +5,9 @@ import android.os.Bundle;
 import android.os.RemoteException;
 
 import com.getkeepsafe.cashier.Product;
+import com.getkeepsafe.cashier.iab.InAppBillingPurchase;
+import com.getkeepsafe.cashier.iab.AbstractInAppBillingV3API;
+import com.getkeepsafe.cashier.iab.InAppBillingV3Vendor;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -28,7 +31,7 @@ import static com.getkeepsafe.cashier.iab.InAppBillingConstants.RESPONSE_INAPP_I
 import static com.getkeepsafe.cashier.iab.InAppBillingConstants.RESPONSE_INAPP_PURCHASE_DATA_LIST;
 import static com.getkeepsafe.cashier.iab.InAppBillingConstants.RESPONSE_INAPP_SIGNATURE_LIST;
 
-public class FakeInAppBillingV3Api extends InAppBillingV3API {
+public class FakeInAppBillingV3Api extends AbstractInAppBillingV3API {
     public static final String TEST_PRIVATE_KEY =
             "MIICdgIBADANBgkqhkiG9w0BAQEFAASCAmAwggJcAgEAAoGBALXolIcA1LIcYDnO\n" +
             "2nfalbkOD2UAQ3KfqsdEGLddG2rW8Cyl2LIyiWVvQ6bp2q5qBoYCds9lBQT21uo1\n" +
@@ -99,24 +102,24 @@ public class FakeInAppBillingV3Api extends InAppBillingV3API {
 
     @Override
     public int isBillingSupported(String itemType) throws RemoteException {
-        return InAppBillingConstants.BILLING_RESPONSE_RESULT_OK;
+        return BILLING_RESPONSE_RESULT_OK;
     }
 
     @Override
     public Bundle getSkuDetails(String itemType, Bundle skus)
             throws RemoteException {
         final Bundle bundle = new Bundle();
-        final ArrayList<String> skuList = skus.getStringArrayList(InAppBillingConstants.REQUEST_SKU_DETAILS_ITEM_LIST);
+        final ArrayList<String> skuList = skus.getStringArrayList(REQUEST_SKU_DETAILS_ITEM_LIST);
         final ArrayList<String> resultList = new ArrayList<>();
         if (skuList == null || skuList.size() > 20) {
-            bundle.putInt(InAppBillingConstants.RESPONSE_CODE, InAppBillingConstants.BILLING_RESPONSE_RESULT_DEVELOPER_ERROR);
+            bundle.putInt(RESPONSE_CODE, BILLING_RESPONSE_RESULT_DEVELOPER_ERROR);
             return bundle;
         }
 
         for (final String sku : skuList) {
             for (final Product product : testProducts) {
                 if (product.sku().equals(sku)
-                        && (product.isSubscription() == (itemType.equals(InAppBillingConstants.PRODUCT_TYPE_SUBSCRIPTION)))) {
+                        && (product.isSubscription() == (itemType.equals(PRODUCT_TYPE_SUBSCRIPTION)))) {
                     try {
                         resultList.add(productJson(product));
                     } catch (JSONException e) {
@@ -128,12 +131,12 @@ public class FakeInAppBillingV3Api extends InAppBillingV3API {
             }
         }
 
-        bundle.putStringArrayList(InAppBillingConstants.RESPONSE_GET_SKU_DETAILS_LIST, resultList);
+        bundle.putStringArrayList(RESPONSE_GET_SKU_DETAILS_LIST, resultList);
 
         if (resultList.size() != skuList.size()) {
-            bundle.putInt(InAppBillingConstants.RESPONSE_CODE, InAppBillingConstants.BILLING_RESPONSE_RESULT_DEVELOPER_ERROR);
+            bundle.putInt(RESPONSE_CODE, BILLING_RESPONSE_RESULT_DEVELOPER_ERROR);
         } else {
-            bundle.putInt(InAppBillingConstants.RESPONSE_CODE, InAppBillingConstants.BILLING_RESPONSE_RESULT_OK);
+            bundle.putInt(RESPONSE_CODE, BILLING_RESPONSE_RESULT_OK);
         }
 
         return bundle;
@@ -152,20 +155,20 @@ public class FakeInAppBillingV3Api extends InAppBillingV3API {
         }
 
         if (buyMe == null) {
-            bundle.putInt(InAppBillingConstants.RESPONSE_CODE, InAppBillingConstants.BILLING_RESPONSE_RESULT_ITEM_UNAVAILABLE);
+            bundle.putInt(RESPONSE_CODE, BILLING_RESPONSE_RESULT_ITEM_UNAVAILABLE);
             return bundle;
         }
 
         // Can't buy thing twice
         for (final InAppBillingPurchase purchase : testPurchases) {
             if (purchase.product().sku().equals(buyMe.sku())) {
-                bundle.putInt(InAppBillingConstants.RESPONSE_CODE, InAppBillingConstants.BILLING_RESPONSE_RESULT_ITEM_ALREADY_OWNED);
+                bundle.putInt(RESPONSE_CODE, BILLING_RESPONSE_RESULT_ITEM_ALREADY_OWNED);
                 return bundle;
             }
         }
 
-        bundle.putInt(InAppBillingConstants.RESPONSE_CODE, InAppBillingConstants.BILLING_RESPONSE_RESULT_OK);
-        bundle.putParcelable(InAppBillingConstants.RESPONSE_BUY_INTENT,
+        bundle.putInt(RESPONSE_CODE, BILLING_RESPONSE_RESULT_OK);
+        bundle.putParcelable(RESPONSE_BUY_INTENT,
                 FakeInAppBillingV3CheckoutActivity.pendingIntent(
                         context, buyMe, developerPayload, privateKey64));
         return bundle;
@@ -174,7 +177,7 @@ public class FakeInAppBillingV3Api extends InAppBillingV3API {
     @Override
     public Bundle getPurchases(String itemType, String paginationToken) throws RemoteException {
         final Bundle bundle = new Bundle();
-        bundle.putInt(InAppBillingConstants.RESPONSE_CODE, InAppBillingConstants.BILLING_RESPONSE_RESULT_OK);
+        bundle.putInt(RESPONSE_CODE, BILLING_RESPONSE_RESULT_OK);
 
         final ArrayList<String> skus = new ArrayList<>();
         final ArrayList<String> purchaseData = new ArrayList<>();
@@ -182,16 +185,16 @@ public class FakeInAppBillingV3Api extends InAppBillingV3API {
 
         for (final InAppBillingPurchase purchase : testPurchases) {
             final Product product = purchase.product();
-            if (product.isSubscription() == itemType.equals(InAppBillingConstants.PRODUCT_TYPE_SUBSCRIPTION)) {
+            if (product.isSubscription() == itemType.equals(PRODUCT_TYPE_SUBSCRIPTION)) {
                 skus.add(product.sku());
                 purchaseData.add(purchase.purchaseData());
                 dataSignatures.add(purchase.dataSignature());
             }
         }
 
-        bundle.putStringArrayList(InAppBillingConstants.RESPONSE_INAPP_ITEM_LIST, skus);
-        bundle.putStringArrayList(InAppBillingConstants.RESPONSE_INAPP_PURCHASE_DATA_LIST, purchaseData);
-        bundle.putStringArrayList(InAppBillingConstants.RESPONSE_INAPP_SIGNATURE_LIST, dataSignatures);
+        bundle.putStringArrayList(RESPONSE_INAPP_ITEM_LIST, skus);
+        bundle.putStringArrayList(RESPONSE_INAPP_PURCHASE_DATA_LIST, purchaseData);
+        bundle.putStringArrayList(RESPONSE_INAPP_SIGNATURE_LIST, dataSignatures);
 
         return bundle;
     }
@@ -201,11 +204,11 @@ public class FakeInAppBillingV3Api extends InAppBillingV3API {
         for (final InAppBillingPurchase purchase : testPurchases) {
             if (purchase.token().equals(purchaseToken)) {
                 testPurchases.remove(purchase);
-                return InAppBillingConstants.BILLING_RESPONSE_RESULT_OK;
+                return BILLING_RESPONSE_RESULT_OK;
             }
         }
 
-        return InAppBillingConstants.BILLING_RESPONSE_RESULT_ITEM_NOT_OWNED;
+        return BILLING_RESPONSE_RESULT_ITEM_NOT_OWNED;
     }
 
     private String productJson(Product product) throws JSONException {

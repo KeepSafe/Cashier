@@ -11,6 +11,8 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.getkeepsafe.cashier.Product;
+import com.getkeepsafe.cashier.iab.InAppBillingPurchase;
+import com.getkeepsafe.cashier.iab.InAppBillingSecurity;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -82,9 +84,9 @@ public class FakeInAppBillingV3CheckoutActivity extends Activity {
                 final Intent data = new Intent();
                 try {
                     final String purchaseData = purchaseData();
-                    data.putExtra(InAppBillingConstants.RESPONSE_CODE, InAppBillingConstants.BILLING_RESPONSE_RESULT_OK);
-                    data.putExtra(InAppBillingConstants.RESPONSE_INAPP_PURCHASE_DATA, purchaseData);
-                    data.putExtra(InAppBillingConstants.RESPONSE_INAPP_SIGNATURE, generateSignature(purchaseData, privateKey64));
+                    data.putExtra(RESPONSE_CODE, BILLING_RESPONSE_RESULT_OK);
+                    data.putExtra(RESPONSE_INAPP_PURCHASE_DATA, purchaseData);
+                    data.putExtra(RESPONSE_INAPP_SIGNATURE, generateSignature(purchaseData, privateKey64));
                     FakeInAppBillingV3Api.addTestPurchase(InAppBillingPurchase.create(product, data));
                 } catch (JSONException e) {
                     // Library error, if it happens, promote to RuntimeException
@@ -102,7 +104,7 @@ public class FakeInAppBillingV3CheckoutActivity extends Activity {
             return "TEST_SIGNATURE";
         }
 
-        return Security.sign(privateKey64, purchaseData);
+        return InAppBillingSecurity.sign(privateKey64, purchaseData);
     }
 
     @Override
@@ -117,7 +119,7 @@ public class FakeInAppBillingV3CheckoutActivity extends Activity {
     @Override
     public void onBackPressed() {
         final Intent data = new Intent();
-        data.putExtra(InAppBillingConstants.RESPONSE_CODE, InAppBillingConstants.BILLING_RESPONSE_RESULT_USER_CANCELED);
+        data.putExtra(RESPONSE_CODE, BILLING_RESPONSE_RESULT_USER_CANCELED);
         setResultCompat(Activity.RESULT_CANCELED, data);
         finish();
     }
