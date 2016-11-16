@@ -14,7 +14,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
-class Security {
+class InAppBillingSecurity {
     static final String KEY_TYPE = "RSA";
     static final String SIGNATURE_ALGORITHM = "SHA1withRSA";
 

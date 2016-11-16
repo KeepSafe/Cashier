@@ -1,4 +1,4 @@
-package com.getkeepsafe.cashier.iab;
+package com.getkeepsafe.cashier.iab.debug;
 
 import android.app.Activity;
 import android.app.PendingIntent;
@@ -82,9 +82,9 @@ public class FakeInAppBillingV3CheckoutActivity extends Activity {
                 final Intent data = new Intent();
                 try {
                     final String purchaseData = purchaseData();
-                    data.putExtra(RESPONSE_CODE, BILLING_RESPONSE_RESULT_OK);
-                    data.putExtra(RESPONSE_INAPP_PURCHASE_DATA, purchaseData);
-                    data.putExtra(RESPONSE_INAPP_SIGNATURE, generateSignature(purchaseData, privateKey64));
+                    data.putExtra(InAppBillingConstants.RESPONSE_CODE, InAppBillingConstants.BILLING_RESPONSE_RESULT_OK);
+                    data.putExtra(InAppBillingConstants.RESPONSE_INAPP_PURCHASE_DATA, purchaseData);
+                    data.putExtra(InAppBillingConstants.RESPONSE_INAPP_SIGNATURE, generateSignature(purchaseData, privateKey64));
                     FakeInAppBillingV3Api.addTestPurchase(InAppBillingPurchase.create(product, data));
                 } catch (JSONException e) {
                     // Library error, if it happens, promote to RuntimeException
@@ -117,7 +117,7 @@ public class FakeInAppBillingV3CheckoutActivity extends Activity {
     @Override
     public void onBackPressed() {
         final Intent data = new Intent();
-        data.putExtra(RESPONSE_CODE, BILLING_RESPONSE_RESULT_USER_CANCELED);
+        data.putExtra(InAppBillingConstants.RESPONSE_CODE, InAppBillingConstants.BILLING_RESPONSE_RESULT_USER_CANCELED);
         setResultCompat(Activity.RESULT_CANCELED, data);
         finish();
     }

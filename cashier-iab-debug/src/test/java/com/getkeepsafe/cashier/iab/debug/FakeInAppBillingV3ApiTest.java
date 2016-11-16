@@ -1,4 +1,4 @@
-package com.getkeepsafe.cashier.iab;
+package com.getkeepsafe.cashier.iab.debug;
 
 import android.content.Context;
 import android.os.Bundle;
