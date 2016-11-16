@@ -8,7 +8,6 @@ import android.content.IntentSender;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.text.TextUtils;
-import android.util.Base64;
 import android.util.Log;
 
 import com.getkeepsafe.cashier.ConsumeListener;
@@ -24,9 +23,6 @@ import com.getkeepsafe.cashier.logging.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.UnsupportedEncodingException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -68,7 +64,7 @@ import static com.getkeepsafe.cashier.iab.InAppBillingConstants.RESPONSE_INAPP_S
 import static com.getkeepsafe.cashier.iab.InAppBillingConstants.VENDOR_PACKAGE;
 
 public class InAppBillingV3Vendor implements Vendor {
-    private final InAppBillingV3API api;
+    private final AbstractInAppBillingV3API api;
     private final String publicKey64;
 
     private Logger logger;
@@ -82,8 +78,8 @@ public class InAppBillingV3Vendor implements Vendor {
     private boolean canSubscribe;
     private boolean canPurchaseItems;
 
-    private final InAppBillingV3API.LifecycleListener lifecycleListener
-            = new InAppBillingV3API.LifecycleListener() {
+    private final AbstractInAppBillingV3API.LifecycleListener lifecycleListener
+            = new AbstractInAppBillingV3API.LifecycleListener() {
         @Override
         public void initialized(boolean success) {
             if (!success) {
@@ -113,18 +109,18 @@ public class InAppBillingV3Vendor implements Vendor {
     };
 
     public InAppBillingV3Vendor() {
-        this(new ProductionInAppBillingV3API(), null);
+        this(new InAppBillingV3API(), null);
     }
 
     public InAppBillingV3Vendor(String publicKey64) {
-        this(new ProductionInAppBillingV3API(), publicKey64);
+        this(new InAppBillingV3API(), publicKey64);
     }
 
-    public InAppBillingV3Vendor(InAppBillingV3API api) {
+    public InAppBillingV3Vendor(AbstractInAppBillingV3API api) {
         this(api, null);
     }
 
-    public InAppBillingV3Vendor(InAppBillingV3API api, String publicKey64) {
+    public InAppBillingV3Vendor(AbstractInAppBillingV3API api, String publicKey64) {
         if (api == null) {
             throw new IllegalArgumentException("Null api");
         }
@@ -380,7 +376,7 @@ public class InAppBillingV3Vendor implements Vendor {
 
                 log("Found purchase: " + sku);
                 if (!TextUtils.isEmpty(publicKey64)) {
-                    if (Security.verifySignature(publicKey64, purchaseData, signature)) {
+                    if (InAppBillingSecurity.verifySignature(publicKey64, purchaseData, signature)) {
                         log("Purchase locally verified: " + sku);
                     } else {
                         log("Purchase not locally verified: " + sku);
@@ -481,7 +477,7 @@ public class InAppBillingV3Vendor implements Vendor {
                 }
 
                 if (!TextUtils.isEmpty(publicKey64)
-                        && !Security.verifySignature(publicKey64, purchase.purchaseData(), purchase.dataSignature())) {
+                        && !InAppBillingSecurity.verifySignature(publicKey64, purchase.purchaseData(), purchase.dataSignature())) {
                     log("Local signature check failed!");
                     purchaseListener.failure(pendingProduct,
                             new Vendor.Error(PURCHASE_SUCCESS_RESULT_MALFORMED,

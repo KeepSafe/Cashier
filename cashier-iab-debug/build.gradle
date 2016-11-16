@@ -1,0 +1,39 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion versions.compileSdk
+    buildToolsVersion versions.buildTools
+
+    defaultConfig {
+        minSdkVersion versions.minSdk
+        versionCode versions.versionCode
+        versionName versions.versionName
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+    testOptions {
+        unitTests.all {
+            testLogging {
+                exceptionFormat 'full'
+                showStackTraces true
+                showCauses true
+                events "passed", "skipped", "failed", "standardError"
+            }
+        }
+    }
+}
+
+dependencies {
+    compile project(':cashier-iab')
+    provided deps.autoValue
+    annotationProcessor deps.autoValue
+    annotationProcessor deps.autoParcel
+
+    testCompile deps.robolectric
+    testCompile deps.junit
+    testCompile deps.mockito
+    testCompile deps.assertj
+}

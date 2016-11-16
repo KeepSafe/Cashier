@@ -1,10 +1,13 @@
-package com.getkeepsafe.cashier.iab;
+package com.getkeepsafe.cashier.iab.debug;
 
 import android.content.Context;
 import android.os.Bundle;
 import android.os.RemoteException;
 
 import com.getkeepsafe.cashier.Product;
+import com.getkeepsafe.cashier.iab.InAppBillingPurchase;
+import com.getkeepsafe.cashier.iab.AbstractInAppBillingV3API;
+import com.getkeepsafe.cashier.iab.InAppBillingV3Vendor;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -28,7 +31,7 @@ import static com.getkeepsafe.cashier.iab.InAppBillingConstants.RESPONSE_INAPP_I
 import static com.getkeepsafe.cashier.iab.InAppBillingConstants.RESPONSE_INAPP_PURCHASE_DATA_LIST;
 import static com.getkeepsafe.cashier.iab.InAppBillingConstants.RESPONSE_INAPP_SIGNATURE_LIST;
 
-public class FakeInAppBillingV3Api extends InAppBillingV3API {
+public class FakeInAppBillingV3Api extends AbstractInAppBillingV3API {
     public static final String TEST_PRIVATE_KEY =
             "MIICdgIBADANBgkqhkiG9w0BAQEFAASCAmAwggJcAgEAAoGBALXolIcA1LIcYDnO\n" +
             "2nfalbkOD2UAQ3KfqsdEGLddG2rW8Cyl2LIyiWVvQ6bp2q5qBoYCds9lBQT21uo1\n" +

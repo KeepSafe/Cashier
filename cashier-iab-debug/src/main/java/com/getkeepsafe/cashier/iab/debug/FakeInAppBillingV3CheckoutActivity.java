@@ -1,4 +1,4 @@
-package com.getkeepsafe.cashier.iab;
+package com.getkeepsafe.cashier.iab.debug;
 
 import android.app.Activity;
 import android.app.PendingIntent;
@@ -11,6 +11,8 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.getkeepsafe.cashier.Product;
+import com.getkeepsafe.cashier.iab.InAppBillingPurchase;
+import com.getkeepsafe.cashier.iab.InAppBillingSecurity;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -102,7 +104,7 @@ public class FakeInAppBillingV3CheckoutActivity extends Activity {
             return "TEST_SIGNATURE";
         }
 
-        return Security.sign(privateKey64, purchaseData);
+        return InAppBillingSecurity.sign(privateKey64, purchaseData);
     }
 
     @Override
