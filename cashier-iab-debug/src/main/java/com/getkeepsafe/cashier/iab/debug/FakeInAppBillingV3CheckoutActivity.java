@@ -4,8 +4,11 @@ import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.os.Bundle;
+import android.text.SpannableString;
 import android.text.TextUtils;
+import android.text.style.StyleSpan;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -50,7 +53,7 @@ public class FakeInAppBillingV3CheckoutActivity extends Activity {
             intent.putExtra(ARGUMENT_PRIVATE_KEY, privateKey64);
         }
 
-        return PendingIntent.getActivity(context, 1337, intent, 0);
+        return PendingIntent.getActivity(context, 1337, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
     @Override
@@ -73,11 +76,20 @@ public class FakeInAppBillingV3CheckoutActivity extends Activity {
         final TextView productName = bind(R.id.product_name);
         final TextView productDescription = bind(R.id.product_description);
         final TextView productPrice = bind(R.id.product_price);
+        final TextView productMetadata = bind(R.id.product_metadata);
         final Button buyButton = bind(R.id.buy);
 
         productName.setText(product.name());
         productDescription.setText(product.description());
         productPrice.setText(product.price());
+
+        productMetadata.setText(String.valueOf(
+                metadataField("Vendor", product.vendorId())) +
+                metadataField("SKU", product.sku()) +
+                metadataField("Subscription", product.isSubscription()) +
+                metadataField("Micro-price", product.microsPrice()) +
+                metadataField("Currency", product.currency()));
+
         buyButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -97,6 +109,12 @@ public class FakeInAppBillingV3CheckoutActivity extends Activity {
                 finish();
             }
         });
+    }
+
+    private SpannableString metadataField(String name, Object value) {
+        final SpannableString string = new SpannableString(name + ": " + value.toString() + "\n");
+        string.setSpan(new StyleSpan(Typeface.BOLD), 0, name.length() + 1, 0);
+        return string;
     }
 
     private String generateSignature(String purchaseData, String privateKey64) {

@@ -1,11 +1,18 @@
 package com.getkeepsafe.cashier.sample;
 
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.SimpleAdapter;
+import android.widget.Spinner;
+import android.widget.SpinnerAdapter;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -28,6 +35,10 @@ import com.getkeepsafe.cashier.logging.LogcatLogger;
 
 import org.json.JSONException;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
 import static com.getkeepsafe.cashier.VendorConstants.INVENTORY_QUERY_FAILURE;
 import static com.getkeepsafe.cashier.VendorConstants.INVENTORY_QUERY_MALFORMED_RESPONSE;
 import static com.getkeepsafe.cashier.VendorConstants.PURCHASE_ALREADY_OWNED;
@@ -42,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
     private Cashier cashier;
     private ProgressDialog progressDialog;
     private Product testProduct;
+    private Product testProduct2;
     private Purchase purchasedProduct;
 
     private static final String DEV_PAYLOAD = "hello-cashier!";
@@ -158,6 +170,7 @@ public class MainActivity extends AppCompatActivity {
         final Button consumeItem = (Button) findViewById(R.id.consume_item);
         final Button queryPurchases = (Button) findViewById(R.id.query_purchases);
         final Button querySku = (Button) findViewById(R.id.query_sku);
+        final Spinner spinner = (Spinner) findViewById(R.id.spinner);
 
         testProduct = Product.create(
                 InAppBillingConstants.VENDOR_PACKAGE,
@@ -169,8 +182,21 @@ public class MainActivity extends AppCompatActivity {
                 false,
                 990_000L);
 
+        testProduct2 = Product.create(
+                InAppBillingConstants.VENDOR_PACKAGE,
+                "com.abc.def.123",
+                "$123.99",
+                "USD",
+                "Test product 2",
+                "This is another test product",
+                false,
+                123990_000L);
+
+        spinner.setAdapter(new ProductSpinnerAdapter(Arrays.asList(testProduct, testProduct2)));
+
         // For testing certain products
         FakeInAppBillingV3Api.addTestProduct(testProduct);
+        FakeInAppBillingV3Api.addTestProduct(testProduct2);
 
         // This will typically be in your application's `onCreate` method
         Cashier.putVendorFactory(InAppBillingConstants.VENDOR_PACKAGE, new VendorFactory() {
@@ -192,7 +218,7 @@ public class MainActivity extends AppCompatActivity {
         purchaseItem.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                cashier.purchase(testProduct, DEV_PAYLOAD, purchaseListener);
+                cashier.purchase((Product) spinner.getSelectedItem(), DEV_PAYLOAD, purchaseListener);
             }
         });
 
@@ -321,6 +347,43 @@ public class MainActivity extends AppCompatActivity {
                 // Shouldn't happen in the sample
                 throw new RuntimeException(e);
             }
+        }
+    }
+
+    private static class ProductSpinnerAdapter extends BaseAdapter {
+        private final List<Product> products;
+
+        public ProductSpinnerAdapter(List<Product> products) {
+            this.products = products;
+        }
+
+        @Override
+        public int getCount() {
+            return products.size();
+        }
+
+        @Override
+        public Product getItem(int position) {
+            return products.get(position);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            final TextView textView;
+            if (convertView == null || !(convertView instanceof TextView)) {
+                textView = new TextView(parent.getContext());
+            } else {
+                textView = (TextView) convertView;
+            }
+
+            final Product product = getItem(position);
+            textView.setText(product.name());
+            return textView;
         }
     }
 }
