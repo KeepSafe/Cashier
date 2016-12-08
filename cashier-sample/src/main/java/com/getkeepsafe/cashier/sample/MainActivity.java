@@ -213,7 +213,7 @@ public class MainActivity extends AppCompatActivity {
         purchaseItem.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                cashier.purchase((Product) spinner.getSelectedItem(), DEV_PAYLOAD, purchaseListener);
+                cashier.purchase(MainActivity.this, (Product) spinner.getSelectedItem(), DEV_PAYLOAD, purchaseListener);
             }
         });
 
