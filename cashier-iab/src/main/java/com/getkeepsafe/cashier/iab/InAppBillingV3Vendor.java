@@ -241,9 +241,9 @@ public class InAppBillingV3Vendor implements Vendor {
     }
 
     @Override
-    public void consume(Activity activity, Purchase purchase, ConsumeListener listener) {
-        if (activity == null || purchase == null || listener == null) {
-            throw new IllegalArgumentException("Activity, product, or listener is null");
+    public void consume(Context context, Purchase purchase, ConsumeListener listener) {
+        if (context == null || purchase == null || listener == null) {
+            throw new IllegalArgumentException("Context, product, or listener is null");
         }
 
         throwIfUninitialized();

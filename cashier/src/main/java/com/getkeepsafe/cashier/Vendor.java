@@ -37,7 +37,7 @@ public interface Vendor {
                   String developerPayload,
                   PurchaseListener listener);
 
-    void consume(Activity activity,
+    void consume(Context context,
                  Purchase purchase,
                  ConsumeListener listener);
 

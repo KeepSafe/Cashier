@@ -1,6 +1,7 @@
 package com.getkeepsafe.cashier;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.text.TextUtils;
 
@@ -20,7 +21,7 @@ import java.util.List;
 public class Cashier {
     private static HashMap<String, VendorFactory> vendorFactories = new HashMap<>(1);
 
-    private final Activity activity;
+    private final Context context;
     private final Vendor vendor;
 
     /**
@@ -53,21 +54,26 @@ public class Cashier {
         return factory;
     }
 
-    /** Returns a Cashier instance depending on the app installer **/
-    public static Builder forInstaller(Activity context) {
+    /** Returns a Cashier instance builder depending on the app installer **/
+    public static Builder forInstaller(Context context) {
         final String installer = context
                 .getPackageManager()
                 .getInstallerPackageName(context.getPackageName());
         return new Builder(context).forVendor(getVendorFactory(installer).create());
     }
 
-    /** Returns a Cashier instance that sold the given {@link Purchase} **/
-    public static Builder forPurchase(Activity context, Purchase purchase) {
+    /** Returns a Cashier instance builder for the given vendor **/
+    public static Builder forVendor(Context context, Vendor vendor) {
+        return new Builder(context).forVendor(vendor);
+    }
+
+    /** Returns a Cashier instance builder that sold the given {@link Purchase} **/
+    public static Builder forPurchase(Context context, Purchase purchase) {
         return forProduct(context, purchase.product());
     }
 
-    /** Returns a Cashier instance that sells the given {@link Product} **/
-    public static Builder forProduct(Activity context, Product product) {
+    /** Returns a Cashier instance builder that sells the given {@link Product} **/
+    public static Builder forProduct(Context context, Product product) {
         return new Builder(context).forVendor(getVendorFactory(product.vendorId()).create());
     }
 
@@ -95,34 +101,37 @@ public class Cashier {
         return vendor.getPurchaseFrom(json);
     }
 
-    private Cashier(Activity activity, Vendor vendor) {
-        Preconditions.checkNotNull(activity, "Activity is null");
+    private Cashier(Context context, Vendor vendor) {
+        Preconditions.checkNotNull(context, "Context is null");
         Preconditions.checkNotNull(vendor, "Vendor is null");
-        this.activity = activity;
+        this.context = context;
         this.vendor = vendor;
     }
 
     /**
      * Initiates a purchase flow
+     * @param activity The activity that will host the purchase flow
      * @param product The {@link Product} you wish to buy
      * @param listener The {@link PurchaseListener} to handle the result
      */
-    public void purchase(Product product, PurchaseListener listener) {
-        purchase(product, null, listener);
+    public void purchase(Activity activity, Product product, PurchaseListener listener) {
+        purchase(activity, product, null, listener);
     }
 
     /**
      * Initiates a purchase flow
+     * @param activity The activity that will host the purchase flow
      * @param product The {@link Product} you wish to buy
      * @param developerPayload Your custom payload to pass along to the {@link Vendor}
      * @param listener The {@link PurchaseListener} to handle the result
      */
-    public void purchase(final Product product,
+    public void purchase(final Activity activity,
+                         final Product product,
                          final String developerPayload,
                          final PurchaseListener listener) {
         Preconditions.checkNotNull(product, "Product is null");
         Preconditions.checkNotNull(listener, "PurchaseListener is null");
-        vendor.initialize(activity, new Vendor.InitializationListener() {
+        vendor.initialize(context, new Vendor.InitializationListener() {
             @Override
             public void initialized() {
                 if (!vendor.available() || !vendor.canPurchase(product)) {
@@ -153,10 +162,10 @@ public class Cashier {
         if (purchase.product().isSubscription()) {
             throw new IllegalArgumentException("Cannot consume a subscription type!");
         }
-        vendor.initialize(activity, new Vendor.InitializationListener() {
+        vendor.initialize(context, new Vendor.InitializationListener() {
             @Override
             public void initialized() {
-                vendor.consume(activity, purchase, listener);
+                vendor.consume(context, purchase, listener);
             }
 
             @Override
@@ -185,10 +194,10 @@ public class Cashier {
                              final List<String> subSkus,
                              final InventoryListener listener) {
         Preconditions.checkNotNull(listener, "InventoryListener is null");
-        vendor.initialize(activity, new Vendor.InitializationListener() {
+        vendor.initialize(context, new Vendor.InitializationListener() {
             @Override
             public void initialized() {
-                vendor.getInventory(activity, itemSkus, subSkus, listener);
+                vendor.getInventory(context, itemSkus, subSkus, listener);
             }
 
             @Override
@@ -209,10 +218,10 @@ public class Cashier {
     public void getProductDetails(final String sku, final boolean isSubscription, final ProductDetailsListener listener) {
         Preconditions.checkNotNull(sku, "SKU is null");
         Preconditions.checkNotNull(listener, "ProductDetailsListener is null");
-        vendor.initialize(activity, new Vendor.InitializationListener() {
+        vendor.initialize(context, new Vendor.InitializationListener() {
             @Override
             public void initialized() {
-                vendor.getProductDetails(activity, sku, isSubscription, listener);
+                vendor.getProductDetails(context, sku, isSubscription, listener);
             }
 
             @Override
@@ -229,7 +238,7 @@ public class Cashier {
 
     /** Runs any cleanup functions the {@link Vendor} may need **/
     public void dispose() {
-        vendor.dispose(activity);
+        vendor.dispose(context);
     }
 
     /**
@@ -241,12 +250,12 @@ public class Cashier {
     }
 
     public static class Builder {
-        private final Activity activity;
+        private final Context context;
         private Vendor vendor;
         private Logger logger;
 
-        public Builder(Activity activity) {
-            this.activity = activity;
+        public Builder(Context context) {
+            this.context = context;
         }
 
         public Builder forVendor(Vendor vendor) {
@@ -264,7 +273,7 @@ public class Cashier {
                 vendor.setLogger(logger);
             }
 
-            return new Cashier(activity, vendor);
+            return new Cashier(context, vendor);
         }
     }
 }
