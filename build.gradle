@@ -4,6 +4,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:2.2.3'
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:1.5'
     }
 }
 
@@ -18,3 +19,8 @@ task clean(type: Delete) {
 }
 
 apply from: rootProject.file('versions.gradle')
+
+subprojects  {
+    version = versions.versionName
+    group = 'com.getkeepsafe.cashier'
+}
