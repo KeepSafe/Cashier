@@ -477,7 +477,7 @@ public class InAppBillingV3Vendor implements Vendor {
                 }
 
                 if (!TextUtils.isEmpty(publicKey64)
-                        && !InAppBillingSecurity.verifySignature(publicKey64, purchase.purchaseData(), purchase.dataSignature())) {
+                        && !InAppBillingSecurity.verifySignature(publicKey64, purchase.receipt(), purchase.dataSignature())) {
                     log("Local signature check failed!");
                     purchaseListener.failure(pendingProduct,
                             new Vendor.Error(PURCHASE_SUCCESS_RESULT_MALFORMED,

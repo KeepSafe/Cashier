@@ -10,5 +10,6 @@ public interface Purchase extends Parcelable {
     String orderId();
     String token();
     String developerPayload();
+    String receipt();
     JSONObject toJson() throws JSONException;
 }

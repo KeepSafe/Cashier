@@ -59,7 +59,7 @@ public abstract class InAppBillingPurchase implements Parcelable, Purchase {
      * The original purchase data receipt from Google Play. This is useful for data signature
      * validation
      */
-    public abstract String purchaseData();
+    public abstract String receipt();
 
     public Product product() {
         return purchase().product();
@@ -137,7 +137,7 @@ public abstract class InAppBillingPurchase implements Parcelable, Purchase {
         final int purchaseState = data.getInt(PURCHASE_STATE);
 
         final Purchase purchase =
-                CashierPurchase.create(product, orderId, purchaseToken, developerPayload);
+                CashierPurchase.create(product, orderId, purchaseToken, purchaseData, developerPayload);
 
         return create(
                 purchase,
@@ -183,7 +183,7 @@ public abstract class InAppBillingPurchase implements Parcelable, Purchase {
         object.put(GP_KEY_AUTO_RENEW, autoRenewing());
         object.put(GP_KEY_PURCHASE_TIME, purchaseTime());
         object.put(GP_KEY_PURCHASE_STATE, purchaseState());
-        object.put(GP_KEY_PURCHASE_DATA, purchaseData());
+        object.put(GP_KEY_PURCHASE_DATA, receipt());
 
         return object;
     }
