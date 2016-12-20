@@ -187,7 +187,7 @@ public class FakeInAppBillingV3Api extends AbstractInAppBillingV3API {
             final Product product = purchase.product();
             if (product.isSubscription() == itemType.equals(PRODUCT_TYPE_SUBSCRIPTION)) {
                 skus.add(product.sku());
-                purchaseData.add(purchase.purchaseData());
+                purchaseData.add(purchase.receipt());
                 dataSignatures.add(purchase.dataSignature());
             }
         }

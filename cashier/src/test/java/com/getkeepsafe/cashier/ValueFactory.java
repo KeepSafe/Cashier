@@ -21,7 +21,7 @@ final class ValueFactory {
     }
 
     public static CashierPurchase aPurchase() {
-        return CashierPurchase.create(aProduct(), aString(), aString(), aString());
+        return CashierPurchase.create(aProduct(), aString(), aString(), aString(), aString());
     }
 
     public static long aLong() {

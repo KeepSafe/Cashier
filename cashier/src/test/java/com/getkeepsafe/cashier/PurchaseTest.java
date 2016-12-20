@@ -16,6 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class PurchaseTest extends ProductTest {
     protected final String ORDER_ID = "order123";
     protected final String TOKEN = "token123";
+    protected final String RECEIPT = "receipt";
     protected final String DEV_PAYLOAD = "payload123";
 
     @Before
@@ -23,13 +24,14 @@ public class PurchaseTest extends ProductTest {
         super.setUp();
         jsonObject.put(CashierPurchase.KEY_ORDER_ID, ORDER_ID);
         jsonObject.put(CashierPurchase.KEY_TOKEN, TOKEN);
+        jsonObject.put(CashierPurchase.KEY_RECEIPT, RECEIPT);
         jsonObject.put(CashierPurchase.KEY_DEV_PAYLOAD, DEV_PAYLOAD);
     }
 
     @Test
     public void serializesToJson() throws JSONException {
         final Product product = Product.create(VENDOR, SKU, PRICE, CURRENCY, NAME, DESCRIPTION, IS_SUB, MICRO_PRICE);
-        final CashierPurchase purchase = CashierPurchase.create(product, ORDER_ID, TOKEN, DEV_PAYLOAD);
+        final CashierPurchase purchase = CashierPurchase.create(product, ORDER_ID, TOKEN, RECEIPT, DEV_PAYLOAD);
         final JSONObject json = purchase.toJson();
         assertJsonHasProperties(json);
     }
@@ -39,6 +41,7 @@ public class PurchaseTest extends ProductTest {
         super.assertJsonHasProperties(json);
         assertThat(json.getString(CashierPurchase.KEY_ORDER_ID)).isEqualTo(ORDER_ID);
         assertThat(json.getString(CashierPurchase.KEY_TOKEN)).isEqualTo(TOKEN);
+        assertThat(json.getString(CashierPurchase.KEY_RECEIPT)).isEqualTo(RECEIPT);
         assertThat(json.getString(CashierPurchase.KEY_DEV_PAYLOAD)).isEqualTo(DEV_PAYLOAD);
     }
 
@@ -60,7 +63,7 @@ public class PurchaseTest extends ProductTest {
     public void parcelable() {
         final Product product =
                 Product.create(VENDOR, SKU, PRICE, CURRENCY, NAME, DESCRIPTION, IS_SUB, MICRO_PRICE);
-        final CashierPurchase purchase = CashierPurchase.create(product, ORDER_ID, TOKEN, DEV_PAYLOAD);
+        final CashierPurchase purchase = CashierPurchase.create(product, ORDER_ID, TOKEN, RECEIPT, DEV_PAYLOAD);
         final Bundle bundle = new Bundle();
         final String key = "purchase";
         bundle.putParcelable(key, purchase);
