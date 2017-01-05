@@ -57,8 +57,7 @@ public class InAppBillingV3API extends AbstractInAppBillingV3API {
     };
 
     @Override
-    public boolean initialize(Context context, InAppBillingV3Vendor vendor,
-                              LifecycleListener listener) {
+    public boolean initialize(Context context, InAppBillingV3Vendor vendor, LifecycleListener listener) {
         final boolean superInited = super.initialize(context, vendor, listener);
         this.listener = listener;
         if (available()) {
@@ -69,8 +68,7 @@ public class InAppBillingV3API extends AbstractInAppBillingV3API {
             return true;
         }
 
-        final Intent serviceIntent
-                = new Intent("com.android.vending.billing.InAppBillingService.BIND");
+        final Intent serviceIntent = new Intent("com.android.vending.billing.InAppBillingService.BIND");
         serviceIntent.setPackage(VENDOR_PACKAGE);
 
         final PackageManager packageManager = context.getPackageManager();

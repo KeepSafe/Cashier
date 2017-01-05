@@ -26,12 +26,12 @@ public class InAppBillingProduct {
     }
 
     public static Product create(String sku,
-                             String price,
-                             String currency,
-                             String name,
-                             String description,
-                             boolean isSubscription,
-                             long microsPrice) {
+                                 String price,
+                                 String currency,
+                                 String name,
+                                 String description,
+                                 boolean isSubscription,
+                                 long microsPrice) {
         return Product.create(
                 VENDOR_PACKAGE,
                 sku,

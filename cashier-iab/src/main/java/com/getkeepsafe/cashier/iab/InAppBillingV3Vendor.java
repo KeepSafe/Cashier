@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.IntentSender;
 import android.os.Bundle;
 import android.os.RemoteException;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -120,7 +121,7 @@ public class InAppBillingV3Vendor implements Vendor {
         this(api, null);
     }
 
-    public InAppBillingV3Vendor(AbstractInAppBillingV3API api, String publicKey64) {
+    public InAppBillingV3Vendor(AbstractInAppBillingV3API api, @Nullable String publicKey64) {
         if (api == null) {
             throw new IllegalArgumentException("Null api");
         }
@@ -410,9 +411,7 @@ public class InAppBillingV3Vendor implements Vendor {
 
         final List<Product> products = new ArrayList<>();
         for (int i = 0; i < skus.size(); i += 20) {
-            final ArrayList<String> page
-                    // Terrible un-needed forced cast because of bundle api
-                    = new ArrayList<>(skus.subList(i, Math.min(skus.size(), i + 20)));
+            final ArrayList<String> page = new ArrayList<>(skus.subList(i, Math.min(skus.size(), i + 20)));
             final Bundle skuQuery = new Bundle();
             skuQuery.putStringArrayList(REQUEST_SKU_DETAILS_ITEM_LIST, page);
 
@@ -445,7 +444,7 @@ public class InAppBillingV3Vendor implements Vendor {
     }
 
     @Override
-    public void setLogger(Logger logger) {
+    public void setLogger(@Nullable Logger logger) {
         this.logger = logger;
         if (this.logger != null) {
             this.logger.setTag("InAppBillingV3");
@@ -559,8 +558,7 @@ public class InAppBillingV3Vendor implements Vendor {
         } else if (o instanceof Long) {
             return ((Long) o).intValue();
         } else {
-            final String message
-                    = "Unexpected type for bundle response code. " + o.getClass().getName();
+            final String message = "Unexpected type for bundle response code. " + o.getClass().getName();
             log(message);
             throw new RuntimeException(message);
         }
@@ -574,7 +572,7 @@ public class InAppBillingV3Vendor implements Vendor {
         return -1;
     }
 
-    private Vendor.Error purchaseError(final int response) {
+    private Vendor.Error purchaseError(int response) {
         final int code;
         switch (response) {
             case BILLING_RESPONSE_RESULT_BILLING_UNAVAILABLE:
@@ -600,7 +598,7 @@ public class InAppBillingV3Vendor implements Vendor {
         return new Vendor.Error(code, response);
     }
 
-    private Vendor.Error consumeError(final int response) {
+    private Vendor.Error consumeError(int response) {
         final int code;
         switch (response) {
             case BILLING_RESPONSE_RESULT_BILLING_UNAVAILABLE:
@@ -623,7 +621,7 @@ public class InAppBillingV3Vendor implements Vendor {
         return new Vendor.Error(code, response);
     }
 
-    private void log(final String message) {
+    private void log(String message) {
         if (logger == null) return;
         logger.log(message);
     }

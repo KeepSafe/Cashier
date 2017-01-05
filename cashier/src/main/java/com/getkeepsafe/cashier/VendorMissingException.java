@@ -1,5 +1,7 @@
 package com.getkeepsafe.cashier;
 
+import android.support.annotation.Nullable;
+
 public class VendorMissingException extends RuntimeException {
     public final String vendorId;
 
@@ -7,7 +9,7 @@ public class VendorMissingException extends RuntimeException {
         this(vendorId, null);
     }
 
-    public VendorMissingException(String vendorId, String message) {
+    public VendorMissingException(String vendorId, @Nullable String message) {
         super(message);
         this.vendorId = vendorId;
     }

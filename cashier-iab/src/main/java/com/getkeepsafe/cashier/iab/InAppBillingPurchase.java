@@ -81,7 +81,7 @@ public abstract class InAppBillingPurchase implements Parcelable, Purchase {
         return create(new JSONObject(json));
     }
 
-    public static InAppBillingPurchase create(final JSONObject json) throws JSONException {
+    public static InAppBillingPurchase create(JSONObject json) throws JSONException {
         final Purchase purchase = CashierPurchase.create(json);
         final String packageName = json.getString(GP_KEY_PACKAGE_NAME);
         final String dataSignature = json.getString(GP_KEY_DATA_SIG);
@@ -116,7 +116,7 @@ public abstract class InAppBillingPurchase implements Parcelable, Purchase {
     }
 
     public static InAppBillingPurchase create(Product product, String purchaseData,
-                                          String dataSignature) throws JSONException {
+                                              String dataSignature) throws JSONException {
         if (product == null || purchaseData == null || dataSignature == null) {
             throw new IllegalArgumentException("Product or purchase data or signature is null");
         }
@@ -149,10 +149,10 @@ public abstract class InAppBillingPurchase implements Parcelable, Purchase {
                 purchaseData);
     }
 
-    public static InAppBillingPurchase create(Purchase purchase,
-                                              String packageName, String dataSignature,
-                                              boolean autoRenew, long purchaseTime,
-                                              int purchaseState, String purchaseData) {
+    public static InAppBillingPurchase create(Purchase purchase, String packageName,
+                                              String dataSignature, boolean autoRenew,
+                                              long purchaseTime, int purchaseState,
+                                              String purchaseData) {
         return new AutoValue_InAppBillingPurchase(purchase,
                 packageName,
                 dataSignature,
