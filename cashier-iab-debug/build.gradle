@@ -29,7 +29,9 @@ android {
 
 dependencies {
     compile project(':cashier-iab')
+
     provided deps.autoValue
+    provided deps.supportAnnotations
     annotationProcessor deps.autoValue
     annotationProcessor deps.autoParcel
 

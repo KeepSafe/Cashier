@@ -3,6 +3,7 @@ package com.getkeepsafe.cashier;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import com.getkeepsafe.cashier.logging.Logger;
@@ -26,7 +27,8 @@ public class Cashier {
 
     /**
      * Registers a vendor factory for use
-     * @param vendorId The vendor's unique ID
+     *
+     * @param vendorId The vendor's unique package ID
      * @param factory The {@link VendorFactory} that will create instances of the {@link Vendor}
      */
     public static void putVendorFactory(String vendorId, VendorFactory factory) {
@@ -38,7 +40,7 @@ public class Cashier {
     }
 
     /**
-     * @param vendorId The vendor's unique ID
+     * @param vendorId The vendor's unique package ID
      * @return the {@link VendorFactory} instance that creates the {@link Vendor} with the given ID
      */
     public static VendorFactory getVendorFactory(String vendorId) {
@@ -54,7 +56,7 @@ public class Cashier {
         return factory;
     }
 
-    /** Returns a Cashier instance builder depending on the app installer **/
+    /** Returns a Cashier instance builder depending on the app installer */
     public static Builder forInstaller(Context context) {
         final String installer = context
                 .getPackageManager()
@@ -127,7 +129,7 @@ public class Cashier {
      */
     public void purchase(final Activity activity,
                          final Product product,
-                         final String developerPayload,
+                         @Nullable final String developerPayload,
                          final PurchaseListener listener) {
         Preconditions.checkNotNull(product, "Product is null");
         Preconditions.checkNotNull(listener, "PurchaseListener is null");
@@ -190,8 +192,8 @@ public class Cashier {
      * @param subSkus A list of subscription {@link Product} skus to query the vendor for
      * @param listener {@link InventoryListener} to handle the result
      */
-    public void getInventory(final List<String> itemSkus,
-                             final List<String> subSkus,
+    public void getInventory(@Nullable final List<String> itemSkus,
+                             @Nullable final List<String> subSkus,
                              final InventoryListener listener) {
         Preconditions.checkNotNull(listener, "InventoryListener is null");
         vendor.initialize(context, new Vendor.InitializationListener() {
@@ -263,7 +265,7 @@ public class Cashier {
             return this;
         }
 
-        public Builder withLogger(Logger logger) {
+        public Builder withLogger(@Nullable Logger logger) {
             this.logger = logger;
             return this;
         }

@@ -69,8 +69,7 @@ public class InAppBillingSecurity {
     }
 
     public static boolean verifySignature(String publicKey64, String signedData, String signature64) {
-        if (TextUtils.isEmpty(publicKey64) || TextUtils.isEmpty(signedData)
-                || TextUtils.isEmpty(signature64)) {
+        if (TextUtils.isEmpty(publicKey64) || TextUtils.isEmpty(signedData) || TextUtils.isEmpty(signature64)) {
             return false;
         }
 

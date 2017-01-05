@@ -11,7 +11,7 @@ public abstract class AbstractInAppBillingV3API {
     protected InAppBillingV3Vendor vendor;
 
     public interface LifecycleListener {
-        void initialized(final boolean success);
+        void initialized(boolean success);
         void disconnected();
     }
 
@@ -27,23 +27,19 @@ public abstract class AbstractInAppBillingV3API {
 
     public abstract boolean available();
 
-    public abstract void dispose(final Context context);
+    public abstract void dispose(Context context);
 
-    public abstract int isBillingSupported(final String itemType) throws RemoteException;
+    public abstract int isBillingSupported(String itemType) throws RemoteException;
 
-    public abstract Bundle getSkuDetails(final String itemType,
-                                         final Bundle skus) throws RemoteException;
+    public abstract Bundle getSkuDetails(String itemType, Bundle skus) throws RemoteException;
 
-    public abstract Bundle getBuyIntent(final String sku,
-                                        final String itemType,
-                                        final String developerPayload)
+    public abstract Bundle getBuyIntent(String sku, String itemType, String developerPayload)
             throws RemoteException;
 
-    public abstract Bundle getPurchases(final String itemType,
-                                        final String paginationToken)
+    public abstract Bundle getPurchases(String itemType, String paginationToken)
             throws RemoteException;
 
-    public abstract int consumePurchase(final String purchaseToken) throws RemoteException;
+    public abstract int consumePurchase(String purchaseToken) throws RemoteException;
 
     protected void throwIfUnavailable() {
         if (packageName == null) {
