@@ -1,0 +1,45 @@
+apply plugin: 'com.android.library'
+apply plugin: 'com.github.dcendents.android-maven'
+
+android {
+    compileSdkVersion versions.compileSdk
+    buildToolsVersion versions.buildTools
+
+    defaultConfig {
+        minSdkVersion versions.minSdk
+        versionCode versions.versionCode
+        versionName versions.versionName
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+    testOptions {
+        unitTests.all {
+            testLogging {
+                exceptionFormat 'full'
+                showStackTraces true
+                showCauses true
+                events "passed", "skipped", "failed", "standardError"
+            }
+        }
+    }
+}
+
+dependencies {
+    compile project(':cashier')
+    compile files('libs/iap-2.0.76.jar')
+
+    provided deps.autoValue
+    provided deps.supportAnnotations
+    annotationProcessor deps.autoValue
+    annotationProcessor deps.autoParcel
+
+    testCompile deps.robolectric
+    testCompile deps.junit
+    testCompile deps.mockito
+    testCompile deps.assertj
+}
+
+apply from: rootProject.file('javadoc.gradle')

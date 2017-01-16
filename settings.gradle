@@ -1,1 +1,1 @@
-include ':cashier-sample', ':cashier-iab', ':cashier-iab-debug', ':cashier', ':cashier-iab-debug-no-op'
+include ':cashier-sample', ':cashier-iab', ':cashier-iab-debug', ':cashier', ':cashier-iab-debug-no-op', ':cashier-amazon'
