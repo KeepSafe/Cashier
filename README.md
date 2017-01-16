@@ -5,13 +5,13 @@
 
 [![Build Status](https://travis-ci.com/KeepSafe/Cashier.svg?token=GKHJnCCyj3zqzwTu3uMu&branch=master)](https://travis-ci.com/KeepSafe/Cashier)
 
-A general billing provider for Android. Supports Google Play's in-app billing v3 and Amazon's in-app billing out of the box.
+A general billing provider for Android. Supports Google Play's in-app billing v3 and Amazon's in-app purchasing v2 out of the box.
 
 **Min SDK:** 9
 
 ## Overview
 
-Managing multiple billing services in your Android app is a painful experience when each billing service has their own way of doing things. Google's In-App billing service, for example, requires IPC calls to the Google Play app on users' phones; while others, such as Amazon's in-app billing service requires network calls, services, and listeners.
+Managing multiple billing services in your Android app is a painful experience when each billing service has their own way of doing things. Google's In-App billing service, for example, requires IPC calls to the Google Play app on users' phones; while others, such as Amazon's in-app purchasing service requires a broadcast receiver and a listener.
 
 Cashier takes aim to resolve these issues by providing a single consistent API design with differing underlying implementations so that you can write your billing code once, and easily swap billing providers.
 
