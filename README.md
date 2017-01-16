@@ -17,26 +17,67 @@ Cashier takes aim to resolve these issues by providing a single consistent API d
 
 ## Installation
 
-## Usage
+Cashier is distributed using [jcenter](https://bintray.com/keepsafesoftware/Android/Cashier/view).
 
-We currently bundle implementations for Google Play's in-app billing API v3 and Amazon's in-app billing API.
-
-[See specific usage for Google Play](#soon) or [See specific usage for Amazon](#soon)
-
-In general, usage is as follows:
+```groovy
+repositories { 
+  jcenter()
+}
+   
+dependencies {
+  compile 'com.getkeepsafe.cashier:cashier:0.x.x' // Core library, required
+ 
+  // Google Play
+  compile 'com.getkeepsafe.cashier:cashier-iab:0.x.x'
+  compile 'com.getkeepsafe.cashier:cashier-iab-debug:0.x.x' // For fake checkout and testing
+}
 ```
 
-TBD Code
+## Usage
 
+General usage is as follows:
+
+```java
+// First choose a vendor
+final Vendor vendor = InAppBillingV3Vendor();
+
+// Get a product to buy
+final Product product = Product.create(
+  vendor.id(),              // The vendor that produces this product
+  "my.sku",                 // The SKU of the product
+  "$0.99",                  // The display price of the product
+  "USD",                    // The currency of the display price
+  "My Awesome Product",     // The product's title
+  "Provides awesomeness!",  // The product's description
+  false,                    // Whether the product is a subscription or not (consumable)
+  990_000L);                // The product price in micros
+
+// Then when you are in your purchasing activity,
+// set up your listener
+final PurchaseListener listener = new PurchaseListener() {
+  @Override
+  public void success(Purchase purchase) {
+    // Yay, now verify the purchase.receipt() with your backend
+  }
+
+  @Override
+  public void failure(Product product, Vendor.Error error) {
+    // Uh-oh, check error.code to see what went wrong
+  }
+};
+
+// And kick off the purchase!
+final Cashier cashier = Cashier.forVendor(activity, new InAppBillingV3Vendor());
+cashier.purchase(activity, product, "my custom dev payload", listener);
 ```
 
 ## Sample App
 
-For a buildable / workable sample app, please see the `sample` project under `sample/`.
+For a buildable / workable sample app, please see the `cashier-sample` project under `cashier-sample/`.
 
 ## License
 
-    Copyright 2016 KeepSafe Inc.
+    Copyright 2017 Keepsafe Inc.
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
