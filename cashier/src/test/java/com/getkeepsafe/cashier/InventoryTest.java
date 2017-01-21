@@ -50,10 +50,17 @@ public class InventoryTest {
         }
     }
 
-    @Test
-    public void returnsImmutableLists() {
+    @Test(expected = UnsupportedOperationException.class)
+    public void returnsImmutableProductList() {
         final Inventory inventory = new Inventory();
         final List<Product> products = inventory.products();
-//        assertThat(products.add(ValueFactory.aProduct()), );
+        products.add(ValueFactory.aProduct());
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void returnsImmutablePurchaseList() {
+        final Inventory inventory = new Inventory();
+        final List<Purchase> purchases = inventory.purchases();
+        purchases.add(ValueFactory.aPurchase());
     }
 }
