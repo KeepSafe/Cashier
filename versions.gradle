@@ -2,13 +2,11 @@ ext {
     versions = [
         compileSdk: 25,
         minSdk:     9,
-        buildTools: '25.0.0',
-
-        versionCode: 3,
+        buildTools: '25.0.2',
         versionName: '0.2.0'
     ]
 
-    final supportLibraryVersion = '25.0.1'
+    final supportLibraryVersion = '25.2.0'
 
     deps = [
         autoValue:   'com.google.auto.value:auto-value:1.3',

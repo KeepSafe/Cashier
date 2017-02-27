@@ -27,6 +27,14 @@ public interface Vendor {
             this.code = code;
             this.vendorCode = vendorCode;
         }
+
+        @Override
+        public boolean equals(Object other) {
+            if (other == null) return false;
+            if (!(other instanceof Error)) return false;
+            final Error o = (Error) other;
+            return this.code == o.code && this.vendorCode == o.vendorCode;
+        }
     }
 
     String id();

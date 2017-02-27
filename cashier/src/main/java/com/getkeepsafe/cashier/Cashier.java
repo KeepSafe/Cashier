@@ -147,8 +147,7 @@ public class Cashier {
 
             @Override
             public void unavailable() {
-                listener.failure(product,
-                        new Vendor.Error(VendorConstants.PURCHASE_UNAVAILABLE, -1));
+                listener.failure(product, new Vendor.Error(VendorConstants.PURCHASE_UNAVAILABLE, -1));
             }
         });
     }
@@ -167,13 +166,16 @@ public class Cashier {
         vendor.initialize(context, new Vendor.InitializationListener() {
             @Override
             public void initialized() {
+                if (!vendor.available()) {
+                    listener.failure(purchase, new Vendor.Error(VendorConstants.CONSUME_UNAVAILABLE, -1));
+                    return;
+                }
                 vendor.consume(context, purchase, listener);
             }
 
             @Override
             public void unavailable() {
-                listener.failure(purchase,
-                        new Vendor.Error(VendorConstants.CONSUME_UNAVAILABLE, -1));
+                listener.failure(purchase, new Vendor.Error(VendorConstants.CONSUME_UNAVAILABLE, -1));
             }
         });
     }

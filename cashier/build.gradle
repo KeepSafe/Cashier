@@ -7,8 +7,6 @@ android {
 
     defaultConfig {
         minSdkVersion versions.minSdk
-        versionCode versions.versionCode
-        versionName versions.versionName
     }
 
     buildTypes {
@@ -37,6 +35,7 @@ dependencies {
 
     testCompile deps.robolectric
     testCompile deps.junit
+    testCompile deps.mockito
     testCompile deps.assertj
 }
 

@@ -8,8 +8,8 @@ android {
         applicationId "com.getkeepsafe.cashier.sample"
         minSdkVersion 14
         targetSdkVersion 24
-        versionCode versions.versionCode
-        versionName versions.versionName
+        versionCode 1
+        versionName "1.0"
     }
     buildTypes {
         release {
