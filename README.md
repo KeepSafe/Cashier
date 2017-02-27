@@ -5,15 +5,25 @@
 
 [![Build Status](https://travis-ci.com/KeepSafe/Cashier.svg?token=GKHJnCCyj3zqzwTu3uMu&branch=master)](https://travis-ci.com/KeepSafe/Cashier)
 
-A general billing provider for Android. Supports Google Play's in-app billing v3 and Amazon's in-app purchasing v2 out of the box.
+A general, easy to use billing provider for Android. Provides support for Google Play's in-app billing, and soon(tm) Amazon's in-app-billing.
 
 **Min SDK:** 9
 
 ## Overview
 
-Managing multiple billing services in your Android app is a painful experience when each billing service has their own way of doing things. Google's In-App billing service, for example, requires IPC calls to the Google Play app on users' phones; while others, such as Amazon's in-app purchasing service requires a broadcast receiver and a listener.
+Managing multiple billing services in your Android app is a painful experience when each billing service has their own way of doing things. It becomes worse when each service imposes their own way of doing things, such as requiring the handling of a billing result in `onActivityResult`.
 
-Cashier takes aim to resolve these issues by providing a single consistent API design with differing underlying implementations so that you can write your billing code once, and easily swap billing providers.
+Cashier takes aim to resolve these issues by providing a single consistent API design with different underlying implementations so that you can write your billing code once and easily swap billing providers.
+
+Cashier also aims to bridge the gap between development testing and production testing. When talking about Google Play's in-app-billing, in order to test the full flow of a subscription purchase you need to create a signed APK, upload it to some release channel, add your email to the list of purchase testers, wait a few (or several) hours and then finally test your code. If your code works (which it likely wont, first try) then you're good, however if it doesnt, you're going to have to do the same thing over again. This is obviously not effecient or very nice to develop for. Cashier solves this issue by simulating Google Play as a fake vendor (under the `iab-debug` module). The fake IAB vendor will respond as if you were talking to Google Play in production. This means you can test your purchase flow while you write the code, rather than creating a signed APK each time. With that, here's a list of features Cashier has:
+
+### Features
+
+  - Google Play's In-App-Billing (IAB)
+    - Purchasing for products and subscriptions, consuming for consumable products
+    - Fake checkout, facilitating faster development
+    - Local receipt verification
+    - Inventory querying
 
 ## Installation
 
@@ -74,6 +84,10 @@ cashier.purchase(activity, product, "my custom dev payload", listener);
 ## Sample App
 
 For a buildable / workable sample app, please see the `cashier-sample` project under `cashier-sample/`.
+
+## Acknowledgements
+
+Very special thank you to [Jeff Young](https://www.github.com/tenoversix) for the awesome logo!
 
 ## License
 
