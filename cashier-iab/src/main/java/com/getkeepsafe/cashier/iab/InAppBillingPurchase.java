@@ -16,6 +16,8 @@ import static com.getkeepsafe.cashier.iab.InAppBillingConstants.*;
 
 @AutoValue
 public abstract class InAppBillingPurchase implements Parcelable, Purchase {
+    public static final String GP_ORDER_ID_TEST = "TEST-ORDER-ID";
+
     public static final String GP_KEY_PACKAGE_NAME = "gp-package-name";
     public static final String GP_KEY_DATA_SIG = "gp-data-signature";
     public static final String GP_KEY_AUTO_RENEW = "gp-auto-renewing";
@@ -125,7 +127,9 @@ public abstract class InAppBillingPurchase implements Parcelable, Purchase {
         final String packageName = data.getString(PACKAGE_NAME);
         final String purchaseToken = data.getString(PURCHASE_TOKEN);
         final String developerPayload = data.optString(DEVELOPER_PAYLOAD, "");
-        final String orderId = data.getString(ORDER_ID);
+        // Test purchases do not have an order id, therefore we default to the test order id when
+        // it does not exist.
+        final String orderId = data.optString(ORDER_ID, GP_ORDER_ID_TEST);
         final String sku = data.getString(PRODUCT_ID);
         if (!sku.equals(product.sku())) {
             throw new IllegalArgumentException("Received mismatched SKU! "
@@ -173,6 +177,10 @@ public abstract class InAppBillingPurchase implements Parcelable, Purchase {
 
     public boolean refunded() {
         return purchaseState() == PURCHASE_STATE_REFUNDED;
+    }
+
+    public boolean isTestPurchase() {
+        return GP_ORDER_ID_TEST.equals(orderId());
     }
 
     @Override
