@@ -49,7 +49,7 @@ General usage is as follows:
 
 ```java
 // First choose a vendor
-final Vendor vendor = InAppBillingV3Vendor();
+final Vendor vendor = new InAppBillingV3Vendor();
 
 // Get a product to buy
 final Product product = Product.create(
@@ -77,7 +77,7 @@ final PurchaseListener listener = new PurchaseListener() {
 };
 
 // And kick off the purchase!
-final Cashier cashier = Cashier.forVendor(activity, new InAppBillingV3Vendor());
+final Cashier cashier = Cashier.forVendor(activity, vendor);
 cashier.purchase(activity, product, "my custom dev payload", listener);
 ```
 
@@ -87,7 +87,7 @@ For a buildable / workable sample app, please see the `cashier-sample` project u
 
 ## Acknowledgements
 
-Very special thank you to [Jeff Young](https://www.github.com/tenoversix) for the awesome logo!
+A very special thank you to [Jeff Young](https://www.github.com/tenoversix) for the awesome logo!
 
 ## License
 
