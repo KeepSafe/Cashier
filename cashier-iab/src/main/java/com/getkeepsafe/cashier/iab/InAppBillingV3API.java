@@ -82,8 +82,17 @@ public class InAppBillingV3API extends AbstractInAppBillingV3API {
             }
         }
 
-        return superInited
-                && context.bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
+        try {
+            return superInited
+                    && context.bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
+        } catch (NullPointerException e) {
+            // Some incompatible devices will throw a NPE here with the message:
+            // Attempt to read from field 'int com.android.server.am.ProcessRecord.uid' on a null object reference
+            // while attempting to unparcel some information within ActivityManagerNative.
+            // There is not much we can do about this, so we're going to default to returning false
+            // since we are unable to bind the service, which means the vendor is not available.
+            return false;
+        }
     }
 
     @Override
