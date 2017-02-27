@@ -11,6 +11,7 @@ import com.getkeepsafe.cashier.logging.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface Vendor {
@@ -50,8 +51,8 @@ public interface Vendor {
                  ConsumeListener listener);
 
     void getInventory(Context context,
-                      List<String> itemSkus,
-                      List<String> subSkus,
+                      Collection<String> itemSkus,
+                      Collection<String> subSkus,
                       InventoryListener listener);
 
     void getProductDetails(Context context, String sku, boolean isSubscription, ProductDetailsListener listener);

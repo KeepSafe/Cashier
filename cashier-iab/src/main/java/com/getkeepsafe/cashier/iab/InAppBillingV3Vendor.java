@@ -25,6 +25,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
@@ -271,7 +272,7 @@ public class InAppBillingV3Vendor implements Vendor {
     }
 
     @Override
-    public void getInventory(Context context, List<String> itemSkus, List<String> subSkus,
+    public void getInventory(Context context, Collection<String> itemSkus, Collection<String> subSkus,
                              InventoryListener listener) {
         if (context == null || listener == null) {
             throw new IllegalArgumentException("Context or listener is null");
@@ -279,18 +280,22 @@ public class InAppBillingV3Vendor implements Vendor {
 
         throwIfUninitialized();
 
+        // Convert the given collections to a list
+        final List<String> itemSkusList = itemSkus == null ? null : new ArrayList<>(itemSkus);
+        final List<String> subSkusList = subSkus == null ? null : new ArrayList<>(subSkus);
+
         final Inventory inventory = new Inventory();
         try {
             log("Querying inventory...");
             inventory.addPurchases(getPurchases(PRODUCT_TYPE_ITEM));
             inventory.addPurchases(getPurchases(PRODUCT_TYPE_SUBSCRIPTION));
 
-            if (itemSkus != null && !itemSkus.isEmpty()) {
-                inventory.addProducts(getProductsWithType(itemSkus, PRODUCT_TYPE_ITEM));
+            if (itemSkusList != null && !itemSkusList.isEmpty()) {
+                inventory.addProducts(getProductsWithType(itemSkusList, PRODUCT_TYPE_ITEM));
             }
 
-            if (subSkus!= null && !subSkus.isEmpty()) {
-                inventory.addProducts(getProductsWithType(subSkus, PRODUCT_TYPE_SUBSCRIPTION));
+            if (subSkusList != null && !subSkusList.isEmpty()) {
+                inventory.addProducts(getProductsWithType(subSkusList, PRODUCT_TYPE_SUBSCRIPTION));
             }
 
             listener.success(inventory);

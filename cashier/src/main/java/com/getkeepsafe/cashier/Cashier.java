@@ -11,6 +11,7 @@ import com.getkeepsafe.cashier.logging.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
@@ -190,12 +191,12 @@ public class Cashier {
 
     /**
      * Returns a list of purchased items and specified products from the vendor
-     * @param itemSkus A list of {@link Product} skus to query the vendor for
-     * @param subSkus A list of subscription {@link Product} skus to query the vendor for
+     * @param itemSkus A collection of {@link Product} skus to query the vendor for
+     * @param subSkus A collection of subscription {@link Product} skus to query the vendor for
      * @param listener {@link InventoryListener} to handle the result
      */
-    public void getInventory(@Nullable final List<String> itemSkus,
-                             @Nullable final List<String> subSkus,
+    public void getInventory(@Nullable final Collection<String> itemSkus,
+                             @Nullable final Collection<String> subSkus,
                              final InventoryListener listener) {
         Preconditions.checkNotNull(listener, "InventoryListener is null");
         vendor.initialize(context, new Vendor.InitializationListener() {
