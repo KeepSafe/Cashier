@@ -3,6 +3,7 @@ package com.getkeepsafe.cashier.iab.debug;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.RemoteException;
+import android.support.annotation.VisibleForTesting;
 
 import com.getkeepsafe.cashier.Product;
 import com.getkeepsafe.cashier.iab.InAppBillingPurchase;
@@ -32,7 +33,8 @@ import static com.getkeepsafe.cashier.iab.InAppBillingConstants.RESPONSE_INAPP_P
 import static com.getkeepsafe.cashier.iab.InAppBillingConstants.RESPONSE_INAPP_SIGNATURE_LIST;
 
 public class FakeInAppBillingV3Api extends AbstractInAppBillingV3API {
-    public static final String TEST_PRIVATE_KEY =
+    @VisibleForTesting
+    static final String TEST_PRIVATE_KEY =
             "MIICdgIBADANBgkqhkiG9w0BAQEFAASCAmAwggJcAgEAAoGBALXolIcA1LIcYDnO\n" +
             "2nfalbkOD2UAQ3KfqsdEGLddG2rW8Cyl2LIyiWVvQ6bp2q5qBoYCds9lBQT21uo1\n" +
             "VHTcv4mnaLfdBjMlzecrK8y1FzRLKFXyoMqiau8wunFeqFsdzHQ774PbYyNgMGdr\n" +
@@ -72,7 +74,8 @@ public class FakeInAppBillingV3Api extends AbstractInAppBillingV3API {
         this(context, TEST_PRIVATE_KEY);
     }
 
-    public FakeInAppBillingV3Api(Context context, String privateKey64) {
+    @VisibleForTesting
+    FakeInAppBillingV3Api(Context context, String privateKey64) {
         this.context = context;
         this.privateKey64 = privateKey64;
     }
