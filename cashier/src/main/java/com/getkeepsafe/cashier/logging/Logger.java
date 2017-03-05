@@ -17,6 +17,7 @@
 package com.getkeepsafe.cashier.logging;
 
 public interface Logger {
-    void setTag(String tag);
-    void log(String message);
+    void i(String tag, String message);
+    void w(String tag, String message);
+    void e(String tag, String message);
 }
