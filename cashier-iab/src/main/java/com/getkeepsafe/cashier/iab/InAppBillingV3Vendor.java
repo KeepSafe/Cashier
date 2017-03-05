@@ -467,9 +467,6 @@ public class InAppBillingV3Vendor implements Vendor {
     @Override
     public void setLogger(@Nullable Logger logger) {
         this.logger = logger;
-        if (this.logger != null) {
-            this.logger.setTag("InAppBillingV3");
-        }
     }
 
     @Override
@@ -644,7 +641,7 @@ public class InAppBillingV3Vendor implements Vendor {
 
     private void log(String message) {
         if (logger == null) return;
-        logger.log(message);
+        logger.i("InAppBillingV3Vendor", message);
     }
 
     private class ApiException extends Exception {

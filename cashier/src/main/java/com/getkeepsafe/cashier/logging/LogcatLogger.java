@@ -19,18 +19,20 @@ package com.getkeepsafe.cashier.logging;
 import android.util.Log;
 
 public class LogcatLogger implements Logger {
-    private String tag;
+    private static final String INTERNAL_TAG = "Cashier";
 
     @Override
-    public void setTag(String tag) {
-        if (tag == null) {
-            throw new IllegalArgumentException("Null tag");
-        }
-        this.tag = tag;
+    public void i(String tag, String message) {
+        Log.i(INTERNAL_TAG + ":" + tag, message);
     }
 
     @Override
-    public void log(String message) {
-        Log.d(tag, message);
+    public void w(String tag, String message) {
+        Log.w(INTERNAL_TAG + ":" + tag, message);
+    }
+
+    @Override
+    public void e(String tag, String message) {
+        Log.e(INTERNAL_TAG + ":" + tag, message);
     }
 }
