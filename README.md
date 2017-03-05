@@ -39,7 +39,8 @@ dependencies {
  
   // Google Play
   compile 'com.getkeepsafe.cashier:cashier-iab:0.x.x'
-  compile 'com.getkeepsafe.cashier:cashier-iab-debug:0.x.x' // For fake checkout and testing
+  debugCompile 'com.getkeepsafe.cashier:cashier-iab-debug:0.x.x' // For fake checkout and testing
+  releaseCompile 'com.getkeepsafe.cashier:cashier-iab-debug-no-op:0.x.x'
 }
 ```
 
