@@ -1,5 +1,6 @@
 /*
  *  Copyright 2017 Keepsafe Software, Inc.
+ *  Copyright 2007 The Guava Authors
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
