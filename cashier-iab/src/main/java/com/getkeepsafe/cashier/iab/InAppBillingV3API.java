@@ -147,8 +147,7 @@ public class InAppBillingV3API extends AbstractInAppBillingV3API {
             } catch (SecurityException e) {
                 // There exists some sort of issue with Google Play not having the correct
                 // permissions: https://github.com/googlesamples/android-play-billing/issues/26
-                // Unfortunately, Google has been completely silent on this issue, so I do not know
-                // what to do outside of signaling that the call failed
+                // Unfortunately, I do not know what to do outside of signaling that the call failed
                 final Bundle result = new Bundle();
                 result.putInt(RESPONSE_CODE, BILLING_RESPONSE_RESULT_BILLING_UNAVAILABLE);
                 return result;
