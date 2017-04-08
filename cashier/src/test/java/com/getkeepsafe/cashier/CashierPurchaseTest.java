@@ -2,16 +2,15 @@ package com.getkeepsafe.cashier;
 
 import android.os.Bundle;
 
-import com.getkeepsafe.LibraryProjectRobolectricTestRunner;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
-@RunWith(LibraryProjectRobolectricTestRunner.class)
+@RunWith(RobolectricTestRunner.class)
 public class CashierPurchaseTest {
     final CashierPurchase purchase = ValueFactory.aPurchase();
 
@@ -53,7 +52,7 @@ public class CashierPurchaseTest {
         final Bundle bundle = new Bundle();
         final String key = "purchase";
         bundle.putParcelable(key, purchase);
-        assertThat((CashierPurchase) bundle.getParcelable(key)).isEqualTo(purchase);
+        assertThat(bundle.getParcelable(key)).isEqualTo(purchase);
     }
 
     static void assertJsonHasProperties(JSONObject json, CashierPurchase purchase) throws JSONException {

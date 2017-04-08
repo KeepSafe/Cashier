@@ -2,17 +2,15 @@ package com.getkeepsafe.cashier;
 
 import android.os.Bundle;
 
-import com.getkeepsafe.LibraryProjectRobolectricTestRunner;
-
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
-@RunWith(LibraryProjectRobolectricTestRunner.class)
+@RunWith(RobolectricTestRunner.class)
 public class ProductTest {
     final Product product = ValueFactory.aProduct();
 

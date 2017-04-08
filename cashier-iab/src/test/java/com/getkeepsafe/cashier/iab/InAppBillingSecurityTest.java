@@ -1,15 +1,14 @@
 package com.getkeepsafe.cashier.iab;
 
-import com.getkeepsafe.LibraryProjectRobolectricTestRunner;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
 
 import java.security.PrivateKey;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
-@RunWith(LibraryProjectRobolectricTestRunner.class)
+@RunWith(RobolectricTestRunner.class)
 public class InAppBillingSecurityTest {
     public static final String TEST_PRIVATE_KEY =
             "MIICdgIBADANBgkqhkiG9w0BAQEFAASCAmAwggJcAgEAAoGBALXolIcA1LIcYDnO\n" +

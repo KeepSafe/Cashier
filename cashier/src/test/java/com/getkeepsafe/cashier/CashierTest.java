@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 
-import com.getkeepsafe.LibraryProjectRobolectricTestRunner;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -13,8 +12,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.robolectric.RobolectricTestRunner;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -23,7 +23,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
-@RunWith(LibraryProjectRobolectricTestRunner.class)
+@RunWith(RobolectricTestRunner.class)
 public class CashierTest {
     final String TEST_VENDOR_ID = "test";
     final Context context = mock(Context.class);

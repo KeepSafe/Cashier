@@ -1,15 +1,15 @@
 package com.getkeepsafe.cashier.iab;
 
-import com.getkeepsafe.LibraryProjectRobolectricTestRunner;
 import com.getkeepsafe.cashier.Product;
 
 import org.json.JSONException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
-@RunWith(LibraryProjectRobolectricTestRunner.class)
+@RunWith(RobolectricTestRunner.class)
 public class InAppBillingPurchaseTest {
     @Test
     public void suppliesTestOrderIdWhenMissing() throws JSONException {
