@@ -1,77 +1,77 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
 
-    <Switch
-        android:id="@+id/use_fake"
-        android:layout_width="wrap_content"
+  <Switch
+      android:id="@+id/use_fake"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:gravity="center"
+      android:layout_gravity="center"
+      android:layout_marginTop="16dp"
+      android:text="Use Fake Checkout    "/>
+
+  <Spinner
+      android:id="@+id/spinner"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"/>
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="16dp"
+      android:gravity="center"
+      android:layout_gravity="center"
+      android:weightSum="4"
+      android:orientation="horizontal">
+
+    <Button
+        android:id="@+id/query_purchases"
+        android:layout_width="0dp"
+        android:layout_weight="1"
         android:layout_height="wrap_content"
         android:gravity="center"
         android:layout_gravity="center"
-        android:layout_marginTop="16dp"
-        android:text="Use Fake Checkout    "/>
+        android:text="Query inventory"/>
 
-    <Spinner
-        android:id="@+id/spinner"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:gravity="center"
-        android:layout_gravity="center"
-        android:weightSum="4"
-        android:orientation="horizontal">
-
-        <Button
-            android:id="@+id/query_purchases"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:layout_gravity="center"
-            android:text="Query inventory"/>
-
-        <Button
-            android:id="@+id/query_sku"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:layout_gravity="center"
-            android:text="Query SKU"/>
-
-        <Button
-            android:id="@+id/buy_item"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:layout_gravity="center"
-            android:text="Purchase item"/>
-
-        <Button
-            android:id="@+id/consume_item"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:layout_gravity="center"
-            android:text="Consume item"/>
-
-    </LinearLayout>
-
-    <TextView
-        android:id="@+id/current_owned_sku"
-        android:layout_width="wrap_content"
+    <Button
+        android:id="@+id/query_sku"
+        android:layout_width="0dp"
+        android:layout_weight="1"
         android:layout_height="wrap_content"
         android:gravity="center"
         android:layout_gravity="center"
-        android:layout_marginTop="32dp"
-        android:text="Currently owned SKU:"/>
+        android:text="Query SKU"/>
+
+    <Button
+        android:id="@+id/buy_item"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:layout_gravity="center"
+        android:text="Purchase item"/>
+
+    <Button
+        android:id="@+id/consume_item"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:layout_gravity="center"
+        android:text="Consume item"/>
+
+  </LinearLayout>
+
+  <TextView
+      android:id="@+id/current_owned_sku"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:gravity="center"
+      android:layout_gravity="center"
+      android:layout_marginTop="32dp"
+      android:text="Currently owned SKU:"/>
 
 </LinearLayout>

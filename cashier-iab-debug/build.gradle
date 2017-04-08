@@ -2,39 +2,39 @@ apply plugin: 'com.android.library'
 apply plugin: 'com.github.dcendents.android-maven'
 
 android {
-    compileSdkVersion versions.compileSdk
-    buildToolsVersion versions.buildTools
+  compileSdkVersion versions.compileSdk
+  buildToolsVersion versions.buildTools
 
-    defaultConfig {
-        minSdkVersion versions.minSdk
+  defaultConfig {
+    minSdkVersion versions.minSdk
+  }
+  buildTypes {
+    release {
+      minifyEnabled false
     }
-    buildTypes {
-        release {
-            minifyEnabled false
-        }
+  }
+  testOptions {
+    unitTests.all {
+      testLogging {
+        exceptionFormat 'full'
+        showStackTraces true
+        showCauses true
+        events "passed", "skipped", "failed", "standardError"
+      }
     }
-    testOptions {
-        unitTests.all {
-            testLogging {
-                exceptionFormat 'full'
-                showStackTraces true
-                showCauses true
-                events "passed", "skipped", "failed", "standardError"
-            }
-        }
-    }
+  }
 }
 
 dependencies {
-    compile project(':cashier-iab')
+  compile project(':cashier-iab')
 
-    provided deps.autoValue
-    provided deps.supportAnnotations
-    annotationProcessor deps.autoValue
-    annotationProcessor deps.autoParcel
+  provided deps.autoValue
+  provided deps.supportAnnotations
+  annotationProcessor deps.autoValue
+  annotationProcessor deps.autoParcel
 
-    testCompile deps.robolectric
-    testCompile deps.junit
-    testCompile deps.mockito
-    testCompile deps.truth
+  testCompile deps.robolectric
+  testCompile deps.junit
+  testCompile deps.mockito
+  testCompile deps.truth
 }

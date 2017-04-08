@@ -3,44 +3,45 @@ package com.getkeepsafe.cashier;
 import java.util.Random;
 
 final class ValueFactory {
-    static final char[] ALPHANUMERIC = "abcdefghijklmnopqrstuvwxyz123457890".toCharArray();
-    static final Random random = new Random();
+  static final char[] ALPHANUMERIC = "abcdefghijklmnopqrstuvwxyz123457890".toCharArray();
+  static final Random random = new Random();
 
-    private ValueFactory() {}
+  private ValueFactory() {
+  }
 
-    public static Product aProduct() {
-        return Product.create(
-                aString(),
-                aString(),
-                aString(),
-                aString(),
-                aString(),
-                aString(),
-                aBoolean(),
-                aLong());
+  public static Product aProduct() {
+    return Product.create(
+        aString(),
+        aString(),
+        aString(),
+        aString(),
+        aString(),
+        aString(),
+        aBoolean(),
+        aLong());
+  }
+
+  public static CashierPurchase aPurchase() {
+    return CashierPurchase.create(aProduct(), aString(), aString(), aString(), aString());
+  }
+
+  public static long aLong() {
+    return random.nextLong();
+  }
+
+  public static boolean aBoolean() {
+    return random.nextBoolean();
+  }
+
+  public static String aString() {
+    return aString(16);
+  }
+
+  public static String aString(final int length) {
+    final StringBuilder builder = new StringBuilder(length);
+    for (int i = 0; i < length; i++) {
+      builder.append(ALPHANUMERIC[random.nextInt(length)]);
     }
-
-    public static CashierPurchase aPurchase() {
-        return CashierPurchase.create(aProduct(), aString(), aString(), aString(), aString());
-    }
-
-    public static long aLong() {
-        return random.nextLong();
-    }
-
-    public static boolean aBoolean() {
-        return random.nextBoolean();
-    }
-
-    public static String aString() {
-        return aString(16);
-    }
-
-    public static String aString(final int length) {
-        final StringBuilder builder = new StringBuilder(length);
-        for (int i = 0; i < length; i++) {
-            builder.append(ALPHANUMERIC[random.nextInt(length)]);
-        }
-        return builder.toString();
-    }
+    return builder.toString();
+  }
 }

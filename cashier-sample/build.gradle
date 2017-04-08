@@ -1,29 +1,29 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion versions.compileSdk
-    buildToolsVersion versions.buildTools
+  compileSdkVersion versions.compileSdk
+  buildToolsVersion versions.buildTools
 
-    defaultConfig {
-        applicationId "com.getkeepsafe.cashier.sample"
-        minSdkVersion 14
-        targetSdkVersion 24
-        versionCode 1
-        versionName "1.0"
+  defaultConfig {
+    applicationId "com.getkeepsafe.cashier.sample"
+    minSdkVersion 14
+    targetSdkVersion 24
+    versionCode 1
+    versionName "1.0"
+  }
+  buildTypes {
+    release {
+      minifyEnabled false
+      proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
     }
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-        }
-    }
+  }
 }
 
 dependencies {
-    compile project(':cashier')
-    compile project(':cashier-iab')
-    debugCompile project(':cashier-iab-debug')
-    releaseCompile project(':cashier-iab-debug-no-op')
+  compile project(':cashier')
+  compile project(':cashier-iab')
+  debugCompile project(':cashier-iab-debug')
+  releaseCompile project(':cashier-iab-debug-no-op')
 
-    compile deps.appCompat
+  compile deps.appCompat
 }

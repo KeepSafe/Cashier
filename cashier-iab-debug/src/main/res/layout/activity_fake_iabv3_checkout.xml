@@ -9,127 +9,127 @@
     android:orientation="vertical"
     android:background="#FAFAFA">
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="16dp"
-        android:gravity="center"
-        android:background="#7eb5e0"
-        android:textColor="#446e8e"
-        android:textAllCaps="true"
-        android:text="Cashier test purchase" />
+  <TextView
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:padding="16dp"
+      android:gravity="center"
+      android:background="#7eb5e0"
+      android:textColor="#446e8e"
+      android:textAllCaps="true"
+      android:text="Cashier test purchase"/>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingLeft="16dp"
-        android:paddingRight="16dp"
-        android:paddingTop="16dp"
-        android:layout_marginBottom="8dp"
-        android:orientation="horizontal">
-
-        <TextView
-            android:id="@+id/product_name"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textSize="16sp"
-            android:textColor="#000"
-            android:singleLine="true"
-            android:ellipsize="end"
-            tools:text="Test Product"/>
-
-        <TextView
-            android:id="@+id/product_price"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="16sp"
-            android:textColor="#446e8e"
-            android:layout_marginLeft="16dp"
-            android:layout_marginStart="16dp"
-            tools:text="$0.99"/>
-
-    </LinearLayout>
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:paddingLeft="16dp"
+      android:paddingRight="16dp"
+      android:paddingTop="16dp"
+      android:layout_marginBottom="8dp"
+      android:orientation="horizontal">
 
     <TextView
-        android:id="@+id/product_description"
+        android:id="@+id/product_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textSize="16sp"
+        android:textColor="#000"
+        android:singleLine="true"
+        android:ellipsize="end"
+        tools:text="Test Product"/>
+
+    <TextView
+        android:id="@+id/product_price"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:paddingLeft="16dp"
-        android:paddingRight="16dp"
+        android:textSize="16sp"
+        android:textColor="#446e8e"
+        android:layout_marginLeft="16dp"
+        android:layout_marginStart="16dp"
+        tools:text="$0.99"/>
+
+  </LinearLayout>
+
+  <TextView
+      android:id="@+id/product_description"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:paddingLeft="16dp"
+      android:paddingRight="16dp"
+      android:textSize="14sp"
+      android:textColor="#666"
+      tools:text="This is a description!"/>
+
+  <LinearLayout
+      android:layout_marginTop="8dp"
+      android:orientation="horizontal"
+      android:paddingLeft="16dp"
+      android:paddingRight="16dp"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content">
+
+    <TextView
+        android:id="@+id/logo"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textSize="16sp"
+        android:textColor="#446e8e"
+        android:singleLine="true"
+        android:ellipsize="end"
+        android:text="Cashier"/>
+
+    <Button
+        android:id="@+id/buy"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:paddingLeft="32dp"
+        android:paddingRight="32dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginStart="16dp"
+        android:background="#446e8e"
+        android:textColor="#FFF"
         android:textSize="14sp"
-        android:textColor="#666"
-        tools:text="This is a description!"/>
+        android:text="BUY"/>
 
-    <LinearLayout
-        android:layout_marginTop="8dp"
-        android:orientation="horizontal"
-        android:paddingLeft="16dp"
-        android:paddingRight="16dp"
+  </LinearLayout>
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:orientation="vertical">
+
+    <View
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="1dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
+        android:background="#DDD"/>
 
-        <TextView
-            android:id="@+id/logo"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textSize="16sp"
-            android:textColor="#446e8e"
-            android:singleLine="true"
-            android:ellipsize="end"
-            android:text="Cashier"/>
-
-        <Button
-            android:id="@+id/buy"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp"
-            android:paddingLeft="32dp"
-            android:paddingRight="32dp"
-            android:layout_marginLeft="16dp"
-            android:layout_marginStart="16dp"
-            android:background="#446e8e"
-            android:textColor="#FFF"
-            android:textSize="14sp"
-            android:text="BUY"/>
-
-    </LinearLayout>
-
-    <LinearLayout
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:paddingBottom="8dp"
+        android:textSize="16sp"
+        android:textColor="#446e8e"
+        android:text="Product metadata"/>
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="16dp"
-            android:background="#DDD"/>
+    <TextView
+        android:id="@+id/product_metadata"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:paddingBottom="16dp"
+        android:textSize="12sp"
+        android:textColor="#000"
+        tools:text="Vendor: com.android.vending\nSKU: abc_123\nSubscription: false\nMicro-price: 1299000000"/>
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingLeft="16dp"
-            android:paddingRight="16dp"
-            android:paddingBottom="8dp"
-            android:textSize="16sp"
-            android:textColor="#446e8e"
-            android:text="Product metadata"/>
-
-        <TextView
-            android:id="@+id/product_metadata"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingLeft="16dp"
-            android:paddingRight="16dp"
-            android:paddingBottom="16dp"
-            android:textSize="12sp"
-            android:textColor="#000"
-            tools:text="Vendor: com.android.vending\nSKU: abc_123\nSubscription: false\nMicro-price: 1299000000"/>
-
-    </LinearLayout>
+  </LinearLayout>
 
 </LinearLayout>
