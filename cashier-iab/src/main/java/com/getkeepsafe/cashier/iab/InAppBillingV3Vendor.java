@@ -189,6 +189,8 @@ public class InAppBillingV3Vendor implements Vendor {
     return available && api.available() && canPurchaseAnything();
   }
 
+  int getRequestCode() {  return requestCode; }
+
   @Override
   public boolean canPurchase(Product product) {
     if (!canPurchaseAnything()) {
@@ -288,7 +290,7 @@ public class InAppBillingV3Vendor implements Vendor {
   }
 
   @Override
-  public void getInventory(Context context, Collection<String> itemSkus, Collection<String> subSkus,
+  public void getInventory(Context context, Collection<String> inappSkus, Collection<String> subSkus,
                            InventoryListener listener) {
     if (context == null || listener == null) {
       throw new IllegalArgumentException("Context or listener is null");
@@ -297,7 +299,7 @@ public class InAppBillingV3Vendor implements Vendor {
     throwIfUninitialized();
 
     // Convert the given collections to a list
-    final List<String> itemSkusList = itemSkus == null ? null : new ArrayList<>(itemSkus);
+    final List<String> inappSkusList = inappSkus == null ? null : new ArrayList<>(inappSkus);
     final List<String> subSkusList = subSkus == null ? null : new ArrayList<>(subSkus);
 
     final Inventory inventory = new Inventory();
@@ -306,8 +308,8 @@ public class InAppBillingV3Vendor implements Vendor {
       inventory.addPurchases(getPurchases(PRODUCT_TYPE_ITEM));
       inventory.addPurchases(getPurchases(PRODUCT_TYPE_SUBSCRIPTION));
 
-      if (itemSkusList != null && !itemSkusList.isEmpty()) {
-        inventory.addProducts(getProductsWithType(itemSkusList, PRODUCT_TYPE_ITEM));
+      if (inappSkusList != null && !inappSkusList.isEmpty()) {
+        inventory.addProducts(getProductsWithType(inappSkusList, PRODUCT_TYPE_ITEM));
       }
 
       if (subSkusList != null && !subSkusList.isEmpty()) {
@@ -325,6 +327,9 @@ public class InAppBillingV3Vendor implements Vendor {
   @Override
   public void getProductDetails(Context context, String sku, boolean isSubscription,
                                 ProductDetailsListener listener) {
+    if (context == null || sku == null || listener == null) {
+      throw new IllegalArgumentException("Context or sku or listener is null");
+    }
     throwIfUninitialized();
     final String type = isSubscription ? PRODUCT_TYPE_SUBSCRIPTION : PRODUCT_TYPE_ITEM;
     try {
