@@ -302,13 +302,6 @@ public class MainActivity extends AppCompatActivity {
         cashier.dispose();
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (!cashier.onActivityResult(requestCode, resultCode, data)) {
-            super.onActivityResult(requestCode, resultCode, data);
-        }
-    }
-
     private void initCashier() {
         if (cashier != null) {
             cashier.dispose();

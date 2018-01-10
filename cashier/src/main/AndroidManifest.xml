@@ -1,1 +1,11 @@
-<manifest package="com.getkeepsafe.cashier"/>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.getkeepsafe.cashier">
+
+    <application>
+        <activity
+            android:name="com.getkeepsafe.cashier.ShadowActivity"
+            android:configChanges="orientation|keyboardHidden"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Transparent" />
+    </application>
+</manifest>

@@ -176,7 +176,15 @@ public class Cashier {
         }
 
         final String payload = developerPayload == null ? "" : developerPayload;
-        vendor.purchase(activity, product, payload, listener);
+
+        ShadowActivity.action = new Action<Activity>() {
+          @Override
+          public void run(Activity activity) {
+            vendor.purchase(activity, product, payload, listener);
+          }
+        };
+        ShadowActivity.cashier = Cashier.this;
+        activity.startActivity(new Intent(activity, ShadowActivity.class));
       }
 
       @Override
