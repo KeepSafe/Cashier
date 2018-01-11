@@ -16,9 +16,9 @@
 
 package com.getkeepsafe.cashier;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.support.v4.app.Fragment;
 
 import com.getkeepsafe.cashier.logging.Logger;
 
@@ -58,7 +58,7 @@ public interface Vendor {
 
   void dispose(Context context);
 
-  void purchase(Activity activity,
+  void purchase(Fragment fragment,
                 Product product,
                 String developerPayload,
                 PurchaseListener listener);

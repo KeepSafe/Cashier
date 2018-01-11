@@ -24,6 +24,7 @@ import android.content.IntentSender;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -209,9 +210,9 @@ public class InAppBillingV3Vendor implements Vendor {
   }
 
   @Override
-  public void purchase(Activity activity, Product product, String developerPayload,
+  public void purchase(Fragment fragment, Product product, String developerPayload,
                        PurchaseListener listener) {
-    if (activity == null || product == null || listener == null) {
+    if (fragment == null || product == null || listener == null) {
       throw new IllegalArgumentException("Activity, product, or listener is null");
     }
 
@@ -249,9 +250,9 @@ public class InAppBillingV3Vendor implements Vendor {
       this.purchaseListener = listener;
       pendingProduct = product;
       requestCode = new Random().nextInt(1024);
-      activity.startIntentSenderForResult(pendingIntent.getIntentSender(),
+      fragment.startIntentSenderForResult(pendingIntent.getIntentSender(),
           requestCode,
-          new Intent(), 0, 0, 0);
+          new Intent(), 0, 0, 0, null);
     } catch (RemoteException | IntentSender.SendIntentException e) {
       log("Failed to launch purchase!\n" + Log.getStackTraceString(e));
       listener.failure(product, purchaseError(BILLING_RESPONSE_RESULT_ERROR));
