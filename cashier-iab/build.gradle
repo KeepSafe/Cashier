@@ -30,6 +30,7 @@ dependencies {
 
   provided deps.autoValue
   provided deps.supportAnnotations
+  provided deps.appCompat
   annotationProcessor deps.autoValue
   annotationProcessor deps.autoParcel
 

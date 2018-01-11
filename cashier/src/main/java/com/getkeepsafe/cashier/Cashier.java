@@ -16,10 +16,11 @@
 
 package com.getkeepsafe.cashier;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
+import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 
 import com.getkeepsafe.cashier.logging.Logger;
@@ -149,7 +150,7 @@ public class Cashier {
    * @param product  The {@link Product} you wish to buy
    * @param listener The {@link PurchaseListener} to handle the result
    */
-  public void purchase(Activity activity, Product product, PurchaseListener listener) {
+  public void purchase(AppCompatActivity activity, Product product, PurchaseListener listener) {
     purchase(activity, product, null, listener);
   }
 
@@ -161,7 +162,7 @@ public class Cashier {
    * @param developerPayload Your custom payload to pass along to the {@link Vendor}
    * @param listener         The {@link PurchaseListener} to handle the result
    */
-  public void purchase(final Activity activity,
+  public void purchase(final AppCompatActivity activity,
                        final Product product,
                        @Nullable final String developerPayload,
                        final PurchaseListener listener) {
@@ -176,7 +177,15 @@ public class Cashier {
         }
 
         final String payload = developerPayload == null ? "" : developerPayload;
-        vendor.purchase(activity, product, payload, listener);
+
+        ShadowFragment.action = new Action<Fragment>() {
+          @Override
+          public void run(Fragment activity) {
+            vendor.purchase(activity, product, payload, listener);
+          }
+        };
+        ShadowFragment.cashier = Cashier.this;
+        activity.getSupportFragmentManager().beginTransaction().add(new ShadowFragment(), null).commit();
       }
 
       @Override

@@ -1,8 +1,11 @@
 package com.getkeepsafe.cashier;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.AppCompatActivity;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -14,9 +17,13 @@ import org.mockito.stubbing.Answer;
 import org.robolectric.RobolectricTestRunner;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.AdditionalMatchers.or;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -149,7 +156,7 @@ public class CashierTest {
     doAnswer(initializationSuccess).when(testVendor).initialize(any(Context.class), any(Vendor.InitializationListener.class));
     when(testVendor.available()).thenReturn(false);
 
-    final Activity activity = mock(Activity.class);
+    final AppCompatActivity activity = mock(AppCompatActivity.class);
     final Cashier cashier = Cashier.forVendor(context, testVendor).build();
     final Product product = ValueFactory.aProduct();
     final PurchaseListener listener = mock(PurchaseListener.class);
@@ -157,7 +164,7 @@ public class CashierTest {
     cashier.purchase(activity, product, listener);
 
     verify(listener).failure(product, new Vendor.Error(VendorConstants.PURCHASE_UNAVAILABLE, -1));
-    verify(testVendor, times(0)).purchase(activity, product, null, listener);
+    verify(testVendor, never()).purchase(any(ShadowFragment.class), any(Product.class), or(isNull(String.class), anyString()), any(PurchaseListener.class));
   }
 
   @Test
@@ -166,7 +173,7 @@ public class CashierTest {
     doAnswer(ifProductIsFromTestVendor).when(testVendor).canPurchase(any(Product.class));
     when(testVendor.available()).thenReturn(true);
 
-    final Activity activity = mock(Activity.class);
+    final AppCompatActivity activity = mock(AppCompatActivity.class);
     final Cashier cashier = Cashier.forVendor(context, testVendor).build();
     final Product product = ValueFactory.aProduct();
     final PurchaseListener listener = mock(PurchaseListener.class);
@@ -174,14 +181,14 @@ public class CashierTest {
     cashier.purchase(activity, product, listener);
 
     verify(listener).failure(product, new Vendor.Error(VendorConstants.PURCHASE_UNAVAILABLE, -1));
-    verify(testVendor, times(0)).purchase(activity, product, null, listener);
+    verify(testVendor, never()).purchase(any(ShadowFragment.class), any(Product.class), or(isNull(String.class), anyString()), any(PurchaseListener.class));
   }
 
   @Test
   public void purchaseUninitializedVendor() {
     doAnswer(initializationFailure).when(testVendor).initialize(any(Context.class), any(Vendor.InitializationListener.class));
 
-    final Activity activity = mock(Activity.class);
+    final AppCompatActivity activity = mock(AppCompatActivity.class);
     final Cashier cashier = Cashier.forVendor(context, testVendor).build();
     final Product product = ValueFactory.aProduct();
     final PurchaseListener listener = mock(PurchaseListener.class);
@@ -189,7 +196,7 @@ public class CashierTest {
     cashier.purchase(activity, product, listener);
 
     verify(listener).failure(product, new Vendor.Error(VendorConstants.PURCHASE_UNAVAILABLE, -1));
-    verify(testVendor, times(0)).purchase(activity, product, null, listener);
+    verify(testVendor, never()).purchase(any(ShadowFragment.class), any(Product.class), or(isNull(String.class), anyString()), any(PurchaseListener.class));
   }
 
   @Test
@@ -198,7 +205,14 @@ public class CashierTest {
     doAnswer(ifProductIsFromTestVendor).when(testVendor).canPurchase(any(Product.class));
     when(testVendor.available()).thenReturn(true);
 
-    final Activity activity = mock(Activity.class);
+    FragmentManager fragmentManager = mock(FragmentManager.class);
+    FragmentTransaction fragmentTransaction = mock(FragmentTransaction.class);
+    when(fragmentManager.beginTransaction()).thenReturn(fragmentTransaction);
+    when(fragmentTransaction.add(any(Fragment.class), or(isNull(String.class), anyString()))).thenReturn(fragmentTransaction);
+    when(fragmentTransaction.commit()).thenReturn(0);
+
+    final AppCompatActivity activity = mock(AppCompatActivity.class);
+    when(activity.getSupportFragmentManager()).thenReturn(fragmentManager);
     final Cashier cashier = Cashier.forVendor(context, testVendor).build();
     final Product product = Product.create(
         "{\"micros-price\":1," +
@@ -213,7 +227,7 @@ public class CashierTest {
     final String devPayload = "abc";
 
     cashier.purchase(activity, product, devPayload, listener);
-    verify(testVendor).purchase(activity, product, devPayload, listener);
+    verify(fragmentManager, times(1)).beginTransaction();
     verifyZeroInteractions(listener);
   }
 }
