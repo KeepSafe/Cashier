@@ -52,8 +52,8 @@ import static com.getkeepsafe.cashier.iab.InAppBillingConstants.RESPONSE_INAPP_S
 import static com.getkeepsafe.cashier.iab.InAppBillingConstants.RESPONSE_INAPP_SIGNATURE_LIST;
 import static com.getkeepsafe.cashier.iab.InAppBillingConstants.VENDOR_PACKAGE;
 import static com.getkeepsafe.cashier.iab.InAppBillingTestData.IN_APP_BILLING_PRODUCT_VALID_PRODUCT_JSON;
-import static com.getkeepsafe.cashier.iab.InAppBillingTestData.TEST_PUBLIC_KEY_1;
-import static com.getkeepsafe.cashier.iab.InAppBillingTestData.TEST_PUBLIC_KEY_2;
+import static com.getkeepsafe.cashier.iab.InAppBillingTestData.TEST_PUBLIC_KEY;
+import static com.getkeepsafe.cashier.iab.InAppBillingTestData.TEST_INVALID_PUBLIC_KEY;
 import static com.getkeepsafe.cashier.iab.InAppBillingTestData.VALID_ONE_TIME_PURCHASE_JSON;
 import static com.getkeepsafe.cashier.iab.InAppBillingTestData.VALID_PURCHASE_RECEIPT_JSON;
 import static com.getkeepsafe.cashier.iab.InAppBillingTestData.VALID_SUBSCRIPTION_PURCHASE_JSON;
@@ -321,7 +321,7 @@ public class InAppBillingV3VendorTest {
     public void purchaseFailsIfSignatureIsInvalid() throws RemoteException, IntentSender.SendIntentException {
         mockDependeniesForSuccessfulPurchaseFlow();
 
-        InAppBillingV3Vendor vendor = new InAppBillingV3Vendor(api, TEST_PUBLIC_KEY_1);
+        InAppBillingV3Vendor vendor = new InAppBillingV3Vendor(api, TEST_PUBLIC_KEY);
         vendor.initialize(mock(Context.class), initializationListener);
 
         Product inappPurchase = Product
@@ -344,7 +344,7 @@ public class InAppBillingV3VendorTest {
                 new Intent()
                         .putExtra(RESPONSE_CODE, BILLING_RESPONSE_RESULT_OK)
                         .putExtra(RESPONSE_INAPP_PURCHASE_DATA, VALID_PURCHASE_RECEIPT_JSON)
-                        .putExtra(RESPONSE_INAPP_SIGNATURE, TEST_PUBLIC_KEY_2));
+                        .putExtra(RESPONSE_INAPP_SIGNATURE, TEST_INVALID_PUBLIC_KEY));
 
         verify(purchaseListener, times(1)).failure(inappPurchase, new Vendor.Error(PURCHASE_SUCCESS_RESULT_MALFORMED, BILLING_RESPONSE_RESULT_ERROR));
     }
@@ -477,7 +477,7 @@ public class InAppBillingV3VendorTest {
         Intent intent = new Intent()
                 .putExtra(RESPONSE_CODE, BILLING_RESPONSE_RESULT_OK)
                 .putExtra(RESPONSE_INAPP_PURCHASE_DATA, VALID_PURCHASE_RECEIPT_JSON)
-                .putExtra(RESPONSE_INAPP_SIGNATURE, TEST_PUBLIC_KEY_1);
+                .putExtra(RESPONSE_INAPP_SIGNATURE, TEST_PUBLIC_KEY);
 
         vendor.onActivityResult(
                 vendor.getRequestCode(),

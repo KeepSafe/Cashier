@@ -189,7 +189,9 @@ public class InAppBillingV3Vendor implements Vendor {
     return available && api.available() && canPurchaseAnything();
   }
 
-  int getRequestCode() {  return requestCode; }
+  int getRequestCode() {
+    return requestCode;
+  }
 
   @Override
   public boolean canPurchase(Product product) {

@@ -7,7 +7,7 @@ import org.robolectric.RobolectricTestRunner;
 import java.security.PrivateKey;
 
 import static com.getkeepsafe.cashier.iab.InAppBillingTestData.TEST_PRIVATE_KEY;
-import static com.getkeepsafe.cashier.iab.InAppBillingTestData.TEST_PUBLIC_KEY_1;
+import static com.getkeepsafe.cashier.iab.InAppBillingTestData.TEST_PUBLIC_KEY;
 import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(RobolectricTestRunner.class)
@@ -33,7 +33,7 @@ public class InAppBillingSecurityTest {
 
   @Test
   public void testPublicKeyInValidFormat() {
-    InAppBillingSecurity.createPublicKey(TEST_PUBLIC_KEY_1);
+    InAppBillingSecurity.createPublicKey(TEST_PUBLIC_KEY);
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -67,6 +67,6 @@ public class InAppBillingSecurityTest {
 
   @Test
   public void verifiesSignatures() {
-    assertThat(InAppBillingSecurity.verifySignature(TEST_PUBLIC_KEY_1, purchaseData, purchaseSignature)).isTrue();
+    assertThat(InAppBillingSecurity.verifySignature(TEST_PUBLIC_KEY, purchaseData, purchaseSignature)).isTrue();
   }
 }
