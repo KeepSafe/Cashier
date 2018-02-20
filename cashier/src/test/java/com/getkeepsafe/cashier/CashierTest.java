@@ -2,6 +2,7 @@ package com.getkeepsafe.cashier;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 
 import org.json.JSONException;
@@ -213,7 +214,7 @@ public class CashierTest {
     final String devPayload = "abc";
 
     cashier.purchase(activity, product, devPayload, listener);
-    verify(testVendor).purchase(activity, product, devPayload, listener);
+    verify(activity, times(1)).startActivity(new Intent(activity, ShadowActivity.class));
     verifyZeroInteractions(listener);
   }
 }
