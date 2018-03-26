@@ -19,8 +19,10 @@ package com.getkeepsafe.cashier;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.getkeepsafe.cashier.logging.Logger;
 
@@ -37,6 +39,7 @@ import java.util.HashMap;
  */
 public class Cashier {
   private static HashMap<String, VendorFactory> vendorFactories = new HashMap<>(1);
+  public static boolean sPurchaseInProgress = false;
 
   private final Context context;
   private final Vendor vendor;
@@ -167,10 +170,20 @@ public class Cashier {
                        final PurchaseListener listener) {
     Preconditions.checkNotNull(product, "Product is null");
     Preconditions.checkNotNull(listener, "PurchaseListener is null");
+    if (Looper.myLooper() != Looper.getMainLooper()) {
+      throw new RuntimeException("purchase should only be called from the UI thread");
+    }
+
+    if (sPurchaseInProgress) {
+      System.out.println("purchase already in progress");
+      return;
+    }
+    sPurchaseInProgress = true;
     vendor.initialize(context, new Vendor.InitializationListener() {
       @Override
       public void initialized() {
         if (!vendor.available() || !vendor.canPurchase(product)) {
+          sPurchaseInProgress = false;
           listener.failure(product, new Vendor.Error(VendorConstants.PURCHASE_UNAVAILABLE, -1));
           return;
         }
@@ -189,6 +202,7 @@ public class Cashier {
 
       @Override
       public void unavailable() {
+        sPurchaseInProgress = false;
         listener.failure(product, new Vendor.Error(VendorConstants.PURCHASE_UNAVAILABLE, -1));
       }
     });
@@ -300,7 +314,9 @@ public class Cashier {
    * the {@link Vendor}
    */
   public boolean onActivityResult(int requestCode, int resultCode, Intent data) {
-    return vendor.onActivityResult(requestCode, resultCode, data);
+    boolean purchaseResultReceived = vendor.onActivityResult(requestCode, resultCode, data);
+    sPurchaseInProgress = !purchaseResultReceived;
+    return purchaseResultReceived;
   }
 
   public static class Builder {

@@ -27,6 +27,7 @@ public class ShadowActivity extends Activity {
         if (cashier != null) {
             cashier.onActivityResult(requestCode, resultCode, data);
         }
+        Cashier.sPurchaseInProgress = false;
         finish();
     }
 
@@ -35,5 +36,6 @@ public class ShadowActivity extends Activity {
         super.onDestroy();
         action = null;
         cashier = null;
+        Cashier.sPurchaseInProgress = false;
     }
 }
