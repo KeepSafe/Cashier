@@ -17,6 +17,7 @@ public class ShadowActivity extends Activity {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (action != null && cashier != null) {
+            cashier.attachShadowActivity(this);
             action.run(this);
         }
     }
@@ -27,8 +28,6 @@ public class ShadowActivity extends Activity {
         if (cashier != null) {
             cashier.onActivityResult(requestCode, resultCode, data);
         }
-        Cashier.sPurchaseInProgress = false;
-        finish();
     }
 
     @Override

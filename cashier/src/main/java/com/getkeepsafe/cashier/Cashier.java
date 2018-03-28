@@ -39,10 +39,12 @@ import java.util.HashMap;
  */
 public class Cashier {
   private static HashMap<String, VendorFactory> vendorFactories = new HashMap<>(1);
-  public static boolean sPurchaseInProgress = false;
+  static boolean sPurchaseInProgress = false;
 
   private final Context context;
   private final Vendor vendor;
+
+  private ShadowActivity shadowActivity;
 
   /**
    * Registers a vendor factory for use
@@ -156,35 +158,61 @@ public class Cashier {
     purchase(activity, product, null, listener);
   }
 
+  void attachShadowActivity(ShadowActivity shadowActivity) {
+    this.shadowActivity = shadowActivity;
+  }
+
+  private void closePurchaseFlow() {
+    if (shadowActivity != null) {
+      shadowActivity.finish();
+      shadowActivity = null;
+    }
+    Cashier.sPurchaseInProgress = false;
+  }
+
   /**
    * Initiates a purchase flow
    *
    * @param activity         The activity that will host the purchase flow
    * @param product          The {@link Product} you wish to buy
    * @param developerPayload Your custom payload to pass along to the {@link Vendor}
-   * @param listener         The {@link PurchaseListener} to handle the result
+   * @param purchaseListener         The {@link PurchaseListener} to handle the result
    */
   public void purchase(final Activity activity,
                        final Product product,
                        @Nullable final String developerPayload,
-                       final PurchaseListener listener) {
+                       final PurchaseListener purchaseListener) {
     Preconditions.checkNotNull(product, "Product is null");
-    Preconditions.checkNotNull(listener, "PurchaseListener is null");
+    Preconditions.checkNotNull(purchaseListener, "PurchaseListener is null");
     if (Looper.myLooper() != Looper.getMainLooper()) {
-      throw new RuntimeException("purchase should only be called from the UI thread");
+      throw new CalledFromWrongThreadException("[Cashier] Cashier.purchase() should only be called from the UI thread");
     }
 
     if (sPurchaseInProgress) {
-      System.out.println("purchase already in progress");
+      Log.w("Cashier", "Cashier.purchase() should not be called while a purchase is already in progress");
       return;
     }
     sPurchaseInProgress = true;
+
+    final PurchaseListener purchaseListenerWrapper = new PurchaseListener() {
+      @Override
+      public void success(Purchase purchase) {
+        purchaseListener.success(purchase);
+        closePurchaseFlow();
+      }
+
+      @Override
+      public void failure(Product product, Vendor.Error error) {
+        purchaseListener.failure(product, error);
+        closePurchaseFlow();
+      }
+    };
+
     vendor.initialize(context, new Vendor.InitializationListener() {
       @Override
       public void initialized() {
         if (!vendor.available() || !vendor.canPurchase(product)) {
-          sPurchaseInProgress = false;
-          listener.failure(product, new Vendor.Error(VendorConstants.PURCHASE_UNAVAILABLE, -1));
+          purchaseListenerWrapper.failure(product, new Vendor.Error(VendorConstants.PURCHASE_UNAVAILABLE, -1));
           return;
         }
 
@@ -193,7 +221,7 @@ public class Cashier {
         ShadowActivity.action = new Action<Activity>() {
           @Override
           public void run(Activity activity) {
-            vendor.purchase(activity, product, payload, listener);
+            vendor.purchase(activity, product, payload, purchaseListenerWrapper);
           }
         };
         ShadowActivity.cashier = Cashier.this;
@@ -202,8 +230,7 @@ public class Cashier {
 
       @Override
       public void unavailable() {
-        sPurchaseInProgress = false;
-        listener.failure(product, new Vendor.Error(VendorConstants.PURCHASE_UNAVAILABLE, -1));
+        purchaseListenerWrapper.failure(product, new Vendor.Error(VendorConstants.PURCHASE_UNAVAILABLE, -1));
       }
     });
   }
@@ -314,9 +341,7 @@ public class Cashier {
    * the {@link Vendor}
    */
   public boolean onActivityResult(int requestCode, int resultCode, Intent data) {
-    boolean purchaseResultReceived = vendor.onActivityResult(requestCode, resultCode, data);
-    sPurchaseInProgress = !purchaseResultReceived;
-    return purchaseResultReceived;
+    return vendor.onActivityResult(requestCode, resultCode, data);
   }
 
   public static class Builder {
