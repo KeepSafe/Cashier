@@ -100,6 +100,7 @@ public class InAppBillingV3Vendor implements Vendor {
       = new AbstractInAppBillingV3API.LifecycleListener() {
     @Override
     public void initialized(boolean success) {
+      log("initialized: success=" + success);
       if (!success) {
         logAndDisable("Couldn't create InAppBillingService instance");
         return;
@@ -167,7 +168,7 @@ public class InAppBillingV3Vendor implements Vendor {
     }
 
     log("Initializing In-App billing v3...");
-    available = api.initialize(context, this, lifecycleListener);
+    available = api.initialize(context, this, lifecycleListener, logger);
 
     if (!available) {
       initializationListener.unavailable();

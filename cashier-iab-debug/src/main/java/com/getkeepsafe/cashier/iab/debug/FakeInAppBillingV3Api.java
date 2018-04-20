@@ -25,6 +25,7 @@ import com.getkeepsafe.cashier.Product;
 import com.getkeepsafe.cashier.iab.AbstractInAppBillingV3API;
 import com.getkeepsafe.cashier.iab.InAppBillingPurchase;
 import com.getkeepsafe.cashier.iab.InAppBillingV3Vendor;
+import com.getkeepsafe.cashier.logging.Logger;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -97,8 +98,9 @@ public class FakeInAppBillingV3Api extends AbstractInAppBillingV3API {
   }
 
   @Override
-  public boolean initialize(Context context, InAppBillingV3Vendor vendor, LifecycleListener listener) {
-    super.initialize(context, vendor, listener);
+  public boolean initialize(Context context, InAppBillingV3Vendor vendor, LifecycleListener listener,
+                            Logger logger) {
+    super.initialize(context, vendor, listener, logger);
 
     if (available()) {
       if (listener != null) {
