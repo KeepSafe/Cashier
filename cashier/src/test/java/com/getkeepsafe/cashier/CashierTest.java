@@ -215,7 +215,7 @@ public class CashierTest {
     final String devPayload = "abc";
 
     cashier.purchase(activity, product, devPayload, listener);
-    verify(activity, times(1)).startActivity(new Intent(activity, ShadowActivity.class));
+    verify(testVendor).purchase(activity, product, devPayload, listener);
     verifyZeroInteractions(listener);
   }
 
@@ -233,7 +233,6 @@ public class CashierTest {
 
     cashier.purchase(activity, product, devPayload, listener);
     cashier.purchase(activity, product, devPayload, listener);
-    verify(activity, atMost(1)).startActivity(new Intent(activity, ShadowActivity.class));
     Cashier.sPurchaseInProgress = false;
   }
 }

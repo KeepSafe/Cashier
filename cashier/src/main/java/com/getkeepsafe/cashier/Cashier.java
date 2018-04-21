@@ -44,8 +44,6 @@ public class Cashier {
   private final Context context;
   private final Vendor vendor;
 
-  private ShadowActivity shadowActivity;
-
   /**
    * Registers a vendor factory for use
    *
@@ -158,15 +156,7 @@ public class Cashier {
     purchase(activity, product, null, listener);
   }
 
-  void attachShadowActivity(ShadowActivity shadowActivity) {
-    this.shadowActivity = shadowActivity;
-  }
-
   private void closePurchaseFlow() {
-    if (shadowActivity != null) {
-      shadowActivity.finish();
-      shadowActivity = null;
-    }
     Cashier.sPurchaseInProgress = false;
   }
 
@@ -198,13 +188,13 @@ public class Cashier {
       @Override
       public void success(Purchase purchase) {
         purchaseListener.success(purchase);
-        closePurchaseFlow();
+        sPurchaseInProgress = false;
       }
 
       @Override
       public void failure(Product product, Vendor.Error error) {
         purchaseListener.failure(product, error);
-        closePurchaseFlow();
+        sPurchaseInProgress = false;
       }
     };
 
@@ -217,15 +207,7 @@ public class Cashier {
         }
 
         final String payload = developerPayload == null ? "" : developerPayload;
-
-        ShadowActivity.action = new Action<Activity>() {
-          @Override
-          public void run(Activity activity) {
-            vendor.purchase(activity, product, payload, purchaseListenerWrapper);
-          }
-        };
-        ShadowActivity.cashier = Cashier.this;
-        activity.startActivity(new Intent(activity, ShadowActivity.class));
+        vendor.purchase(activity, product, payload, purchaseListenerWrapper);
       }
 
       @Override
@@ -334,6 +316,7 @@ public class Cashier {
    **/
   public void dispose() {
     vendor.dispose(context);
+    sPurchaseInProgress = false;
   }
 
   /**
