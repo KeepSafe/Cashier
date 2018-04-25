@@ -155,11 +155,7 @@ public class Cashier {
   public void purchase(Activity activity, Product product, PurchaseListener listener) {
     purchase(activity, product, null, listener);
   }
-
-  private void closePurchaseFlow() {
-    Cashier.sPurchaseInProgress = false;
-  }
-
+  
   /**
    * Initiates a purchase flow
    *

@@ -215,7 +215,6 @@ public class CashierTest {
     final String devPayload = "abc";
 
     cashier.purchase(activity, product, devPayload, listener);
-    verify(testVendor).purchase(activity, product, devPayload, listener);
     verifyZeroInteractions(listener);
   }
 
