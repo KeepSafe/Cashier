@@ -20,11 +20,14 @@ import android.content.Context;
 import android.os.Bundle;
 import android.os.RemoteException;
 
+import com.getkeepsafe.cashier.logging.Logger;
+
 public abstract class AbstractInAppBillingV3API {
   protected static final int API_VERSION = 3;
 
   protected String packageName;
   protected InAppBillingV3Vendor vendor;
+  protected Logger logger;
 
   public interface LifecycleListener {
     void initialized(boolean success);
@@ -33,12 +36,13 @@ public abstract class AbstractInAppBillingV3API {
   }
 
   public boolean initialize(Context context, InAppBillingV3Vendor vendor,
-                            LifecycleListener listener) {
+                            LifecycleListener listener, Logger logger) {
     if (context == null || vendor == null) {
       throw new IllegalArgumentException("Null context or vendor");
     }
     this.packageName = context.getPackageName();
     this.vendor = vendor;
+    this.logger = logger;
     return true;
   }
 

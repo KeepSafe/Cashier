@@ -16,6 +16,7 @@ import com.getkeepsafe.cashier.ProductDetailsListener;
 import com.getkeepsafe.cashier.Purchase;
 import com.getkeepsafe.cashier.PurchaseListener;
 import com.getkeepsafe.cashier.Vendor;
+import com.getkeepsafe.cashier.logging.Logger;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -23,6 +24,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
@@ -63,6 +65,7 @@ import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.mockito.AdditionalMatchers.or;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyObject;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doNothing;
@@ -996,7 +999,8 @@ public class InAppBillingV3VendorTest {
             billingSupportResult = BILLING_RESPONSE_RESULT_BILLING_UNAVAILABLE;
         }
         when(api.isBillingSupported(any(String.class))).thenReturn(billingSupportResult);
-        when(api.initialize(any(Context.class), any(InAppBillingV3Vendor.class), any(AbstractInAppBillingV3API.LifecycleListener.class))).thenAnswer(new Answer<Boolean>() {
+        when(api.initialize(any(Context.class), any(InAppBillingV3Vendor.class), any(AbstractInAppBillingV3API.LifecycleListener.class),
+                isNull(Logger.class))).thenAnswer(new Answer<Boolean>() {
             @Override
             public Boolean answer(InvocationOnMock invocationOnMock) throws Throwable {
                 ((AbstractInAppBillingV3API.LifecycleListener) invocationOnMock.getArgument(2)).initialized(initSuccessfully);

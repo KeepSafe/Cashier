@@ -16,6 +16,7 @@ import org.robolectric.RobolectricTestRunner;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -214,7 +215,23 @@ public class CashierTest {
     final String devPayload = "abc";
 
     cashier.purchase(activity, product, devPayload, listener);
-    verify(activity, times(1)).startActivity(new Intent(activity, ShadowActivity.class));
     verifyZeroInteractions(listener);
+  }
+
+  @Test
+  public void purchaseDouble() throws  JSONException {
+    doAnswer(initializationSuccess).when(testVendor).initialize(any(Context.class), any(Vendor.InitializationListener.class));
+    doAnswer(ifProductIsFromTestVendor).when(testVendor).canPurchase(any(Product.class));
+    when(testVendor.available()).thenReturn(true);
+
+    final Activity activity = mock(Activity.class);
+    final Cashier cashier = Cashier.forVendor(context, testVendor).build();
+    final Product product = Product.create(TEST_VENDOR_ID, "a", "a", "a", "a", "a", true, 1L);
+    final PurchaseListener listener = mock(PurchaseListener.class);
+    final String devPayload = "abc";
+
+    cashier.purchase(activity, product, devPayload, listener);
+    cashier.purchase(activity, product, devPayload, listener);
+    Cashier.sPurchaseInProgress = false;
   }
 }

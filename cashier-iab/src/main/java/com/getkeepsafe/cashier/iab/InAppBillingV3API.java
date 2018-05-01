@@ -28,6 +28,7 @@ import android.os.RemoteException;
 import android.text.TextUtils;
 
 import com.android.vending.billing.IInAppBillingService;
+import com.getkeepsafe.cashier.logging.Logger;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -57,6 +58,7 @@ public class InAppBillingV3API extends AbstractInAppBillingV3API {
   private final ServiceConnection serviceConnection = new ServiceConnection() {
     @Override
     public void onServiceConnected(ComponentName name, IBinder service) {
+      logger.i("InAppBillingV3API", "onServiceConnected");
       billing = IInAppBillingService.Stub.asInterface(service);
       if (listener != null) {
         listener.initialized(available());
@@ -65,6 +67,7 @@ public class InAppBillingV3API extends AbstractInAppBillingV3API {
 
     @Override
     public void onServiceDisconnected(ComponentName name) {
+      logger.i("InAppBillingV3API", "onServiceDisconnected");
       billing = null;
       if (listener != null) {
         listener.disconnected();
@@ -73,8 +76,9 @@ public class InAppBillingV3API extends AbstractInAppBillingV3API {
   };
 
   @Override
-  public boolean initialize(Context context, InAppBillingV3Vendor vendor, LifecycleListener listener) {
-    final boolean superInited = super.initialize(context, vendor, listener);
+  public boolean initialize(Context context, InAppBillingV3Vendor vendor, LifecycleListener listener,
+                            Logger logger) {
+    final boolean superInited = super.initialize(context, vendor, listener, logger);
     this.listener = listener;
     if (available()) {
       if (listener != null) {

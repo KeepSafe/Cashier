@@ -19,8 +19,10 @@ package com.getkeepsafe.cashier;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.getkeepsafe.cashier.logging.Logger;
 
@@ -37,6 +39,7 @@ import java.util.HashMap;
  */
 public class Cashier {
   private static HashMap<String, VendorFactory> vendorFactories = new HashMap<>(1);
+  static boolean sPurchaseInProgress = false;
 
   private final Context context;
   private final Vendor vendor;
@@ -152,44 +155,60 @@ public class Cashier {
   public void purchase(Activity activity, Product product, PurchaseListener listener) {
     purchase(activity, product, null, listener);
   }
-
+  
   /**
    * Initiates a purchase flow
    *
    * @param activity         The activity that will host the purchase flow
    * @param product          The {@link Product} you wish to buy
    * @param developerPayload Your custom payload to pass along to the {@link Vendor}
-   * @param listener         The {@link PurchaseListener} to handle the result
+   * @param purchaseListener         The {@link PurchaseListener} to handle the result
    */
   public void purchase(final Activity activity,
                        final Product product,
                        @Nullable final String developerPayload,
-                       final PurchaseListener listener) {
+                       final PurchaseListener purchaseListener) {
     Preconditions.checkNotNull(product, "Product is null");
-    Preconditions.checkNotNull(listener, "PurchaseListener is null");
+    Preconditions.checkNotNull(purchaseListener, "PurchaseListener is null");
+    if (Looper.myLooper() != Looper.getMainLooper()) {
+      throw new CalledFromWrongThreadException("[Cashier] Cashier.purchase() should only be called from the UI thread");
+    }
+
+    if (sPurchaseInProgress) {
+      Log.w("Cashier", "Cashier.purchase() should not be called while a purchase is already in progress");
+      return;
+    }
+    sPurchaseInProgress = true;
+
+    final PurchaseListener purchaseListenerWrapper = new PurchaseListener() {
+      @Override
+      public void success(Purchase purchase) {
+        purchaseListener.success(purchase);
+        sPurchaseInProgress = false;
+      }
+
+      @Override
+      public void failure(Product product, Vendor.Error error) {
+        purchaseListener.failure(product, error);
+        sPurchaseInProgress = false;
+      }
+    };
+
     vendor.initialize(context, new Vendor.InitializationListener() {
       @Override
       public void initialized() {
         if (!vendor.available() || !vendor.canPurchase(product)) {
-          listener.failure(product, new Vendor.Error(VendorConstants.PURCHASE_UNAVAILABLE, -1));
+          purchaseListenerWrapper.failure(product, new Vendor.Error(VendorConstants.PURCHASE_UNAVAILABLE, -1));
           return;
         }
 
         final String payload = developerPayload == null ? "" : developerPayload;
-
-        ShadowActivity.action = new Action<Activity>() {
-          @Override
-          public void run(Activity activity) {
-            vendor.purchase(activity, product, payload, listener);
-          }
-        };
-        ShadowActivity.cashier = Cashier.this;
-        activity.startActivity(new Intent(activity, ShadowActivity.class));
+        vendor.purchase(activity, product, payload, purchaseListenerWrapper);
       }
 
       @Override
       public void unavailable() {
-        listener.failure(product, new Vendor.Error(VendorConstants.PURCHASE_UNAVAILABLE, -1));
+        purchaseListenerWrapper.failure(product, new Vendor.Error(VendorConstants.PURCHASE_UNAVAILABLE, -1));
       }
     });
   }
@@ -293,6 +312,7 @@ public class Cashier {
    **/
   public void dispose() {
     vendor.dispose(context);
+    sPurchaseInProgress = false;
   }
 
   /**
