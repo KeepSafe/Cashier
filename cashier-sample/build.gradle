@@ -20,10 +20,9 @@ android {
 }
 
 dependencies {
-  compile project(':cashier')
-  compile project(':cashier-iab')
-  debugCompile project(':cashier-iab-debug')
-  releaseCompile project(':cashier-iab-debug-no-op')
+  implementation project(':cashier-iab')
+  debugImplementation project(':cashier-iab-debug')
+  releaseImplementation project(':cashier-iab-debug-no-op')
 
-  compile deps.appCompat
+  implementation deps.appCompat
 }
