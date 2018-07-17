@@ -24,7 +24,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
@@ -54,8 +53,8 @@ import static com.getkeepsafe.cashier.iab.InAppBillingConstants.RESPONSE_INAPP_S
 import static com.getkeepsafe.cashier.iab.InAppBillingConstants.RESPONSE_INAPP_SIGNATURE_LIST;
 import static com.getkeepsafe.cashier.iab.InAppBillingConstants.VENDOR_PACKAGE;
 import static com.getkeepsafe.cashier.iab.InAppBillingTestData.IN_APP_BILLING_PRODUCT_VALID_PRODUCT_JSON;
-import static com.getkeepsafe.cashier.iab.InAppBillingTestData.TEST_PUBLIC_KEY;
 import static com.getkeepsafe.cashier.iab.InAppBillingTestData.TEST_INVALID_PUBLIC_KEY;
+import static com.getkeepsafe.cashier.iab.InAppBillingTestData.TEST_PUBLIC_KEY;
 import static com.getkeepsafe.cashier.iab.InAppBillingTestData.VALID_ONE_TIME_PURCHASE_JSON;
 import static com.getkeepsafe.cashier.iab.InAppBillingTestData.VALID_PURCHASE_RECEIPT_JSON;
 import static com.getkeepsafe.cashier.iab.InAppBillingTestData.VALID_SUBSCRIPTION_PURCHASE_JSON;
@@ -65,7 +64,6 @@ import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.mockito.AdditionalMatchers.or;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyObject;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doNothing;
@@ -88,6 +86,7 @@ public class InAppBillingV3VendorTest {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
+        InAppBillingV3Vendor.DISABLE_EXECUTOR = true;
     }
 
     @Test
