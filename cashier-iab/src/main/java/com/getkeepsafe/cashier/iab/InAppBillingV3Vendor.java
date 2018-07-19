@@ -25,7 +25,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.RemoteException;
 import android.support.annotation.Nullable;
-import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -302,7 +301,7 @@ public class InAppBillingV3Vendor implements Vendor {
     }
 
     @Override
-    public void getInventory(Context context, final Collection<String> inappSkus, final Collection<String> subSkus,
+    public void getInventory(Context context, final Collection<String> inAppSkus, final Collection<String> subSkus,
                              final InventoryListener listener) {
         if (context == null || listener == null) {
             throw new IllegalArgumentException("Context or listener is null");
@@ -314,7 +313,7 @@ public class InAppBillingV3Vendor implements Vendor {
             @Override
             public void run() {
                 // Convert the given collections to a list
-                final List<String> inappSkusList = inappSkus == null ? null : new ArrayList<>(inappSkus);
+                final List<String> inappSkusList = inAppSkus == null ? null : new ArrayList<>(inAppSkus);
                 final List<String> subSkusList = subSkus == null ? null : new ArrayList<>(subSkus);
 
                 final Inventory inventory = new Inventory();
