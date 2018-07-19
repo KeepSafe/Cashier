@@ -632,7 +632,7 @@ public class InAppBillingV3Vendor implements Vendor {
     return -1;
   }
 
-  private Error purchaseError(int response) {
+  private Vendor.Error purchaseError(int response) {
     final int code;
     switch (response) {
       case BILLING_RESPONSE_RESULT_BILLING_UNAVAILABLE:
@@ -658,7 +658,7 @@ public class InAppBillingV3Vendor implements Vendor {
     return new Vendor.Error(code, response);
   }
 
-  private Error consumeError(int response) {
+  private Vendor.Error consumeError(int response) {
     final int code;
     switch (response) {
       case BILLING_RESPONSE_RESULT_BILLING_UNAVAILABLE:
