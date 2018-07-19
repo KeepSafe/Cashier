@@ -340,14 +340,14 @@ public class InAppBillingV3Vendor implements Vendor {
           callThread.post(new Runnable() {
             @Override
             public void run() {
-              listener.failure(new Error(INVENTORY_QUERY_FAILURE, codeFromException(e)));
+              listener.failure(new Vendor.Error(INVENTORY_QUERY_FAILURE, codeFromException(e)));
             }
           });
         } catch (JSONException e) {
           callThread.post(new Runnable() {
             @Override
             public void run() {
-              listener.failure(new Error(INVENTORY_QUERY_MALFORMED_RESPONSE, -1));
+              listener.failure(new Vendor.Error(INVENTORY_QUERY_MALFORMED_RESPONSE, -1));
             }
           });
         }
@@ -372,13 +372,13 @@ public class InAppBillingV3Vendor implements Vendor {
     try {
       final List<Product> productList = getProductsWithType(Collections.singletonList(sku), type);
       if (productList.isEmpty()) {
-        listener.failure(new Error(PRODUCT_DETAILS_NOT_FOUND, -1));
+        listener.failure(new Vendor.Error(PRODUCT_DETAILS_NOT_FOUND, -1));
         return;
       }
 
       listener.success(productList.get(0));
     } catch (RemoteException | ApiException e) {
-      listener.failure(new Error(PRODUCT_DETAILS_QUERY_FAILURE, codeFromException(e)));
+      listener.failure(new Vendor.Error(PRODUCT_DETAILS_QUERY_FAILURE, codeFromException(e)));
     }
   }
 
@@ -530,7 +530,7 @@ public class InAppBillingV3Vendor implements Vendor {
         if (!purchase.developerPayload().equals(developerPayload)) {
           log("Developer payload mismatch!");
           purchaseListener.failure(pendingProduct,
-              new Error(PURCHASE_SUCCESS_RESULT_MALFORMED,
+              new Vendor.Error(PURCHASE_SUCCESS_RESULT_MALFORMED,
                   BILLING_RESPONSE_RESULT_ERROR));
           return true;
         }
@@ -539,7 +539,7 @@ public class InAppBillingV3Vendor implements Vendor {
             && !InAppBillingSecurity.verifySignature(publicKey64, purchase.receipt(), purchase.dataSignature())) {
           log("Local signature check failed!");
           purchaseListener.failure(pendingProduct,
-              new Error(PURCHASE_SUCCESS_RESULT_MALFORMED,
+              new Vendor.Error(PURCHASE_SUCCESS_RESULT_MALFORMED,
                   BILLING_RESPONSE_RESULT_ERROR));
           return true;
         }
@@ -549,7 +549,7 @@ public class InAppBillingV3Vendor implements Vendor {
         developerPayload = null;
       } catch (JSONException e) {
         purchaseListener.failure(pendingProduct,
-            new Error(PURCHASE_SUCCESS_RESULT_MALFORMED,
+            new Vendor.Error(PURCHASE_SUCCESS_RESULT_MALFORMED,
                 BILLING_RESPONSE_RESULT_ERROR));
       }
     } else if (resultCode == Activity.RESULT_OK) {
@@ -655,7 +655,7 @@ public class InAppBillingV3Vendor implements Vendor {
         break;
     }
 
-    return new Error(code, response);
+    return new Vendor.Error(code, response);
   }
 
   private Error consumeError(int response) {
@@ -678,7 +678,7 @@ public class InAppBillingV3Vendor implements Vendor {
         break;
     }
 
-    return new Error(code, response);
+    return new Vendor.Error(code, response);
   }
 
   private void log(String message) {
