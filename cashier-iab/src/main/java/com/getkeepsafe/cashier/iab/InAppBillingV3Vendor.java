@@ -356,7 +356,7 @@ public class InAppBillingV3Vendor implements Vendor {
           callThread.post(new Runnable() {
             @Override
             public void run() {
-             listener.failure(new Vendor.Error(INVENTORY_QUERY_UNAVAILABLE, -1));
+              listener.failure(new Vendor.Error(INVENTORY_QUERY_UNAVAILABLE, -1));
             }
           });
         }
