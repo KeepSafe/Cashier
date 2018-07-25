@@ -57,6 +57,7 @@ import static com.getkeepsafe.cashier.VendorConstants.CONSUME_NOT_OWNED;
 import static com.getkeepsafe.cashier.VendorConstants.CONSUME_UNAVAILABLE;
 import static com.getkeepsafe.cashier.VendorConstants.INVENTORY_QUERY_FAILURE;
 import static com.getkeepsafe.cashier.VendorConstants.INVENTORY_QUERY_MALFORMED_RESPONSE;
+import static com.getkeepsafe.cashier.VendorConstants.INVENTORY_QUERY_UNAVAILABLE;
 import static com.getkeepsafe.cashier.VendorConstants.PRODUCT_DETAILS_NOT_FOUND;
 import static com.getkeepsafe.cashier.VendorConstants.PRODUCT_DETAILS_QUERY_FAILURE;
 import static com.getkeepsafe.cashier.VendorConstants.PURCHASE_ALREADY_OWNED;
@@ -348,6 +349,14 @@ public class InAppBillingV3Vendor implements Vendor {
             @Override
             public void run() {
               listener.failure(new Vendor.Error(INVENTORY_QUERY_MALFORMED_RESPONSE, -1));
+            }
+          });
+        } catch (IllegalStateException e) {
+          // Fixes the race condition wherein billing can be null if the service connection gets disconnect
+          callThread.post(new Runnable() {
+            @Override
+            public void run() {
+             listener.failure(new Vendor.Error(INVENTORY_QUERY_UNAVAILABLE, -1));
             }
           });
         }
