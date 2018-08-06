@@ -26,17 +26,17 @@ android {
 }
 
 dependencies {
-  compile project(':cashier')
+  api project(':cashier')
 
-  provided deps.autoValue
-  provided deps.supportAnnotations
+  compileOnly deps.autoValue
+  compileOnly deps.supportAnnotations
   annotationProcessor deps.autoValue
   annotationProcessor deps.autoParcel
 
-  testCompile deps.robolectric
-  testCompile deps.junit
-  testCompile deps.mockito
-  testCompile deps.truth
+  testImplementation deps.robolectric
+  testImplementation deps.junit
+  testImplementation deps.mockito
+  testImplementation deps.truth
 }
 
 apply from: rootProject.file('javadoc.gradle')

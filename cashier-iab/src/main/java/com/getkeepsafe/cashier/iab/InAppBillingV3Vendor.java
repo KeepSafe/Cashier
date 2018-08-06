@@ -22,8 +22,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.RemoteException;
 import android.support.annotation.Nullable;
+import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -46,6 +48,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import static com.getkeepsafe.cashier.VendorConstants.CONSUME_CANCELED;
 import static com.getkeepsafe.cashier.VendorConstants.CONSUME_FAILURE;
@@ -53,6 +57,7 @@ import static com.getkeepsafe.cashier.VendorConstants.CONSUME_NOT_OWNED;
 import static com.getkeepsafe.cashier.VendorConstants.CONSUME_UNAVAILABLE;
 import static com.getkeepsafe.cashier.VendorConstants.INVENTORY_QUERY_FAILURE;
 import static com.getkeepsafe.cashier.VendorConstants.INVENTORY_QUERY_MALFORMED_RESPONSE;
+import static com.getkeepsafe.cashier.VendorConstants.INVENTORY_QUERY_UNAVAILABLE;
 import static com.getkeepsafe.cashier.VendorConstants.PRODUCT_DETAILS_NOT_FOUND;
 import static com.getkeepsafe.cashier.VendorConstants.PRODUCT_DETAILS_QUERY_FAILURE;
 import static com.getkeepsafe.cashier.VendorConstants.PURCHASE_ALREADY_OWNED;
@@ -82,6 +87,8 @@ import static com.getkeepsafe.cashier.iab.InAppBillingConstants.RESPONSE_INAPP_S
 import static com.getkeepsafe.cashier.iab.InAppBillingConstants.VENDOR_PACKAGE;
 
 public class InAppBillingV3Vendor implements Vendor {
+  @VisibleForTesting
+  static boolean DISABLE_EXECUTOR = false;
   private final AbstractInAppBillingV3API api;
   private final String publicKey64;
 
@@ -95,6 +102,7 @@ public class InAppBillingV3Vendor implements Vendor {
   private boolean available;
   private boolean canSubscribe;
   private boolean canPurchaseItems;
+  private Executor executor = Executors.newSingleThreadExecutor();
 
   private final AbstractInAppBillingV3API.LifecycleListener lifecycleListener
       = new AbstractInAppBillingV3API.LifecycleListener() {
@@ -293,37 +301,72 @@ public class InAppBillingV3Vendor implements Vendor {
   }
 
   @Override
-  public void getInventory(Context context, Collection<String> inappSkus, Collection<String> subSkus,
-                           InventoryListener listener) {
+  public void getInventory(Context context, final Collection<String> inAppSkus, final Collection<String> subSkus,
+                           final InventoryListener listener) {
     if (context == null || listener == null) {
       throw new IllegalArgumentException("Context or listener is null");
     }
 
     throwIfUninitialized();
 
-    // Convert the given collections to a list
-    final List<String> inappSkusList = inappSkus == null ? null : new ArrayList<>(inappSkus);
-    final List<String> subSkusList = subSkus == null ? null : new ArrayList<>(subSkus);
+    final Handler callThread = new Handler();
+    Runnable skuTask = new Runnable() {
+      @Override
+      public void run() {
+        // Convert the given collections to a list
+        final List<String> inappSkusList = inAppSkus == null ? null : new ArrayList<>(inAppSkus);
+        final List<String> subSkusList = subSkus == null ? null : new ArrayList<>(subSkus);
 
-    final Inventory inventory = new Inventory();
-    try {
-      log("Querying inventory...");
-      inventory.addPurchases(getPurchases(PRODUCT_TYPE_ITEM));
-      inventory.addPurchases(getPurchases(PRODUCT_TYPE_SUBSCRIPTION));
+        final Inventory inventory = new Inventory();
+        try {
+          log("Querying inventory...");
+          inventory.addPurchases(getPurchases(PRODUCT_TYPE_ITEM));
+          inventory.addPurchases(getPurchases(PRODUCT_TYPE_SUBSCRIPTION));
 
-      if (inappSkusList != null && !inappSkusList.isEmpty()) {
-        inventory.addProducts(getProductsWithType(inappSkusList, PRODUCT_TYPE_ITEM));
+          if (inappSkusList != null && !inappSkusList.isEmpty()) {
+            inventory.addProducts(getProductsWithType(inappSkusList, PRODUCT_TYPE_ITEM));
+          }
+
+          if (subSkusList != null && !subSkusList.isEmpty()) {
+            inventory.addProducts(getProductsWithType(subSkusList, PRODUCT_TYPE_SUBSCRIPTION));
+          }
+
+          callThread.post(new Runnable() {
+            @Override
+            public void run() {
+              listener.success(inventory);
+            }
+          });
+        } catch (RemoteException | ApiException e) {
+          callThread.post(new Runnable() {
+            @Override
+            public void run() {
+              listener.failure(new Vendor.Error(INVENTORY_QUERY_FAILURE, codeFromException(e)));
+            }
+          });
+        } catch (JSONException e) {
+          callThread.post(new Runnable() {
+            @Override
+            public void run() {
+              listener.failure(new Vendor.Error(INVENTORY_QUERY_MALFORMED_RESPONSE, -1));
+            }
+          });
+        } catch (IllegalStateException e) {
+          // Fixes the race condition wherein billing can be null if the service connection gets disconnect
+          callThread.post(new Runnable() {
+            @Override
+            public void run() {
+              listener.failure(new Vendor.Error(INVENTORY_QUERY_UNAVAILABLE, -1));
+            }
+          });
+        }
       }
+    };
 
-      if (subSkusList != null && !subSkusList.isEmpty()) {
-        inventory.addProducts(getProductsWithType(subSkusList, PRODUCT_TYPE_SUBSCRIPTION));
-      }
-
-      listener.success(inventory);
-    } catch (RemoteException | ApiException e) {
-      listener.failure(new Vendor.Error(INVENTORY_QUERY_FAILURE, codeFromException(e)));
-    } catch (JSONException e) {
-      listener.failure(new Vendor.Error(INVENTORY_QUERY_MALFORMED_RESPONSE, -1));
+    if (DISABLE_EXECUTOR) {
+      callThread.post(skuTask);
+    } else {
+      executor.execute(skuTask);
     }
   }
 
