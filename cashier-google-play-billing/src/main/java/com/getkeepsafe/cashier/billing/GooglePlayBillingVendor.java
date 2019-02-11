@@ -64,12 +64,14 @@ public final class GooglePlayBillingVendor implements Vendor {
     }
 
     @Override
-    public void getInventory(Context context, Collection<String> itemSkus, Collection<String> subSkus, InventoryListener listener) {
+    public void getInventory(Context context, Collection<String> itemSkus, Collection<String> subSkus,
+                             InventoryListener listener) {
 
     }
 
     @Override
-    public void getProductDetails(Context context, String sku, boolean isSubscription, ProductDetailsListener listener) {
+    public void getProductDetails(Context context, String sku, boolean isSubscription,
+                                  ProductDetailsListener listener) {
 
     }
 

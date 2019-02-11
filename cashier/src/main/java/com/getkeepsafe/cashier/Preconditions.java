@@ -19,7 +19,7 @@ package com.getkeepsafe.cashier;
 /**
  * Snipped from Guava
  */
-class Preconditions {
+public class Preconditions {
   private Preconditions() {
   }
 
