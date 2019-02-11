@@ -1,0 +1,41 @@
+apply plugin: 'com.android.library'
+apply plugin: 'com.github.dcendents.android-maven'
+
+android {
+    compileSdkVersion versions.compileSdk
+    buildToolsVersion versions.buildTools
+
+    defaultConfig {
+        minSdkVersion versions.minSdk
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+    testOptions {
+        unitTests.all {
+            testLogging {
+                exceptionFormat 'full'
+                showStackTraces true
+                showCauses true
+                events "passed", "skipped", "failed", "standardError"
+            }
+        }
+    }
+}
+
+dependencies {
+    api project(':cashier-google-play-billing')
+
+    compileOnly deps.autoValue
+    compileOnly deps.supportAnnotations
+    annotationProcessor deps.autoValue
+    annotationProcessor deps.autoParcel
+
+    testImplementation deps.robolectric
+    testImplementation deps.junit
+    testImplementation deps.mockito
+    testImplementation deps.truth
+}
