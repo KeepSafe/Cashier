@@ -88,7 +88,7 @@ public final class GooglePlayBillingVendor implements Vendor, SkuDetailsResponse
     }
 
     @Override
-    public void onSkuDetailsResponse(int responseCode, List<SkuDetails> skuDetailsList) {
+    public void onSkuDetailsResponse(@BillingResponse int responseCode, List<SkuDetails> skuDetailsList) {
     }
 
     @Override

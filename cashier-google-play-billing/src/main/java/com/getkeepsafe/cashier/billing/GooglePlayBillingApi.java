@@ -16,15 +16,23 @@
 
 package com.getkeepsafe.cashier.billing;
 
+import android.app.Activity;
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.text.TextUtils;
 
 import com.android.billingclient.api.BillingClient;
 import com.android.billingclient.api.BillingClient.BillingResponse;
+import com.android.billingclient.api.BillingClient.FeatureType;
 import com.android.billingclient.api.BillingClient.SkuType;
 import com.android.billingclient.api.BillingClientStateListener;
+import com.android.billingclient.api.BillingFlowParams;
+import com.android.billingclient.api.Purchase;
+import com.android.billingclient.api.SkuDetailsParams;
 import com.getkeepsafe.cashier.logging.Logger;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public final class GooglePlayBillingApi extends AbstractGooglePlayBillingApi implements BillingClientStateListener {
@@ -48,17 +56,12 @@ public final class GooglePlayBillingApi extends AbstractGooglePlayBillingApi imp
             return true;
         }
 
-        if (logger != null) {
-            logger.i(LOG_TAG, "Creating Google Play Billing client...");
-        }
-
+        logSafely("Creating Google Play Billing client...");
         billing = BillingClient.newBuilder(context)
                 .setListener(vendor)
                 .build();
 
-        if (logger != null) {
-            logger.i(LOG_TAG, "Attempting to connect to billing service...");
-        }
+        logSafely("Attempting to connect to billing service...");
         billing.startConnection(this);
 
         return initialized;
@@ -73,9 +76,7 @@ public final class GooglePlayBillingApi extends AbstractGooglePlayBillingApi imp
 
     @Override
     public void dispose() {
-        if (logger != null) {
-            logger.i(LOG_TAG, "Disposing billing client.");
-        }
+        logSafely("Disposing billing client.");
 
         if (available()) {
             billing.endConnection();
@@ -95,30 +96,84 @@ public final class GooglePlayBillingApi extends AbstractGooglePlayBillingApi imp
     }
 
     @Override
-    public void getSkuDetails(@SkuType String itemType, List<String> skus) {
+    public void getSkuDetails(@SkuType String itemType, @NonNull List<String> skus) {
         throwIfUnavailable();
+
+        logSafely("Query for SKU details with type: " + itemType + " SKUs: " + TextUtils.join(",", skus));
+
+        SkuDetailsParams query = SkuDetailsParams.newBuilder()
+                .setSkusList(skus)
+                .setType(itemType)
+                .build();
+        billing.querySkuDetailsAsync(query, vendor);
     }
 
     @Override
-    public void launchBillingFlow(String sku, String itemType, String developerPayload) {
+    public void launchBillingFlow(@NonNull Activity activity, @NonNull String sku, @SkuType String itemType) {
         throwIfUnavailable();
+        logSafely("Launching billing flow for " + sku + " with type " + itemType);
+
+        // TODO: Version 1.2 actually recommends using {@link BillingFlowParams#setSkuDetails(SkuDetails)}
+        BillingFlowParams billingFlowParams = BillingFlowParams.newBuilder()
+                .setSku(sku)
+                .setType(itemType)
+                .build();
+
+        // This will call the {@link PurchasesUpdatedListener} specified in {@link #initialize}
+        billing.launchBillingFlow(activity, billingFlowParams);
+    }
+
+    @Nullable
+    @Override
+    public List<Purchase> getPurchases() {
+        throwIfUnavailable();
+
+        List<Purchase> allPurchases = new ArrayList<>();
+
+        logSafely("Querying in-app purchases...");
+        Purchase.PurchasesResult inAppPurchasesResult = billing.queryPurchases(SkuType.INAPP);
+
+        if (inAppPurchasesResult.getResponseCode() == BillingResponse.OK) {
+            List<Purchase> inAppPurchases = inAppPurchasesResult.getPurchasesList();
+            logSafely("In-app purchases: " + TextUtils.join(", ", inAppPurchases));
+            allPurchases.addAll(inAppPurchases);
+            // Check if we support subscriptions and query those purchases as well
+            boolean isSubscriptionSupported =
+                    billing.isFeatureSupported(FeatureType.SUBSCRIPTIONS) == BillingResponse.OK;
+            if (isSubscriptionSupported) {
+                logSafely("Querying subscription purchases...");
+                Purchase.PurchasesResult subscriptionPurchasesResult = billing.queryPurchases(SkuType.SUBS);
+
+                if (subscriptionPurchasesResult.getResponseCode() == BillingResponse.OK) {
+                    List<Purchase> subscriptionPurchases = subscriptionPurchasesResult.getPurchasesList();
+                    logSafely("Subscription purchases: " + TextUtils.join(", ", subscriptionPurchases));
+                    allPurchases.addAll(subscriptionPurchases);
+                    return allPurchases;
+                } else {
+                    logSafely("Error in querying subscription purchases with code: "
+                            + subscriptionPurchasesResult.getResponseCode());
+                    return allPurchases;
+                }
+            } else {
+                logSafely("Subscriptions are not supported...");
+                return allPurchases;
+            }
+        } else {
+            return null;
+        }
     }
 
     @Override
-    public void getPurchases(String itemType, String paginationToken) {
+    public void consumePurchase(@NonNull String purchaseToken) {
         throwIfUnavailable();
-    }
 
-    @Override
-    public void consumePurchase(String purchaseToken) {
-        throwIfUnavailable();
+        logSafely("Consuming product with purchase token: " + purchaseToken);
+        billing.consumeAsync(purchaseToken, vendor);
     }
 
     @Override
     public void onBillingSetupFinished(@BillingResponse int billingResponseCode) {
-        if (logger != null) {
-            logger.i(LOG_TAG, "Service setup finished and connected. Response: " + billingResponseCode);
-        }
+        logSafely("Service setup finished and connected. Response: " + billingResponseCode);
 
         if (billingResponseCode == BillingResponse.OK) {
             isServiceConnected = true;
@@ -131,9 +186,7 @@ public final class GooglePlayBillingApi extends AbstractGooglePlayBillingApi imp
 
     @Override
     public void onBillingServiceDisconnected() {
-        if (logger != null) {
-            logger.i(LOG_TAG, "Service disconnected");
-        }
+        logSafely("Service disconnected");
 
         isServiceConnected = false;
 
@@ -148,5 +201,13 @@ public final class GooglePlayBillingApi extends AbstractGooglePlayBillingApi imp
         if (!available()) {
             throw new IllegalStateException("Billing client is not available");
         }
+    }
+
+    private void logSafely(String message) {
+        if (logger == null || message == null) {
+            return;
+        }
+
+        logger.i(LOG_TAG, message);
     }
 }

@@ -16,10 +16,13 @@
 
 package com.getkeepsafe.cashier.billing;
 
+import android.app.Activity;
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.android.billingclient.api.BillingClient.SkuType;
+import com.android.billingclient.api.Purchase;
 import com.getkeepsafe.cashier.Preconditions;
 import com.getkeepsafe.cashier.logging.Logger;
 
@@ -28,7 +31,7 @@ import java.util.List;
 public abstract class AbstractGooglePlayBillingApi {
 
     private String packageName;
-    private GooglePlayBillingVendor vendor;
+    GooglePlayBillingVendor vendor;
     Logger logger;
 
     public interface LifecycleListener {
@@ -54,13 +57,14 @@ public abstract class AbstractGooglePlayBillingApi {
 
     public abstract int isBillingSupported(@SkuType String itemType);
 
-    public abstract void getSkuDetails(String itemType, List<String> skus);
+    public abstract void getSkuDetails(@SkuType String itemType, @NonNull List<String> skus);
 
-    public abstract void launchBillingFlow(String sku, String itemType, String developerPayload);
+    public abstract void launchBillingFlow(@NonNull Activity activity, @NonNull String sku, @SkuType String itemType);
 
-    public abstract void getPurchases(String itemType, String paginationToken);
+    @Nullable
+    public abstract List<Purchase> getPurchases();
 
-    public abstract void consumePurchase(String purchaseToken);
+    public abstract void consumePurchase(@NonNull String purchaseToken);
 
     protected void throwIfUnavailable() {
         if (packageName == null) {
