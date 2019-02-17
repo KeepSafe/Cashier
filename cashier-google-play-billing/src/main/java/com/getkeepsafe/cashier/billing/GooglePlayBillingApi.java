@@ -37,7 +37,7 @@ import java.util.List;
 
 public final class GooglePlayBillingApi extends AbstractGooglePlayBillingApi implements BillingClientStateListener {
     /** Internal log tag **/
-    private static final String LOG_TAG = "CashierGoogleBilling";
+    private static final String LOG_TAG = "GoogleBillingApi";
     /** Google Play Billing client **/
     private BillingClient billing;
     /** Google Play Billing service life cycle listener **/
