@@ -19,15 +19,16 @@ package com.getkeepsafe.cashier.billing;
 public final class GooglePlayBillingConstants {
     public static final String VENDOR_PACKAGE = "com.android.billingclient.api";
 
-    // API Response codes
-    public static final int BILLING_RESPONSE_RESULT_OK = 0;
-    public static final int BILLING_RESPONSE_RESULT_USER_CANCELED = 1;
-    public static final int BILLING_RESPONSE_RESULT_BILLING_UNAVAILABLE = 3;
-    public static final int BILLING_RESPONSE_RESULT_ITEM_UNAVAILABLE = 4;
-    public static final int BILLING_RESPONSE_RESULT_DEVELOPER_ERROR = 5;
-    public static final int BILLING_RESPONSE_RESULT_ERROR = 6;
-    public static final int BILLING_RESPONSE_RESULT_ITEM_ALREADY_OWNED = 7;
-    public static final int BILLING_RESPONSE_RESULT_ITEM_NOT_OWNED = 8;
-
     private GooglePlayBillingConstants() {}
+
+    public static class PurchaseConstants {
+        public static final String PURCHASE_STATE = "purchaseState";
+        public static final String DEVELOPER_PAYLOAD = "developerPayload";
+
+        public static final int PURCHASE_STATE_PURCHASED = 0;
+        public static final int PURCHASE_STATE_CANCELED = 1;
+        public static final int PURCHASE_STATE_REFUNDED = 2;
+
+        private PurchaseConstants() {}
+    }
 }

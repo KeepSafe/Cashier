@@ -20,6 +20,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.android.billingclient.api.BillingClient.BillingResponse;
@@ -43,7 +44,12 @@ import org.json.JSONObject;
 import java.util.Collection;
 import java.util.List;
 
-import static com.getkeepsafe.cashier.billing.GooglePlayBillingConstants.*;
+import static com.getkeepsafe.cashier.VendorConstants.PURCHASE_ALREADY_OWNED;
+import static com.getkeepsafe.cashier.VendorConstants.PURCHASE_CANCELED;
+import static com.getkeepsafe.cashier.VendorConstants.PURCHASE_FAILURE;
+import static com.getkeepsafe.cashier.VendorConstants.PURCHASE_NOT_OWNED;
+import static com.getkeepsafe.cashier.VendorConstants.PURCHASE_SUCCESS_RESULT_MALFORMED;
+import static com.getkeepsafe.cashier.VendorConstants.PURCHASE_UNAVAILABLE;
 import static com.getkeepsafe.cashier.billing.GooglePlayBillingConstants.VENDOR_PACKAGE;
 
 public final class GooglePlayBillingVendor implements Vendor, SkuDetailsResponseListener, PurchasesUpdatedListener,
@@ -60,8 +66,7 @@ public final class GooglePlayBillingVendor implements Vendor, SkuDetailsResponse
     private Product pendingProduct;
     private PurchaseListener purchaseListener;
     private InitializationListener initializationListener;
-
-    private boolean available = false;
+    private boolean available;
     private boolean canSubscribe = false;
     private boolean canPurchaseItems = false;
 
@@ -177,12 +182,44 @@ public final class GooglePlayBillingVendor implements Vendor, SkuDetailsResponse
                                    @Nullable List<com.android.billingclient.api.Purchase> purchases) {
         switch (responseCode) {
             case BillingResponse.OK:
+                if (purchases == null || purchases.isEmpty()) {
+                    purchaseListener.failure(pendingProduct, new Error(PURCHASE_FAILURE, responseCode));
+                    return;
+                }
+
+                for (com.android.billingclient.api.Purchase purchase : purchases) {
+                    handlePurchase(purchase, responseCode);
+                }
                 return;
             case BillingResponse.USER_CANCELED:
-                purchaseListener.failure(pendingProduct, new Error(BILLING_RESPONSE_RESULT_USER_CANCELED, responseCode));
+                logSafely("User canceled the purchase code: " + responseCode);
+                purchaseListener.failure(pendingProduct, getVendorError(responseCode));
                 return;
             default:
-                break;
+                logSafely("Error purchasing item with code: " + responseCode);
+                purchaseListener.failure(pendingProduct, getVendorError(responseCode));
+        }
+    }
+
+    private void handlePurchase(com.android.billingclient.api.Purchase purchase, int responseCode) {
+        // Convert Billing Client purchase model to internal Cashier purchase model
+        try {
+            Purchase cashierPurchase = GooglePlayBillingPurchase.create(purchase);
+
+            // Check data signature matched with specified public key
+            if (!TextUtils.isEmpty(publicKey64)
+                    && !GooglePlayBillingSecurity.verifySignature(publicKey64,
+                    cashierPurchase.receipt(), purchase.getSignature())) {
+                logSafely("Local signature check failed!");
+                purchaseListener.failure(pendingProduct, new Error(PURCHASE_SUCCESS_RESULT_MALFORMED, responseCode));
+                return;
+            }
+
+            logSafely("Successful purchase of " + purchase.getSku() + "!");
+            purchaseListener.success(cashierPurchase);
+        } catch (JSONException error) {
+            logSafely("Error in parsing purchase response: " + purchase.getSku());
+            purchaseListener.failure(pendingProduct, new Error(PURCHASE_SUCCESS_RESULT_MALFORMED, responseCode));
         }
     }
 
@@ -210,16 +247,29 @@ public final class GooglePlayBillingVendor implements Vendor, SkuDetailsResponse
 
     @Override
     public void setLogger(Logger logger) {
+        this.logger = logger;
     }
 
     @Override
     public boolean available() {
-        return false;
+        return available && api.available() && canPurchaseAnything();
     }
 
     @Override
     public boolean canPurchase(Product product) {
-        return false;
+        if (!canPurchaseAnything()) {
+            return false;
+        }
+
+        if (product.isSubscription() && !canSubscribe) {
+            return false;
+        }
+
+        if (!product.isSubscription() && !canPurchaseItems) {
+            return false;
+        }
+
+        return true;
     }
 
     @Override
@@ -230,12 +280,26 @@ public final class GooglePlayBillingVendor implements Vendor, SkuDetailsResponse
 
     @Override
     public Product getProductFrom(JSONObject json) throws JSONException {
-        return null;
+        final Product product = Product.create(json);
+        if (!product.vendorId().equals(VENDOR_PACKAGE)) {
+            throw new IllegalArgumentException("This product does not belong to Google Play");
+        }
+
+        return product;
     }
 
     @Override
     public Purchase getPurchaseFrom(JSONObject json) throws JSONException {
-        return null;
+        // TODO: Cannot create Google Play Billing Purchase from json
+        final GooglePlayBillingPurchase purchase = GooglePlayBillingPurchase.create(json);
+        if (!purchase.product().vendorId().equals(VENDOR_PACKAGE)) {
+            throw new IllegalArgumentException("This product does not belong to Google Play");
+        }
+        return purchase;
+    }
+
+    private boolean canPurchaseAnything() {
+        return canPurchaseItems || canSubscribe;
     }
 
     private void logSafely(String message) {
@@ -249,5 +313,33 @@ public final class GooglePlayBillingVendor implements Vendor, SkuDetailsResponse
     private void logAndDisable(String message) {
         logSafely(message);
         available = false;
+    }
+
+    private Error getVendorError(int responseCode) {
+        final int code;
+        switch (responseCode) {
+            case BillingResponse.FEATURE_NOT_SUPPORTED:
+            case BillingResponse.SERVICE_DISCONNECTED:
+            case BillingResponse.BILLING_UNAVAILABLE:
+            case BillingResponse.ITEM_UNAVAILABLE:
+                code = PURCHASE_UNAVAILABLE;
+                break;
+            case BillingResponse.USER_CANCELED:
+                code = PURCHASE_CANCELED;
+                break;
+            case BillingResponse.ITEM_ALREADY_OWNED:
+                code = PURCHASE_ALREADY_OWNED;
+                break;
+            case BillingResponse.ITEM_NOT_OWNED:
+                code = PURCHASE_NOT_OWNED;
+                break;
+            case BillingResponse.DEVELOPER_ERROR:
+            case BillingResponse.ERROR:
+            default:
+                code = PURCHASE_FAILURE;
+                break;
+        }
+
+        return new Error(code, responseCode);
     }
 }
