@@ -28,8 +28,10 @@ import com.android.billingclient.api.BillingClient.FeatureType;
 import com.android.billingclient.api.BillingClient.SkuType;
 import com.android.billingclient.api.BillingClientStateListener;
 import com.android.billingclient.api.BillingFlowParams;
+import com.android.billingclient.api.ConsumeResponseListener;
 import com.android.billingclient.api.Purchase;
 import com.android.billingclient.api.SkuDetailsParams;
+import com.android.billingclient.api.SkuDetailsResponseListener;
 import com.getkeepsafe.cashier.logging.Logger;
 
 import java.util.ArrayList;
@@ -96,7 +98,8 @@ public final class GooglePlayBillingApi extends AbstractGooglePlayBillingApi imp
     }
 
     @Override
-    public void getSkuDetails(@SkuType String itemType, @NonNull List<String> skus) {
+    public void getSkuDetails(@SkuType String itemType, @NonNull List<String> skus,
+                              @NonNull SkuDetailsResponseListener listener) {
         throwIfUnavailable();
 
         logSafely("Query for SKU details with type: " + itemType + " SKUs: " + TextUtils.join(",", skus));
@@ -105,7 +108,7 @@ public final class GooglePlayBillingApi extends AbstractGooglePlayBillingApi imp
                 .setSkusList(skus)
                 .setType(itemType)
                 .build();
-        billing.querySkuDetailsAsync(query, vendor);
+        billing.querySkuDetailsAsync(query, listener);
     }
 
     @Override
@@ -164,11 +167,11 @@ public final class GooglePlayBillingApi extends AbstractGooglePlayBillingApi imp
     }
 
     @Override
-    public void consumePurchase(@NonNull String purchaseToken) {
+    public void consumePurchase(@NonNull String purchaseToken, @NonNull ConsumeResponseListener listener) {
         throwIfUnavailable();
 
         logSafely("Consuming product with purchase token: " + purchaseToken);
-        billing.consumeAsync(purchaseToken, vendor);
+        billing.consumeAsync(purchaseToken, listener);
     }
 
     @Override

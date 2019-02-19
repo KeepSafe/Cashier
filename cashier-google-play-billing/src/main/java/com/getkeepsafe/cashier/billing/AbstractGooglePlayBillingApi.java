@@ -22,7 +22,9 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.android.billingclient.api.BillingClient.SkuType;
+import com.android.billingclient.api.ConsumeResponseListener;
 import com.android.billingclient.api.Purchase;
+import com.android.billingclient.api.SkuDetailsResponseListener;
 import com.getkeepsafe.cashier.Preconditions;
 import com.getkeepsafe.cashier.logging.Logger;
 
@@ -57,14 +59,15 @@ public abstract class AbstractGooglePlayBillingApi {
 
     public abstract int isBillingSupported(@SkuType String itemType);
 
-    public abstract void getSkuDetails(@SkuType String itemType, @NonNull List<String> skus);
+    public abstract void getSkuDetails(@SkuType String itemType, @NonNull List<String> skus,
+                                       @NonNull SkuDetailsResponseListener listener);
 
     public abstract void launchBillingFlow(@NonNull Activity activity, @NonNull String sku, @SkuType String itemType);
 
     @Nullable
     public abstract List<Purchase> getPurchases();
 
-    public abstract void consumePurchase(@NonNull String purchaseToken);
+    public abstract void consumePurchase(@NonNull String purchaseToken, @NonNull ConsumeResponseListener listener);
 
     protected void throwIfUnavailable() {
         if (packageName == null) {
