@@ -23,7 +23,6 @@ public final class GooglePlayBillingConstants {
 
     public static class PurchaseConstants {
         public static final String PURCHASE_STATE = "purchaseState";
-        public static final String DEVELOPER_PAYLOAD = "developerPayload";
 
         public static final int PURCHASE_STATE_PURCHASED = 0;
         public static final int PURCHASE_STATE_CANCELED = 1;

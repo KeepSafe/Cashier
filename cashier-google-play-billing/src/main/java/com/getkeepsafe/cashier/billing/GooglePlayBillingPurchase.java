@@ -11,7 +11,7 @@ import com.ryanharter.auto.value.parcel.ParcelAdapter;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import static com.getkeepsafe.cashier.billing.GooglePlayBillingConstants.PurchaseConstants.DEVELOPER_PAYLOAD;
+import static com.getkeepsafe.cashier.billing.GooglePlayBillingConstants.PurchaseConstants.PURCHASE_STATE;
 import static com.getkeepsafe.cashier.billing.GooglePlayBillingConstants.PurchaseConstants.PURCHASE_STATE_CANCELED;
 import static com.getkeepsafe.cashier.billing.GooglePlayBillingConstants.PurchaseConstants.PURCHASE_STATE_PURCHASED;
 import static com.getkeepsafe.cashier.billing.GooglePlayBillingConstants.PurchaseConstants.PURCHASE_STATE_REFUNDED;
@@ -19,42 +19,22 @@ import static com.getkeepsafe.cashier.billing.GooglePlayBillingConstants.Purchas
 @AutoValue
 public abstract class GooglePlayBillingPurchase implements Parcelable, Purchase {
 
-    public static final String GP_KEY_DATA_SIG = "gp-data-signature";
-    public static final String GP_KEY_PURCHASE_STATE = "purchaseState";
-    public static final String GP_KEY_PURCHASE_DATA = "gp-purchase-data";
-
-    public static GooglePlayBillingPurchase create(com.android.billingclient.api.Purchase googlePlayPurchase)
+    public static GooglePlayBillingPurchase create(Product product,
+                                                   com.android.billingclient.api.Purchase googlePlayPurchase)
             throws JSONException {
-        // TODO: Pass product as an object here
-        final JSONObject jsonPurchase = new JSONObject(googlePlayPurchase.getOriginalJson());
-        final Product product = Product.create(googlePlayPurchase.getOriginalJson());
-        final int purchaseState = jsonPurchase.getInt(GP_KEY_PURCHASE_STATE);
-        final String receipt = jsonPurchase.getString(GP_KEY_PURCHASE_DATA);
-        final String developerPayload = jsonPurchase.optString(DEVELOPER_PAYLOAD, "");
+        final String receipt = googlePlayPurchase.getOriginalJson();
+        final JSONObject jsonPurchase = new JSONObject(receipt);
+        final int purchaseState = jsonPurchase.getInt(PURCHASE_STATE);
         final CashierPurchase cashierPurchase = CashierPurchase.create(product,
                 googlePlayPurchase.getOrderId(),
                 googlePlayPurchase.getPurchaseToken(),
-                receipt, developerPayload);
+                googlePlayPurchase.getOriginalJson(),
+                // NOTE: Developer payload is not supported with Google Play Billing
+                // https://issuetracker.google.com/issues/63381481
+                "");
 
-        return new AutoValue_GooglePlayBillingPurchase(googlePlayPurchase, cashierPurchase, purchaseState, receipt);
+        return new AutoValue_GooglePlayBillingPurchase(googlePlayPurchase, cashierPurchase, purchaseState);
     }
-
-    public static GooglePlayBillingPurchase create(JSONObject json) throws JSONException {
-        // TODO: Figure out how to create a Google Play Billing Purchase from Json Object
-        final com.android.billingclient.api.Purchase googlePlayPurchase =
-                new com.android.billingclient.api.Purchase(json.toString(), json.getString(GP_KEY_DATA_SIG));
-        final Product product = Product.create(googlePlayPurchase.getOriginalJson());
-        final int purchaseState = json.getInt(GP_KEY_PURCHASE_STATE);
-        final String receipt = json.getString(GP_KEY_PURCHASE_DATA);
-        final String developerPayload = json.optString(DEVELOPER_PAYLOAD, "");
-        final CashierPurchase cashierPurchase = CashierPurchase.create(product,
-                googlePlayPurchase.getOrderId(),
-                googlePlayPurchase.getPurchaseToken(),
-                receipt, developerPayload);
-
-        return new AutoValue_GooglePlayBillingPurchase(googlePlayPurchase, cashierPurchase, purchaseState, receipt);
-    }
-
 
     @ParcelAdapter(PurchaseTypeAdapter.class)
     public abstract com.android.billingclient.api.Purchase googlePlayPurchase();
@@ -76,7 +56,9 @@ public abstract class GooglePlayBillingPurchase implements Parcelable, Purchase 
      * The original purchase data receipt from Google Play. This is useful for data signature
      * validation
      */
-    public abstract String receipt();
+    public String receipt() {
+        return googlePlayPurchase().getOriginalJson();
+    }
 
     public String packageName() {
         return googlePlayPurchase().getPackageName();

@@ -171,6 +171,8 @@ public final class GooglePlayBillingVendor implements Vendor, SkuDetailsResponse
             throw new IllegalArgumentException("Listener is null.");
         }
 
+        // NOTE: Developer payload is not supported with Google Play Billing
+        // https://issuetracker.google.com/issues/63381481
         this.purchaseListener = listener;
         this.pendingProduct = product;
         logSafely("Launching Google Play Billing flow for " + product.sku());
@@ -204,12 +206,12 @@ public final class GooglePlayBillingVendor implements Vendor, SkuDetailsResponse
     private void handlePurchase(com.android.billingclient.api.Purchase purchase, int responseCode) {
         // Convert Billing Client purchase model to internal Cashier purchase model
         try {
-            Purchase cashierPurchase = GooglePlayBillingPurchase.create(purchase);
+            Purchase cashierPurchase = GooglePlayBillingPurchase.create(pendingProduct, purchase);
 
             // Check data signature matched with specified public key
             if (!TextUtils.isEmpty(publicKey64)
                     && !GooglePlayBillingSecurity.verifySignature(publicKey64,
-                    cashierPurchase.receipt(), purchase.getSignature())) {
+                    purchase.getOriginalJson(), purchase.getSignature())) {
                 logSafely("Local signature check failed!");
                 purchaseListener.failure(pendingProduct, new Error(PURCHASE_SUCCESS_RESULT_MALFORMED, responseCode));
                 return;
@@ -280,22 +282,14 @@ public final class GooglePlayBillingVendor implements Vendor, SkuDetailsResponse
 
     @Override
     public Product getProductFrom(JSONObject json) throws JSONException {
-        final Product product = Product.create(json);
-        if (!product.vendorId().equals(VENDOR_PACKAGE)) {
-            throw new IllegalArgumentException("This product does not belong to Google Play");
-        }
-
-        return product;
+        // NOTE: This is not needed for the Google Play Billing Vendor
+        throw new UnsupportedOperationException("This is not supported with Google Play Billing Vendor.");
     }
 
     @Override
     public Purchase getPurchaseFrom(JSONObject json) throws JSONException {
-        // TODO: Cannot create Google Play Billing Purchase from json
-        final GooglePlayBillingPurchase purchase = GooglePlayBillingPurchase.create(json);
-        if (!purchase.product().vendorId().equals(VENDOR_PACKAGE)) {
-            throw new IllegalArgumentException("This product does not belong to Google Play");
-        }
-        return purchase;
+        // NOTE: This is not needed for the Google Play Billing Vendor
+        throw new UnsupportedOperationException("This is not supported with Google Play Billing Vendor.");
     }
 
     private boolean canPurchaseAnything() {
