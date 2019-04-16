@@ -29,7 +29,7 @@ android {
 dependencies {
     api project(':cashier')
 
-    implementation deps.billingClient
+    api deps.billingClient
     implementation deps.supportAnnotations
     implementation deps.autoParcelAdapter
     compileOnly deps.autoValue

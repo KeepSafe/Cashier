@@ -67,6 +67,9 @@ public abstract class AbstractGooglePlayBillingApi {
     @Nullable
     public abstract List<Purchase> getPurchases();
 
+    @Nullable
+    public abstract List<Purchase> getPurchases(@SkuType String itemType);
+
     public abstract void consumePurchase(@NonNull String purchaseToken, @NonNull ConsumeResponseListener listener);
 
     protected void throwIfUnavailable() {

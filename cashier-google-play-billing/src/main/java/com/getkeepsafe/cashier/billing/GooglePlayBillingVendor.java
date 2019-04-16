@@ -19,6 +19,7 @@ package com.getkeepsafe.cashier.billing;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
@@ -27,6 +28,8 @@ import com.android.billingclient.api.BillingClient.BillingResponse;
 import com.android.billingclient.api.BillingClient.SkuType;
 import com.android.billingclient.api.ConsumeResponseListener;
 import com.android.billingclient.api.PurchasesUpdatedListener;
+import com.android.billingclient.api.SkuDetails;
+import com.android.billingclient.api.SkuDetailsResponseListener;
 import com.getkeepsafe.cashier.ConsumeListener;
 import com.getkeepsafe.cashier.InventoryListener;
 import com.getkeepsafe.cashier.Preconditions;
@@ -35,12 +38,15 @@ import com.getkeepsafe.cashier.ProductDetailsListener;
 import com.getkeepsafe.cashier.Purchase;
 import com.getkeepsafe.cashier.PurchaseListener;
 import com.getkeepsafe.cashier.Vendor;
+import com.getkeepsafe.cashier.VendorConstants;
 import com.getkeepsafe.cashier.logging.Logger;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -49,6 +55,8 @@ import static com.getkeepsafe.cashier.VendorConstants.CONSUME_CANCELED;
 import static com.getkeepsafe.cashier.VendorConstants.CONSUME_FAILURE;
 import static com.getkeepsafe.cashier.VendorConstants.CONSUME_NOT_OWNED;
 import static com.getkeepsafe.cashier.VendorConstants.CONSUME_UNAVAILABLE;
+import static com.getkeepsafe.cashier.VendorConstants.PRODUCT_DETAILS_QUERY_FAILURE;
+import static com.getkeepsafe.cashier.VendorConstants.PRODUCT_DETAILS_UNAVAILABLE;
 import static com.getkeepsafe.cashier.VendorConstants.PURCHASE_ALREADY_OWNED;
 import static com.getkeepsafe.cashier.VendorConstants.PURCHASE_CANCELED;
 import static com.getkeepsafe.cashier.VendorConstants.PURCHASE_FAILURE;
@@ -60,22 +68,47 @@ import static com.getkeepsafe.cashier.billing.GooglePlayBillingConstants.VENDOR_
 public final class GooglePlayBillingVendor implements Vendor, PurchasesUpdatedListener,
         AbstractGooglePlayBillingApi.LifecycleListener {
 
-    /** Internal log tag **/
+    /**
+     * Internal log tag
+     **/
     private static final String LOG_TAG = "GoogleBillingVendor";
-    /** Google Play Billing API wrapper **/
+
+    /**
+     * Google Play Billing API wrapper
+     **/
     private final AbstractGooglePlayBillingApi api;
-    /** Google Play Billing API key **/
+
+    /**
+     * Google Play Billing API key
+     **/
     private final String publicKey64;
 
     private Logger logger;
+
+    /**
+     * Product being purchased. If not null, purchase is in progress.
+     */
     private Product pendingProduct;
+
+    /**
+     * Pending purchase listener.
+     */
     private PurchaseListener purchaseListener;
-    private InitializationListener initializationListener;
-    private ConsumeListener consumeListener;
-    private boolean available;
+
+    /**
+     * Initialization listeners. Initialization may be called from more than one thread simultaneously.
+     */
+    private List<InitializationListener> initializationListeners = new ArrayList<>();
+
+    private boolean available = false;
+    private boolean initializing = false;
     private boolean canSubscribe = false;
     private boolean canPurchaseItems = false;
-    private Set<String> tokensToBeConsumed;
+
+    /**
+     * Tokens to be consumed. Contains token being currently consumed or already consumed.
+     */
+    private Set<String> tokensToBeConsumed = new HashSet<>();
 
     public GooglePlayBillingVendor() {
         this(new GooglePlayBillingApi(), null);
@@ -103,27 +136,31 @@ public final class GooglePlayBillingVendor implements Vendor, PurchasesUpdatedLi
     }
 
     @Override
-    public void initialize(Context context, InitializationListener listener) {
+    public synchronized void initialize(Context context, InitializationListener listener) {
         Preconditions.checkNotNull(context, "Cannot initialize with null context");
         Preconditions.checkNotNull(listener, "Cannot initialize with null initialization listener");
-
-        initializationListener = listener;
 
         if (available()) {
             listener.initialized();
             return;
         }
 
-        logSafely("Initializing Google Play Billing API...");
-        available = api.initialize(context, this, this, logger);
+        initializationListeners.add(listener);
+
+        if (!initializing) {
+            initializing = true;
+            logSafely("Initializing Google Play Billing API...");
+            available = api.initialize(context, this, this, logger);
+        }
 
         if (!available) {
-            initializationListener.unavailable();
+            initializationListeners.remove(listener);
+            listener.unavailable();
         }
     }
 
     @Override
-    public void initialized(boolean success) {
+    public synchronized void initialized(boolean success) {
         logSafely("Initialized: success = " + success);
         if (!success) {
             logAndDisable("Could not create Google Play Billing instance");
@@ -139,7 +176,11 @@ public final class GooglePlayBillingVendor implements Vendor, PurchasesUpdatedLi
 
             available = canPurchaseItems || canSubscribe;
             logSafely("Connected to service and it is " + (available ? "available" : "not available"));
-            initializationListener.initialized();
+            initializing = false;
+
+            for (InitializationListener listener : initializationListeners) {
+                listener.initialized();
+            }
         } catch (Exception error) {
             logAndDisable(Log.getStackTraceString(error));
         }
@@ -155,17 +196,26 @@ public final class GooglePlayBillingVendor implements Vendor, PurchasesUpdatedLi
         logSafely("Disposing Google Play Billing vendor...");
         api.dispose();
         available = false;
+        initializationListeners.clear();
     }
 
     @Override
-    public void purchase(Activity activity, Product product, String developerPayload, PurchaseListener listener) {
+    public synchronized void purchase(Activity activity, Product product, String developerPayload, PurchaseListener listener) {
         Preconditions.checkNotNull(activity, "Activity is null.");
         Preconditions.checkNotNull(product, "Product is null.");
         Preconditions.checkNotNull(listener, "Purchase listener is null.");
         throwIfUninitialized();
 
+        if (pendingProduct != null) {
+            throw new RuntimeException("Cannot purchase product while another purchase is in progress!");
+        }
+
         // NOTE: Developer payload is not supported with Google Play Billing
         // https://issuetracker.google.com/issues/63381481
+        if (developerPayload != null && developerPayload.length() > 0) {
+            throw new RuntimeException("Developer payload is not supported in Google Play Billing!");
+        }
+
         this.purchaseListener = listener;
         this.pendingProduct = product;
         logSafely("Launching Google Play Billing flow for " + product.sku());
@@ -176,6 +226,7 @@ public final class GooglePlayBillingVendor implements Vendor, PurchasesUpdatedLi
     public void onPurchasesUpdated(@BillingResponse int responseCode,
                                    @Nullable List<com.android.billingclient.api.Purchase> purchases) {
         if (purchaseListener == null) {
+            pendingProduct = null;
             logSafely("#onPurchasesUpdated called but no purchase listener attached.");
             return;
         }
@@ -184,6 +235,7 @@ public final class GooglePlayBillingVendor implements Vendor, PurchasesUpdatedLi
             case BillingResponse.OK:
                 if (purchases == null || purchases.isEmpty()) {
                     purchaseListener.failure(pendingProduct, new Error(PURCHASE_FAILURE, responseCode));
+                    clearPendingPurchase();
                     return;
                 }
 
@@ -194,10 +246,12 @@ public final class GooglePlayBillingVendor implements Vendor, PurchasesUpdatedLi
             case BillingResponse.USER_CANCELED:
                 logSafely("User canceled the purchase code: " + responseCode);
                 purchaseListener.failure(pendingProduct, getPurchaseError(responseCode));
+                clearPendingPurchase();
                 return;
             default:
                 logSafely("Error purchasing item with code: " + responseCode);
                 purchaseListener.failure(pendingProduct, getPurchaseError(responseCode));
+                clearPendingPurchase();
         }
     }
 
@@ -212,19 +266,27 @@ public final class GooglePlayBillingVendor implements Vendor, PurchasesUpdatedLi
                     purchase.getOriginalJson(), purchase.getSignature())) {
                 logSafely("Local signature check failed!");
                 purchaseListener.failure(pendingProduct, new Error(PURCHASE_SUCCESS_RESULT_MALFORMED, responseCode));
+                clearPendingPurchase();
                 return;
             }
 
             logSafely("Successful purchase of " + purchase.getSku() + "!");
             purchaseListener.success(cashierPurchase);
+            clearPendingPurchase();
         } catch (JSONException error) {
             logSafely("Error in parsing purchase response: " + purchase.getSku());
             purchaseListener.failure(pendingProduct, new Error(PURCHASE_SUCCESS_RESULT_MALFORMED, responseCode));
+            clearPendingPurchase();
         }
     }
 
+    private void clearPendingPurchase() {
+        pendingProduct = null;
+        purchaseListener = null;
+    }
+
     @Override
-    public void consume(Context context, final Purchase purchase, ConsumeListener listener) {
+    public synchronized void consume(@NonNull final Context context, @NonNull final Purchase purchase, @NonNull final ConsumeListener listener) {
         Preconditions.checkNotNull(context, "Purchase is null");
         Preconditions.checkNotNull(listener, "Consume listener is null");
         throwIfUninitialized();
@@ -234,49 +296,64 @@ public final class GooglePlayBillingVendor implements Vendor, PurchasesUpdatedLi
             throw new IllegalStateException("Cannot consume a subscription");
         }
 
-        if (tokensToBeConsumed == null) {
-            tokensToBeConsumed = new HashSet<>();
-        } else if (tokensToBeConsumed.contains(purchase.token())) {
+        if (tokensToBeConsumed.contains(purchase.token())) {
+            // Purchase currently being consumed or already successfuly consumed.
             logSafely("Token was already scheduled to be consumed - skipping...");
+            listener.failure(purchase, new Error(VendorConstants.CONSUME_UNAVAILABLE, -1));
             return;
         }
 
         logSafely("Consuming " + product.sku());
-        this.consumeListener = listener;
         tokensToBeConsumed.add(purchase.token());
+
         api.consumePurchase(purchase.token(), new ConsumeResponseListener() {
             @Override
             public void onConsumeResponse(int responseCode, String purchaseToken) {
-                if (consumeListener == null) {
-                    logSafely("#onConsumeResponse called but no consume listener attached.");
-                    return;
-                }
-
-                switch (responseCode) {
-                    case BillingResponse.OK:
-                        consumeListener.success(purchase);
-                        break;
-                    default:
-                        // Failure in consuming token, remove from the list so retry is possible
-                        tokensToBeConsumed.remove(purchaseToken);
-                        consumeListener.failure(purchase, getConsumeError(responseCode));
-                        break;
+                if (responseCode == BillingResponse.OK) {
+                    logSafely("Successfully consumed " + purchase.product().sku() + "!");
+                    listener.success(purchase);
+                } else {
+                    // Failure in consuming token, remove from the list so retry is possible
+                    logSafely("Error consuming " + purchase.product().sku() + " with code "+responseCode);
+                    tokensToBeConsumed.remove(purchaseToken);
+                    listener.failure(purchase, getConsumeError(responseCode));
                 }
             }
         });
     }
 
     @Override
-    public void getInventory(Context context, Collection<String> itemSkus, Collection<String> subSkus,
-                             InventoryListener listener) {
+    public void getInventory(@NonNull Context context, @Nullable Collection<String> itemSkus, @Nullable Collection<String> subSkus,
+                             @NonNull InventoryListener listener) {
         throwIfUninitialized();
 
+        logSafely("Getting inventory ...");
+        InventoryQuery.execute(api, listener, itemSkus, subSkus);
     }
 
     @Override
-    public void getProductDetails(Context context, String sku, boolean isSubscription,
-                                  ProductDetailsListener listener) {
+    public void getProductDetails(@NonNull Context context, @NonNull final String sku, final boolean isSubscription,
+                                  @NonNull final ProductDetailsListener listener) {
         throwIfUninitialized();
+
+        api.getSkuDetails(
+                isSubscription ? SkuType.SUBS : SkuType.INAPP,
+                Collections.singletonList(sku),
+                new SkuDetailsResponseListener() {
+                    @Override
+                    public void onSkuDetailsResponse(int responseCode, List<SkuDetails> skuDetailsList) {
+                        if (responseCode == BillingResponse.OK && skuDetailsList.size() == 1) {
+                            logSafely("Successfully got sku details for " + sku + "!");
+                            listener.success(
+                                    GooglePlayBillingProduct.create(skuDetailsList.get(0), isSubscription ? SkuType.SUBS : SkuType.INAPP)
+                            );
+                        } else {
+                            logSafely("Error getting sku details for " + sku + " with code "+responseCode);
+                            listener.failure(getDetailsError(responseCode));
+                        }
+                    }
+                }
+        );
     }
 
     @Override
@@ -388,6 +465,27 @@ public final class GooglePlayBillingVendor implements Vendor, PurchasesUpdatedLi
             case BillingResponse.ERROR:
             default:
                 code = CONSUME_FAILURE;
+                break;
+        }
+
+        return new Error(code, responseCode);
+    }
+
+    private Error getDetailsError(int responseCode) {
+        final int code;
+        switch (responseCode) {
+            case BillingResponse.FEATURE_NOT_SUPPORTED:
+            case BillingResponse.SERVICE_DISCONNECTED:
+            case BillingResponse.BILLING_UNAVAILABLE:
+            case BillingResponse.ITEM_UNAVAILABLE:
+                code = PRODUCT_DETAILS_UNAVAILABLE;
+                break;
+            case BillingResponse.USER_CANCELED:
+            case BillingResponse.ITEM_NOT_OWNED:
+            case BillingResponse.DEVELOPER_ERROR:
+            case BillingResponse.ERROR:
+            default:
+                code = PRODUCT_DETAILS_QUERY_FAILURE;
                 break;
         }
 

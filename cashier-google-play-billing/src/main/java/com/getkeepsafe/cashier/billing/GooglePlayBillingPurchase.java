@@ -33,13 +33,20 @@ public abstract class GooglePlayBillingPurchase implements Parcelable, Purchase 
                 // https://issuetracker.google.com/issues/63381481
                 "");
 
-        return new AutoValue_GooglePlayBillingPurchase(googlePlayPurchase, cashierPurchase, purchaseState);
+        return new AutoValue_GooglePlayBillingPurchase(cashierPurchase, receipt, googlePlayPurchase.getPurchaseToken(), googlePlayPurchase.getOrderId(), purchaseState);
     }
 
-    @ParcelAdapter(PurchaseTypeAdapter.class)
-    public abstract com.android.billingclient.api.Purchase googlePlayPurchase();
-
     public abstract Purchase purchase();
+
+    /**
+     * The original purchase data receipt from Google Play. This is useful for data signature
+     * validation
+     */
+    public abstract String receipt();
+
+    public abstract String token();
+
+    public abstract String orderId();
 
     /**
      * The purchase state of the order.
@@ -52,40 +59,8 @@ public abstract class GooglePlayBillingPurchase implements Parcelable, Purchase 
      */
     public abstract int purchaseState();
 
-    /**
-     * The original purchase data receipt from Google Play. This is useful for data signature
-     * validation
-     */
-    public String receipt() {
-        return googlePlayPurchase().getOriginalJson();
-    }
-
-    public String packageName() {
-        return googlePlayPurchase().getPackageName();
-    }
-
-    public String dataSignature() {
-        return googlePlayPurchase().getSignature();
-    }
-
-    public long purchaseTime() {
-        return googlePlayPurchase().getPurchaseTime();
-    }
-
     public Product product() {
         return purchase().product();
-    }
-
-    public boolean autoRenewing() {
-        return googlePlayPurchase().isAutoRenewing();
-    }
-
-    public String orderId() {
-        return googlePlayPurchase().getOrderId();
-    }
-
-    public String token() {
-        return googlePlayPurchase().getPurchaseToken();
     }
 
     public String developerPayload() {
@@ -106,6 +81,6 @@ public abstract class GooglePlayBillingPurchase implements Parcelable, Purchase 
 
     @Override
     public JSONObject toJson() throws JSONException {
-        return new JSONObject(googlePlayPurchase().getOriginalJson());
+        return new JSONObject(receipt());
     }
 }
