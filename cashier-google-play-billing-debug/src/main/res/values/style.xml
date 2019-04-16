@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Cashier.FakeCheckoutTheme" parent="android:Theme.Translucent.NoTitleBar">
+        <item name="android:windowBackground">@color/cashier_fake_checkout_bg</item>
+        <item name="android:windowNoTitle">true</item>
+
+    </style>
+
+</resources>
