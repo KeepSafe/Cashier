@@ -1,3 +1,8 @@
 <resources>
-    <string name="app_name">Cashier Google Play</string>
+    <string name="app_name">Cashier</string>
+    <string name="purchase_unavailable">Purchase unavailable</string>
+    <string name="purchase_cancel">Purchase cancelled</string>
+    <string name="buy">Buy</string>
+    <string name="use">Use</string>
+    <string name="info">\?</string>
 </resources>
