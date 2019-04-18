@@ -19,7 +19,13 @@ Cashier also aims to bridge the gap between development testing and production t
 
 ### Features
 
-  - Google Play's In-App-Billing (IAB)
+  - Google Play's In-App-Billing (IAB) - Deprecated
+    - Purchasing for products and subscriptions, consuming for consumable products
+    - Fake checkout, facilitating faster development
+    - Local receipt verification
+    - Inventory querying
+
+  - Google Play Billing
     - Purchasing for products and subscriptions, consuming for consumable products
     - Fake checkout, facilitating faster development
     - Local receipt verification
@@ -37,10 +43,9 @@ repositories {
 dependencies {
   compile 'com.getkeepsafe.cashier:cashier:0.x.x' // Core library, required
  
-  // Google Play
-  compile 'com.getkeepsafe.cashier:cashier-iab:0.x.x'
-  debugCompile 'com.getkeepsafe.cashier:cashier-iab-debug:0.x.x' // For fake checkout and testing
-  releaseCompile 'com.getkeepsafe.cashier:cashier-iab-debug-no-op:0.x.x'
+  // Google Play Billing
+  compile 'com.getkeepsafe.cashier:cashier-google-play-billing:0.x.x'
+  debugCompile 'com.getkeepsafe.cashier:cashier-google-play-billing-debug:0.x.x' // For fake checkout and testing
 }
 ```
 
@@ -50,7 +55,7 @@ General usage is as follows:
 
 ```java
 // First choose a vendor
-final Vendor vendor = new InAppBillingV3Vendor();
+final Vendor vendor = new GooglePlayBillingVendor();
 
 // Get a product to buy
 final Product product = Product.create(
@@ -82,9 +87,36 @@ final Cashier cashier = Cashier.forVendor(activity, vendor);
 cashier.purchase(activity, product, "my custom dev payload", listener);
 ```
 
+To test app in debug mode with fake purchase flow:
+```java
+// Create vendor with fake API implementation
+vendor = new GooglePlayBillingVendor(
+                new FakeGooglePlayBillingApi(MainActivity.this,
+                FakeGooglePlayBillingApi.TEST_PUBLIC_KEY));
+
+// Add products definitions
+final Product product = Product.create(
+  vendor.id(),              // The vendor that produces this product
+  "my.sku",                 // The SKU of the product
+  "$0.99",                  // The display price of the product
+  "USD",                    // The currency of the display price
+  "My Awesome Product",     // The product's title
+  "Provides awesomeness!",  // The product's description
+  false,                    // Whether the product is a subscription or not (consumable)
+  990_000L);                // The product price in micros
+
+FakeGooglePlayBillingApi.addTestProduct(product)
+```
+
+```FakeGooglePlayBillingApi``` uses predefined private key to sign purchase receipt.
+If you want to verify purchase signature in your code, use corresponding public key defined in
+```FakeGooglePlayBillingApi.TEST_PUBLIC_KEY```.
+
+## Migrating from In App Billing to Google Play Billing
+
 ## Sample App
 
-For a buildable / workable sample app, please see the `cashier-sample` project under `cashier-sample/`.
+For a buildable / workable sample app, please see the `cashier-sample-google-play-billing` project.
 
 ## Acknowledgements
 

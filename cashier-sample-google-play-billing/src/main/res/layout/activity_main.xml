@@ -13,7 +13,7 @@
       android:gravity="center"
       android:layout_gravity="center"
       android:layout_marginTop="16dp"
-      android:text="Use Fake Checkout    "/>
+      android:text="@string/use_fake_checkout"/>
 
   <LinearLayout
       android:layout_width="match_parent"
@@ -30,7 +30,7 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:layout_gravity="center"
-        android:text="Query inventory"/>
+        android:text="@string/query_inventory"/>
 
   </LinearLayout>
 
@@ -54,7 +54,5 @@
         android:layout_gravity="center"/>
 
   </FrameLayout>
-
-
 
 </LinearLayout>

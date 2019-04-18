@@ -34,7 +34,7 @@ public final class GooglePlayBillingSecurity {
     private static final String KEY_TYPE = "RSA";
     private static final String SIGNATURE_ALGORITHM = "SHA1withRSA";
 
-    private static PublicKey createPublicKey(String publicKey64) {
+    public static PublicKey createPublicKey(String publicKey64) {
         try {
             final byte[] decodedKey = Base64.decode(publicKey64, Base64.DEFAULT);
             final KeyFactory keyFactory = KeyFactory.getInstance(KEY_TYPE);
@@ -46,7 +46,7 @@ public final class GooglePlayBillingSecurity {
         }
     }
 
-    private static PrivateKey createPrivateKey(String privateKey64) {
+    public static PrivateKey createPrivateKey(String privateKey64) {
         try {
             final byte[] decodedKey = Base64.decode(privateKey64, Base64.DEFAULT);
             final KeyFactory keyFactory = KeyFactory.getInstance(KEY_TYPE);
@@ -67,7 +67,7 @@ public final class GooglePlayBillingSecurity {
         return sign(privateKey, data);
     }
 
-    private static String sign(PrivateKey privateKey, String data) {
+    public static String sign(PrivateKey privateKey, String data) {
         if (privateKey == null || TextUtils.isEmpty(data)) {
             throw new IllegalArgumentException("Given null data to sign");
         }
@@ -84,7 +84,7 @@ public final class GooglePlayBillingSecurity {
         }
     }
 
-    static boolean verifySignature(String publicKey64, String signedData, String signature64) {
+    public static boolean verifySignature(String publicKey64, String signedData, String signature64) {
         if (TextUtils.isEmpty(publicKey64) || TextUtils.isEmpty(signedData) || TextUtils.isEmpty(signature64)) {
             return false;
         }
@@ -93,7 +93,7 @@ public final class GooglePlayBillingSecurity {
         return verifySignature(publicKey, signedData, signature64);
     }
 
-    private static boolean verifySignature(PublicKey publicKey, String signedData, String signature64) {
+    public static boolean verifySignature(PublicKey publicKey, String signedData, String signature64) {
         try {
             final byte[] signature = Base64.decode(signature64, Base64.DEFAULT);
             final Signature instance = Signature.getInstance(SIGNATURE_ALGORITHM);

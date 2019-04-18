@@ -2,7 +2,6 @@ package com.getkeepsafe.cashier.billing.debug;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
@@ -10,13 +9,12 @@ import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
 
 import com.android.billingclient.api.BillingClient;
-import com.android.billingclient.api.SkuDetails;
-import com.getkeepsafe.cashier.Product;
-import com.getkeepsafe.cashier.billing.AbstractGooglePlayBillingApi;
-
 import com.android.billingclient.api.ConsumeResponseListener;
 import com.android.billingclient.api.Purchase;
+import com.android.billingclient.api.SkuDetails;
 import com.android.billingclient.api.SkuDetailsResponseListener;
+import com.getkeepsafe.cashier.Product;
+import com.getkeepsafe.cashier.billing.AbstractGooglePlayBillingApi;
 import com.getkeepsafe.cashier.billing.GooglePlayBillingVendor;
 import com.getkeepsafe.cashier.logging.Logger;
 
@@ -34,7 +32,7 @@ import java.util.Set;
 public class FakeGooglePlayBillingApi extends AbstractGooglePlayBillingApi {
 
     @VisibleForTesting
-    private static final String TEST_PRIVATE_KEY =
+    static final String TEST_PRIVATE_KEY =
             "MIICdgIBADANBgkqhkiG9w0BAQEFAASCAmAwggJcAgEAAoGBALXolIcA1LIcYDnO\n" +
                     "2nfalbkOD2UAQ3KfqsdEGLddG2rW8Cyl2LIyiWVvQ6bp2q5qBoYCds9lBQT21uo1\n" +
                     "VHTcv4mnaLfdBjMlzecrK8y1FzRLKFXyoMqiau8wunFeqFsdzHQ774PbYyNgMGdr\n" +
@@ -50,6 +48,11 @@ public class FakeGooglePlayBillingApi extends AbstractGooglePlayBillingApi {
                     "eVw04ogIsOIdG0ECrN5/3g9pQnAjxcReQ/4KVCpIE8lQFYjAzQYUkK9VOjX9LYp9\n" +
                     "DGEnpooCco1ZjA==";
 
+    /**
+     * {@link com.getkeepsafe.cashier.billing.debug.FakeGooglePlayBillingApi} is using predefined
+     * private key to sign purchase receipt. Use this matching public key if you want to verify
+     * signature in your code.
+     */
     public static final String TEST_PUBLIC_KEY =
             "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC16JSHANSyHGA5ztp32pW5Dg9l\n" +
                     "AENyn6rHRBi3XRtq1vAspdiyMollb0Om6dquagaGAnbPZQUE9tbqNVR03L+Jp2i3\n" +
@@ -62,9 +65,6 @@ public class FakeGooglePlayBillingApi extends AbstractGooglePlayBillingApi {
 
     private static final Map<String, FakePurchaseListener> pendingPurchases = new HashMap<>();
 
-    private final Context context;
-    private final String privateKey64;
-
     private GooglePlayBillingVendor vendor;
 
     private Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -74,8 +74,6 @@ public class FakeGooglePlayBillingApi extends AbstractGooglePlayBillingApi {
     }
 
     public FakeGooglePlayBillingApi(Context context, String privateKey64) {
-        this.context = context;
-        this.privateKey64 = privateKey64;
     }
 
     public static void addTestProduct(Product product) {

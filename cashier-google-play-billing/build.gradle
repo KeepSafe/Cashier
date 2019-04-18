@@ -31,7 +31,6 @@ dependencies {
 
     api deps.billingClient
     implementation deps.supportAnnotations
-    implementation deps.autoParcelAdapter
     compileOnly deps.autoValue
     annotationProcessor deps.autoValue
     annotationProcessor deps.autoParcel

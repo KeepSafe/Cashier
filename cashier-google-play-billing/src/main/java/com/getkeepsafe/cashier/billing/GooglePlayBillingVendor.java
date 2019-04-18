@@ -114,6 +114,11 @@ public final class GooglePlayBillingVendor implements Vendor, PurchasesUpdatedLi
         this(new GooglePlayBillingApi(), null);
     }
 
+    /**
+     * @param publicKey64 should be YOUR APPLICATION'S PUBLIC KEY
+     * (that you got from the Google Play developer console). This is not your
+     * developer public key, it's the *app-specific* public key.
+     */
     public GooglePlayBillingVendor(String publicKey64) {
         this(new GooglePlayBillingApi(), publicKey64);
     }
@@ -127,7 +132,7 @@ public final class GooglePlayBillingVendor implements Vendor, PurchasesUpdatedLi
 
         this.api = api;
         this.publicKey64 = publicKey64;
-        available = false;
+        this.available = false;
     }
 
     @Override
@@ -181,6 +186,7 @@ public final class GooglePlayBillingVendor implements Vendor, PurchasesUpdatedLi
             for (InitializationListener listener : initializationListeners) {
                 listener.initialized();
             }
+            initializationListeners.clear();
         } catch (Exception error) {
             logAndDisable(Log.getStackTraceString(error));
         }
@@ -189,6 +195,10 @@ public final class GooglePlayBillingVendor implements Vendor, PurchasesUpdatedLi
     @Override
     public void disconnected() {
         logAndDisable("Disconnected from Google Play Billing service.");
+        for (InitializationListener listener : initializationListeners) {
+            listener.unavailable();
+        }
+        initializationListeners.clear();
     }
 
     @Override
@@ -297,7 +307,7 @@ public final class GooglePlayBillingVendor implements Vendor, PurchasesUpdatedLi
         }
 
         if (tokensToBeConsumed.contains(purchase.token())) {
-            // Purchase currently being consumed or already successfuly consumed.
+            // Purchase currently being consumed or already successfully consumed.
             logSafely("Token was already scheduled to be consumed - skipping...");
             listener.failure(purchase, new Error(VendorConstants.CONSUME_UNAVAILABLE, -1));
             return;
@@ -423,6 +433,7 @@ public final class GooglePlayBillingVendor implements Vendor, PurchasesUpdatedLi
         switch (responseCode) {
             case BillingResponse.FEATURE_NOT_SUPPORTED:
             case BillingResponse.SERVICE_DISCONNECTED:
+            case BillingResponse.SERVICE_UNAVAILABLE:
             case BillingResponse.BILLING_UNAVAILABLE:
             case BillingResponse.ITEM_UNAVAILABLE:
                 code = PURCHASE_UNAVAILABLE;
@@ -476,6 +487,7 @@ public final class GooglePlayBillingVendor implements Vendor, PurchasesUpdatedLi
         switch (responseCode) {
             case BillingResponse.FEATURE_NOT_SUPPORTED:
             case BillingResponse.SERVICE_DISCONNECTED:
+            case BillingResponse.SERVICE_UNAVAILABLE:
             case BillingResponse.BILLING_UNAVAILABLE:
             case BillingResponse.ITEM_UNAVAILABLE:
                 code = PRODUCT_DETAILS_UNAVAILABLE;

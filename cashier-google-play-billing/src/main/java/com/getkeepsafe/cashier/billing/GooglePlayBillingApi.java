@@ -24,6 +24,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.UiThread;
 import android.text.TextUtils;
+
 import com.android.billingclient.api.BillingClient;
 import com.android.billingclient.api.BillingClient.BillingResponse;
 import com.android.billingclient.api.BillingClient.FeatureType;
@@ -43,19 +44,25 @@ import java.util.List;
 
 public final class GooglePlayBillingApi extends AbstractGooglePlayBillingApi implements BillingClientStateListener {
 
-    /** Internal log tag **/
+    /**
+     * Internal log tag
+     **/
     private static final String LOG_TAG = "GoogleBillingApi";
 
-    /** Google Play Billing client **/
+    /**
+     * Google Play Billing client
+     **/
     private BillingClient billing;
 
-    /** Google Play Billing service life cycle listener **/
+    /**
+     * Google Play Billing service life cycle listener
+     **/
     private LifecycleListener listener;
 
-    /** Google Play Billing connection state **/
+    /**
+     * Google Play Billing connection state
+     **/
     private boolean isServiceConnected = false;
-
-    private Handler mainHandler = new Handler(Looper.getMainLooper());
 
     @Override
     public boolean initialize(final @NonNull Context context, final @NonNull GooglePlayBillingVendor vendor,
@@ -70,28 +77,30 @@ public final class GooglePlayBillingApi extends AbstractGooglePlayBillingApi imp
 
         // Google Billing require client creation to be performed on main thread.
         if (Looper.myLooper() == Looper.getMainLooper()) {
-            createClient(context, vendor);
+            createClient(context, vendor).run();
         } else {
-            mainHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    createClient(context, vendor);
-                }
-            });
+            new Handler(Looper.getMainLooper()).post(
+                    createClient(context, vendor)
+            );
         }
 
         return initialized;
     }
 
     @UiThread
-    private void createClient(@NonNull Context context, @NonNull GooglePlayBillingVendor vendor) {
-        logSafely("Creating Google Play Billing client...");
-        billing = BillingClient.newBuilder(context)
-                .setListener(vendor)
-                .build();
+    private Runnable createClient(@NonNull final Context context, @NonNull final GooglePlayBillingVendor vendor) {
+        return new Runnable() {
+            @Override
+            public void run() {
+                logSafely("Creating Google Play Billing client...");
+                billing = BillingClient.newBuilder(context)
+                        .setListener(vendor)
+                        .build();
 
-        logSafely("Attempting to connect to billing service...");
-        billing.startConnection(this);
+                logSafely("Attempting to connect to billing service...");
+                billing.startConnection(GooglePlayBillingApi.this);
+            }
+        };
     }
 
     @Override
@@ -210,7 +219,7 @@ public final class GooglePlayBillingApi extends AbstractGooglePlayBillingApi imp
         Purchase.PurchasesResult purchasesResult = billing.queryPurchases(itemType);
         if (purchasesResult.getResponseCode() == BillingResponse.OK) {
             List<Purchase> purchases = purchasesResult.getPurchasesList();
-            logSafely(itemType+" purchases: " + TextUtils.join(", ", purchases));
+            logSafely(itemType + " purchases: " + TextUtils.join(", ", purchases));
             return purchases;
         }
 

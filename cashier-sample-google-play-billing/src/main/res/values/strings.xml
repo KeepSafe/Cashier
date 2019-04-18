@@ -5,4 +5,6 @@
     <string name="buy">Buy</string>
     <string name="use">Use</string>
     <string name="info">\?</string>
+    <string name="use_fake_checkout">Use Fake Checkout</string>
+    <string name="query_inventory">Query inventory</string>
 </resources>

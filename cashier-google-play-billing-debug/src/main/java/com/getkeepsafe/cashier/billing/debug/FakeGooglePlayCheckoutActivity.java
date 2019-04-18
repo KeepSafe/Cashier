@@ -7,7 +7,6 @@ import android.graphics.Typeface;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.style.StyleSpan;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -23,17 +22,12 @@ import org.json.JSONObject;
 public class FakeGooglePlayCheckoutActivity extends Activity {
 
     private static final String ARGUMENT_PRODUCT = "product";
-    private static final String ARGUMENT_PACKAGE = "package";
-    private static final String ARGUMENT_DEV_PAYLOAD = "dev-payload";
-    private static final String ARGUMENT_PRIVATE_KEY = "private-key";
 
     private Product product;
-    private String privateKey64;
 
     public static Intent intent(Context context, Product product, String privateKey64) {
         Intent intent = new Intent(context, FakeGooglePlayCheckoutActivity.class);
         intent.putExtra(ARGUMENT_PRODUCT, product);
-        intent.putExtra(ARGUMENT_PRIVATE_KEY, privateKey64);
         return intent;
     }
 
@@ -44,7 +38,6 @@ public class FakeGooglePlayCheckoutActivity extends Activity {
 
         final Intent intent = getIntent();
         product = intent.getParcelableExtra(ARGUMENT_PRODUCT);
-        privateKey64 = intent.getStringExtra(ARGUMENT_PRIVATE_KEY);
 
         final TextView productName = bind(R.id.product_name);
         final TextView productDescription = bind(R.id.product_description);
@@ -73,7 +66,7 @@ public class FakeGooglePlayCheckoutActivity extends Activity {
                     purchaseJson.put("purchaseState", 0);
                     purchaseJson.put("productId", product.sku());
                     String json = purchaseJson.toString();
-                    String signature = GooglePlayBillingSecurity.sign(privateKey64, json);
+                    String signature = GooglePlayBillingSecurity.sign(FakeGooglePlayBillingApi.TEST_PRIVATE_KEY, json);
                     Purchase purchase = new Purchase(json, signature);
 
                     FakeGooglePlayBillingApi.notifyPurchaseSuccess(product.sku(), purchase);

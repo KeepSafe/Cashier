@@ -41,7 +41,6 @@ import com.getkeepsafe.cashier.billing.GooglePlayBillingConstants;
 import com.getkeepsafe.cashier.billing.GooglePlayBillingVendor;
 import com.getkeepsafe.cashier.billing.debug.FakeGooglePlayBillingApi;
 import com.getkeepsafe.cashier.logging.LogcatLogger;
-import com.getkeepsafe.cashier.sample.googleplaybilling.R;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -67,13 +66,10 @@ public class MainActivity extends AppCompatActivity {
     private ItemsAdapter itemsAdapter;
     private ProgressBar progressBar;
 
-    private static final String DEV_PAYLOAD = "hello-cashier!";
-
     private PurchaseListener purchaseListener = new PurchaseListener() {
         @Override
         public void success(Purchase purchase) {
             Toast.makeText(MainActivity.this, "Purchase success", Toast.LENGTH_SHORT).show();
-
             refreshItems();
         }
 
@@ -190,7 +186,6 @@ public class MainActivity extends AppCompatActivity {
                     .setPositiveButton("OK", null)
                     .create()
                     .show();
-
         }
 
         @Override
@@ -203,15 +198,15 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstance) {
         super.onCreate(savedInstance);
         setContentView(R.layout.activity_main);
-        useFake = (Switch) findViewById(R.id.use_fake);
-        final Button queryPurchases = (Button) findViewById(R.id.query_purchases);
+        useFake = findViewById(R.id.use_fake);
+        final Button queryPurchases = findViewById(R.id.query_purchases);
 
         itemsAdapter = new ItemsAdapter(this);
 
-        recyclerView = (RecyclerView)findViewById(R.id.items_recycler);
+        recyclerView = findViewById(R.id.items_recycler);
         recyclerView.setAdapter(itemsAdapter);
 
-        progressBar = (ProgressBar)findViewById(R.id.items_progress);
+        progressBar = findViewById(R.id.items_progress);
         progressBar.setVisibility(View.GONE);
 
         itemsAdapter.setItemListener(new ItemsAdapter.ItemListener() {

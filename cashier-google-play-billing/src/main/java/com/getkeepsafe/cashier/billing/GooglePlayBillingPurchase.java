@@ -6,7 +6,6 @@ import com.getkeepsafe.cashier.CashierPurchase;
 import com.getkeepsafe.cashier.Product;
 import com.getkeepsafe.cashier.Purchase;
 import com.google.auto.value.AutoValue;
-import com.ryanharter.auto.value.parcel.ParcelAdapter;
 
 import org.json.JSONException;
 import org.json.JSONObject;

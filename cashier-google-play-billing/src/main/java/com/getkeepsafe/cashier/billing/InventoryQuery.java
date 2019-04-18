@@ -1,7 +1,5 @@
 package com.getkeepsafe.cashier.billing;
 
-import android.os.Handler;
-import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -26,13 +24,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-
 /**
  * Inventory query helper class. Performs api calls to get requested products info and purchases.
  * Since cashier purchase contains full product info, but Google Billing only returns order id and
  * receipt, getSkuDetails call must be performed for all purchased skus.
  */
 class InventoryQuery {
+
+    private Threading threading;
 
     private InventoryListener listener;
 
@@ -64,7 +63,7 @@ class InventoryQuery {
 
     private int subsResponseCode = 0;
 
-    private Handler mainHandler;
+    private boolean notified = false;
 
     /**
      * Query inventory.
@@ -74,27 +73,31 @@ class InventoryQuery {
      * @param subSkus List of product skus of subscription type to query. May be null.
      */
     static void execute(@NonNull AbstractGooglePlayBillingApi api, @NonNull InventoryListener listener, @Nullable Collection<String> inappSkus, @Nullable Collection<String> subSkus) {
-        new InventoryQuery(api, listener, inappSkus, subSkus).execute();
+        execute(new Threading(), api, listener, inappSkus, subSkus);
     }
 
-    private InventoryQuery(@NonNull AbstractGooglePlayBillingApi api, @NonNull InventoryListener listener, @Nullable Collection<String> inappSkus, @Nullable Collection<String> subSkus) {
+    static void execute(@NonNull Threading threading, @NonNull AbstractGooglePlayBillingApi api, @NonNull InventoryListener listener, @Nullable Collection<String> inappSkus, @Nullable Collection<String> subSkus) {
+        new InventoryQuery(threading, api, listener, inappSkus, subSkus).execute();
+    }
+
+    private InventoryQuery(@NonNull Threading threading, @NonNull AbstractGooglePlayBillingApi api, @NonNull InventoryListener listener, @Nullable Collection<String> inappSkus, @Nullable Collection<String> subSkus) {
+        this.threading = threading;
         this.api = api;
         this.listener = listener;
         this.inappSkus = inappSkus;
         this.subSkus = subSkus;
-        mainHandler = new Handler(Looper.getMainLooper());
     }
 
     private void execute() {
-
         // Execute on new thread to avoid blocking UI thread
-        new Thread() {
+        threading.runInBackground(new Runnable() {
+            @Override
             public void run() {
-
                 inappSkuDetails = null;
                 subsSkuDetails = null;
                 Set<String> inappSkusToQuery = new HashSet<>();
                 Set<String> subSkusToQuery = new HashSet<>();
+                boolean subscriptionsSupported = api.isBillingSupported(BillingClient.SkuType.SUBS) == BillingClient.BillingResponse.OK;
 
                 if (inappSkus != null) {
                     inappSkusToQuery.addAll(inappSkus);
@@ -105,7 +108,8 @@ class InventoryQuery {
 
                 // Get purchases of both types
                 List<com.android.billingclient.api.Purchase> inappPurchases = api.getPurchases(BillingClient.SkuType.INAPP);
-                List<com.android.billingclient.api.Purchase> subPurchases = api.getPurchases(BillingClient.SkuType.SUBS);
+                List<com.android.billingclient.api.Purchase> subPurchases = subscriptionsSupported ? api.getPurchases(BillingClient.SkuType.SUBS)
+                                : new ArrayList<com.android.billingclient.api.Purchase>();
 
                 if (inappPurchases == null || subPurchases == null) {
                     // If any of two getPurchases call didn't return result, return error
@@ -131,7 +135,7 @@ class InventoryQuery {
                     api.getSkuDetails(BillingClient.SkuType.INAPP, new ArrayList<String>(inappSkusToQuery), new SkuDetailsResponseListener() {
                         @Override
                         public void onSkuDetailsResponse(int responseCode, List<SkuDetails> skuDetailsList) {
-                            inappSkuDetails = skuDetailsList;
+                            inappSkuDetails = skuDetailsList != null ? skuDetailsList : new ArrayList<SkuDetails>();
                             inappResponseCode = responseCode;
                             // Check if other async operation finished
                             notifyIfReady();
@@ -141,12 +145,12 @@ class InventoryQuery {
                     inappSkuDetails = Collections.emptyList();
                 }
 
-                if (subSkusToQuery.size() > 0) {
+                if (subSkusToQuery.size() > 0 && subscriptionsSupported) {
                     // Perform async sku details query
                     api.getSkuDetails(BillingClient.SkuType.SUBS, new ArrayList<String>(subSkusToQuery), new SkuDetailsResponseListener() {
                         @Override
                         public void onSkuDetailsResponse(int responseCode, List<SkuDetails> skuDetailsList) {
-                            subsSkuDetails = skuDetailsList;
+                            subsSkuDetails = skuDetailsList != null ? skuDetailsList : new ArrayList<SkuDetails>();
                             subsResponseCode = responseCode;
                             // Check if other async operation finished
                             notifyIfReady();
@@ -159,25 +163,24 @@ class InventoryQuery {
                 // Check if result may be delivered.
                 // Covers case with empty skus and purchase lists
                 notifyIfReady();
-
             }
-        }.start();
+        });
     }
 
     private synchronized void notifyIfReady() {
-
         // When all three variables are not null, all async operations are finished
         // and result may be delivered to listener
-        if (purchases != null && inappSkuDetails != null && subsSkuDetails != null) {
+        if (purchases != null && inappSkuDetails != null && subsSkuDetails != null && !notified) {
 
             if (inappResponseCode != BillingClient.BillingResponse.OK || subsResponseCode != BillingClient.BillingResponse.OK) {
                 // Deliver result on main thread
-                mainHandler.post(new Runnable() {
+                threading.runOnMainThread(new Runnable() {
                     @Override
                     public void run() {
                         listener.failure(new Vendor.Error(VendorConstants.INVENTORY_QUERY_FAILURE, Math.max(inappResponseCode, subsResponseCode)));
                     }
                 });
+                notified = true;
                 return;
             }
 
@@ -210,8 +213,9 @@ class InventoryQuery {
                         Purchase purchase = GooglePlayBillingPurchase.create(product, billingPurchase);
                         inventory.addPurchase(purchase);
                     } catch (JSONException e) {
+                        e.printStackTrace();
                         // Deliver result on main thread
-                        mainHandler.post(new Runnable() {
+                        threading.runOnMainThread(new Runnable() {
                             @Override
                             public void run() {
                                 listener.failure(new Vendor.Error(VendorConstants.INVENTORY_QUERY_MALFORMED_RESPONSE, -1));
@@ -223,13 +227,13 @@ class InventoryQuery {
             }
 
             // Deliver result on main thread
-            mainHandler.post(new Runnable() {
+            threading.runOnMainThread(new Runnable() {
                 @Override
                 public void run() {
                     listener.success(inventory);
                 }
             });
+            notified = true;
         }
     }
-
 }
