@@ -63,7 +63,7 @@ public abstract class GooglePlayBillingPurchase implements Parcelable, Purchase 
     }
 
     public String developerPayload() {
-        return purchase().developerPayload();
+        throw new RuntimeException("Developer payload is not supported in Google Play Billing!");
     }
 
     public boolean purchased() {
