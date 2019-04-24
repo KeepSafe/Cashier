@@ -27,6 +27,7 @@ android {
 
 dependencies {
   api project(':cashier')
+  compileOnly project(':cashier-iab-aidl')
 
   compileOnly deps.autoValue
   compileOnly deps.supportAnnotations

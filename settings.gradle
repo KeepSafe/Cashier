@@ -1,1 +1,1 @@
-include ':cashier-sample-iab', ':cashier-iab', ':cashier-iab-debug', ':cashier', ':cashier-iab-debug-no-op', ':cashier-google-play-billing', ':cashier-google-play-billing-debug', ':cashier-sample-google-play-billing'
+include ':cashier-sample-iab', ':cashier-iab', ':cashier-iab-aidl', ':cashier-iab-debug', ':cashier', ':cashier-iab-debug-no-op', ':cashier-google-play-billing', ':cashier-google-play-billing-debug', ':cashier-sample-google-play-billing'
