@@ -86,7 +86,6 @@ public class InAppBillingV3VendorTest {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        InAppBillingV3Vendor.DISABLE_EXECUTOR = true;
     }
 
     @Test
