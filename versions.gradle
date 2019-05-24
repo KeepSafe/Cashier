@@ -3,7 +3,7 @@ ext {
             compileSdk : 28,
             minSdk     : 9,
             buildTools : '28.0.3',
-            versionName: '0.3.0'
+            versionName: '0.3.5'
     ]
 
     final supportLibraryVersion = '28.0.0'

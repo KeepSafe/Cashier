@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.eq;
@@ -73,6 +74,23 @@ class TestHelper {
                 eq(type),
                 Mockito.<String>anyList(),
                 any(SkuDetailsResponseListener.class));
+    }
+
+    static void mockApiUnavailable(AbstractGooglePlayBillingApi api) {
+        doAnswer(
+                new Answer() {
+                    @Override
+                    public Object answer(InvocationOnMock invocation) throws Throwable {
+                        throw new IllegalStateException("Billing client is not available");
+                    }
+                }
+        ).when(api).getSkuDetails(
+                anyString(),
+                Mockito.<String>anyList(),
+                any(SkuDetailsResponseListener.class));
+
+        when(api.available()).thenReturn(false);
+        when(api.getPurchases(anyString())).thenThrow(new IllegalStateException("Billing client is not available"));
     }
 
     static void mockPurchases(AbstractGooglePlayBillingApi api, final List<Product> products) {

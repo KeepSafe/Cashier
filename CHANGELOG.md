@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.3.5
+  - Fixed inventory query uncaught exception
+
 ## 0.3.0
   - Google Play Billing lib implementation - GooglePlayBillingVendor
   - Google Play Billing implementation unit tests

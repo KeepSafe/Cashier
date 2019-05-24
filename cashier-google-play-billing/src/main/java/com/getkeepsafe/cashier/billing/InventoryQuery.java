@@ -93,76 +93,86 @@ class InventoryQuery {
         threading.runInBackground(new Runnable() {
             @Override
             public void run() {
-                inappSkuDetails = null;
-                subsSkuDetails = null;
-                Set<String> inappSkusToQuery = new HashSet<>();
-                Set<String> subSkusToQuery = new HashSet<>();
-                boolean subscriptionsSupported = api.isBillingSupported(BillingClient.SkuType.SUBS) == BillingClient.BillingResponse.OK;
+                try {
+                    if (!api.available()) {
+                        listener.failure(new Vendor.Error(VendorConstants.INVENTORY_QUERY_UNAVAILABLE, -1));
+                        return;
+                    }
 
-                if (inappSkus != null) {
-                    inappSkusToQuery.addAll(inappSkus);
+                    inappSkuDetails = null;
+                    subsSkuDetails = null;
+                    Set<String> inappSkusToQuery = new HashSet<>();
+                    Set<String> subSkusToQuery = new HashSet<>();
+                    boolean subscriptionsSupported = api.isBillingSupported(BillingClient.SkuType.SUBS) == BillingClient.BillingResponse.OK;
+
+                    if (inappSkus != null) {
+                        inappSkusToQuery.addAll(inappSkus);
+                    }
+                    if (subSkus != null) {
+                        subSkusToQuery.addAll(subSkus);
+                    }
+
+                    // Get purchases of both types
+                    List<com.android.billingclient.api.Purchase> inappPurchases = api.getPurchases(BillingClient.SkuType.INAPP);
+                    List<com.android.billingclient.api.Purchase> subPurchases = subscriptionsSupported ? api.getPurchases(BillingClient.SkuType.SUBS)
+                            : new ArrayList<com.android.billingclient.api.Purchase>();
+
+                    if (inappPurchases == null || subPurchases == null) {
+                        // If any of two getPurchases call didn't return result, return error
+                        listener.failure(new Vendor.Error(VendorConstants.INVENTORY_QUERY_FAILURE, -1));
+                        return;
+                    }
+
+                    purchases = new ArrayList<>();
+                    purchases.addAll(inappPurchases);
+                    purchases.addAll(subPurchases);
+
+                    // Add all inapp purchases skus to skus to be queried list
+                    for (com.android.billingclient.api.Purchase inappPurchase : inappPurchases) {
+                        inappSkusToQuery.add(inappPurchase.getSku());
+                    }
+                    // Add all subscription purchases skus to skus to be queried list
+                    for (com.android.billingclient.api.Purchase subPurchase : subPurchases) {
+                        subSkusToQuery.add(subPurchase.getSku());
+                    }
+
+                    if (inappSkusToQuery.size() > 0) {
+                        // Perform async sku details query
+                        api.getSkuDetails(BillingClient.SkuType.INAPP, new ArrayList<String>(inappSkusToQuery), new SkuDetailsResponseListener() {
+                            @Override
+                            public void onSkuDetailsResponse(int responseCode, List<SkuDetails> skuDetailsList) {
+                                inappSkuDetails = skuDetailsList != null ? skuDetailsList : new ArrayList<SkuDetails>();
+                                inappResponseCode = responseCode;
+                                // Check if other async operation finished
+                                notifyIfReady();
+                            }
+                        });
+                    } else {
+                        inappSkuDetails = Collections.emptyList();
+                    }
+
+                    if (subSkusToQuery.size() > 0 && subscriptionsSupported) {
+                        // Perform async sku details query
+                        api.getSkuDetails(BillingClient.SkuType.SUBS, new ArrayList<String>(subSkusToQuery), new SkuDetailsResponseListener() {
+                            @Override
+                            public void onSkuDetailsResponse(int responseCode, List<SkuDetails> skuDetailsList) {
+                                subsSkuDetails = skuDetailsList != null ? skuDetailsList : new ArrayList<SkuDetails>();
+                                subsResponseCode = responseCode;
+                                // Check if other async operation finished
+                                notifyIfReady();
+                            }
+                        });
+                    } else {
+                        subsSkuDetails = Collections.emptyList();
+                    }
+
+                    // Check if result may be delivered.
+                    // Covers case with empty skus and purchase lists
+                    notifyIfReady();
+
+                } catch (Exception e) {
+                    listener.failure(new Vendor.Error(VendorConstants.INVENTORY_QUERY_UNAVAILABLE, -1));
                 }
-                if (subSkus != null) {
-                    subSkusToQuery.addAll(subSkus);
-                }
-
-                // Get purchases of both types
-                List<com.android.billingclient.api.Purchase> inappPurchases = api.getPurchases(BillingClient.SkuType.INAPP);
-                List<com.android.billingclient.api.Purchase> subPurchases = subscriptionsSupported ? api.getPurchases(BillingClient.SkuType.SUBS)
-                                : new ArrayList<com.android.billingclient.api.Purchase>();
-
-                if (inappPurchases == null || subPurchases == null) {
-                    // If any of two getPurchases call didn't return result, return error
-                    listener.failure(new Vendor.Error(VendorConstants.INVENTORY_QUERY_FAILURE, -1));
-                    return;
-                }
-
-                purchases = new ArrayList<>();
-                purchases.addAll(inappPurchases);
-                purchases.addAll(subPurchases);
-
-                // Add all inapp purchases skus to skus to be queried list
-                for (com.android.billingclient.api.Purchase inappPurchase : inappPurchases) {
-                    inappSkusToQuery.add(inappPurchase.getSku());
-                }
-                // Add all subscription purchases skus to skus to be queried list
-                for (com.android.billingclient.api.Purchase subPurchase : subPurchases) {
-                    subSkusToQuery.add(subPurchase.getSku());
-                }
-
-                if (inappSkusToQuery.size() > 0) {
-                    // Perform async sku details query
-                    api.getSkuDetails(BillingClient.SkuType.INAPP, new ArrayList<String>(inappSkusToQuery), new SkuDetailsResponseListener() {
-                        @Override
-                        public void onSkuDetailsResponse(int responseCode, List<SkuDetails> skuDetailsList) {
-                            inappSkuDetails = skuDetailsList != null ? skuDetailsList : new ArrayList<SkuDetails>();
-                            inappResponseCode = responseCode;
-                            // Check if other async operation finished
-                            notifyIfReady();
-                        }
-                    });
-                } else {
-                    inappSkuDetails = Collections.emptyList();
-                }
-
-                if (subSkusToQuery.size() > 0 && subscriptionsSupported) {
-                    // Perform async sku details query
-                    api.getSkuDetails(BillingClient.SkuType.SUBS, new ArrayList<String>(subSkusToQuery), new SkuDetailsResponseListener() {
-                        @Override
-                        public void onSkuDetailsResponse(int responseCode, List<SkuDetails> skuDetailsList) {
-                            subsSkuDetails = skuDetailsList != null ? skuDetailsList : new ArrayList<SkuDetails>();
-                            subsResponseCode = responseCode;
-                            // Check if other async operation finished
-                            notifyIfReady();
-                        }
-                    });
-                } else {
-                    subsSkuDetails = Collections.emptyList();
-                }
-
-                // Check if result may be delivered.
-                // Covers case with empty skus and purchase lists
-                notifyIfReady();
             }
         });
     }
