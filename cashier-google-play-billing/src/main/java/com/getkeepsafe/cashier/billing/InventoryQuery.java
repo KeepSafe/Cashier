@@ -93,6 +93,11 @@ class InventoryQuery {
         threading.runInBackground(new Runnable() {
             @Override
             public void run() {
+                if (!api.available()) {
+                    listener.failure(new Vendor.Error(VendorConstants.INVENTORY_QUERY_UNAVAILABLE, -1));
+                    return;
+                }
+
                 inappSkuDetails = null;
                 subsSkuDetails = null;
                 Set<String> inappSkusToQuery = new HashSet<>();

@@ -41,6 +41,7 @@ public class InventoryQueryTest {
     public void setup() throws Exception {
         MockitoAnnotations.initMocks(this);
 
+        when(api.available()).thenReturn(true);
         when(api.getPurchases()).thenReturn(new ArrayList<Purchase>());
         when(api.getPurchases(anyString())).thenReturn(new ArrayList<Purchase>());
 
@@ -129,6 +130,22 @@ public class InventoryQueryTest {
     @Test
     public void returns_error_when_subs_sku_details_call_fails() {
         TestHelper.mockSkuDetailsError(api, BillingClient.SkuType.SUBS);
+
+        InventoryListener listener = mock(InventoryListener.class);
+        InventoryQuery.execute(
+                TestHelper.mockThreading(),
+                api,
+                listener,
+                TestData.allInAppSkus,
+                TestData.allSubSkus
+        );
+
+        verify(listener).failure(any(Vendor.Error.class));
+    }
+
+    @Test
+    public void returns_error_when_billing_not_available() {
+        TestHelper.mockApiUnavailable(api);
 
         InventoryListener listener = mock(InventoryListener.class);
         InventoryQuery.execute(
