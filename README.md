@@ -1,6 +1,6 @@
 <h1 align="center">
 	<img src=".github/ic_launcher.png" alt="Cashier"><br/>
-	Cashier 
+	Cashier
 </h1>
 
 [![Build Status](https://travis-ci.org/KeepSafe/Cashier.svg?branch=master)](https://travis-ci.org/KeepSafe/Cashier)
@@ -19,28 +19,34 @@ Cashier also aims to bridge the gap between development testing and production t
 
 ### Features
 
-  - Google Play's In-App-Billing (IAB)
+  - Google Play's In-App-Billing (IAB) - Deprecated
     - Purchasing for products and subscriptions, consuming for consumable products
     - Fake checkout, facilitating faster development
     - Local receipt verification
     - Inventory querying
+
+  - Google Play Billing
+    - Purchasing for products and subscriptions, consuming for consumable products
+    - Fake checkout, facilitating faster development
+    - Local receipt verification
+    - Inventory querying
+    - For now, developer payload is not supported (will be added in GPB v2)
 
 ## Installation
 
 Cashier is distributed using [jcenter](https://bintray.com/keepsafesoftware/Android/Cashier/view).
 
 ```groovy
-repositories { 
+repositories {
   jcenter()
 }
-   
+
 dependencies {
   compile 'com.getkeepsafe.cashier:cashier:0.x.x' // Core library, required
- 
-  // Google Play
-  compile 'com.getkeepsafe.cashier:cashier-iab:0.x.x'
-  debugCompile 'com.getkeepsafe.cashier:cashier-iab-debug:0.x.x' // For fake checkout and testing
-  releaseCompile 'com.getkeepsafe.cashier:cashier-iab-debug-no-op:0.x.x'
+
+  // Google Play Billing
+  compile 'com.getkeepsafe.cashier:cashier-google-play-billing:0.x.x'
+  debugCompile 'com.getkeepsafe.cashier:cashier-google-play-billing-debug:0.x.x' // For fake checkout and testing
 }
 ```
 
@@ -50,7 +56,7 @@ General usage is as follows:
 
 ```java
 // First choose a vendor
-final Vendor vendor = new InAppBillingV3Vendor();
+final Vendor vendor = new GooglePlayBillingVendor();
 
 // Get a product to buy
 final Product product = Product.create(
@@ -82,9 +88,57 @@ final Cashier cashier = Cashier.forVendor(activity, vendor);
 cashier.purchase(activity, product, "my custom dev payload", listener);
 ```
 
+To test app in debug mode with fake purchase flow:
+```java
+// Create vendor with fake API implementation
+vendor = new GooglePlayBillingVendor(
+                new FakeGooglePlayBillingApi(MainActivity.this,
+                FakeGooglePlayBillingApi.TEST_PUBLIC_KEY));
+
+// Add products definitions
+final Product product = Product.create(
+  vendor.id(),              // The vendor that produces this product
+  "my.sku",                 // The SKU of the product
+  "$0.99",                  // The display price of the product
+  "USD",                    // The currency of the display price
+  "My Awesome Product",     // The product's title
+  "Provides awesomeness!",  // The product's description
+  false,                    // Whether the product is a subscription or not (consumable)
+  990_000L);                // The product price in micros
+
+FakeGooglePlayBillingApi.addTestProduct(product)
+```
+
+```FakeGooglePlayBillingApi``` uses predefined private key to sign purchase receipt.
+If you want to verify purchase signature in your code, use corresponding public key defined in
+```FakeGooglePlayBillingApi.TEST_PUBLIC_KEY```.
+
+## Migrating from In App Billing to Google Play Billing
+
+All you need to do is change vendor implementation from depracated `InAppBillingV3Vendor` to `GooglePlayBillingVendor`.
+Since both implementations are just different ways to connect to Google Play Store, all your products and purchase
+flows remain the same.
+
+1. In your dependencies replace
+```compile 'com.getkeepsafe.cashier:cashier-iab:0.x.x'
+  debugCompile 'com.getkeepsafe.cashier:cashier-iab-debug:0.x.x' // For fake checkout and testing
+  releaseCompile 'com.getkeepsafe.cashier:cashier-iab-debug-no-op:0.x.x'```
+
+with
+```
+compile 'com.getkeepsafe.cashier:cashier-google-play-billing:0.x.x'
+debugCompile 'com.getkeepsafe.cashier:cashier-google-play-billing-debug:0.x.x' // For fake checkout and testing
+```
+
+2. Replace `InAppBillingV3Vendor` with  `GooglePlayBillingVendor`. To test the app in debug mode use `FakeGooglePlayBillingApi` in place of `FakeAppBillingV3Api`.
+Definition of products remains the same, but now you need to add them by calling
+```FakeGooglePlayBillingApi.addTestProduct(product)```
+
+3. That's it! Now your app will use new Google Play Billing API!!
+
 ## Sample App
 
-For a buildable / workable sample app, please see the `cashier-sample` project under `cashier-sample/`.
+For a buildable / workable sample app, please see the `cashier-sample-google-play-billing` project.
 
 ## Acknowledgements
 

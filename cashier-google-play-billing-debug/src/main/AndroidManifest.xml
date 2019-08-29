@@ -1,0 +1,13 @@
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.getkeepsafe.cashier.billing.debug">
+
+    <application>
+
+        <activity
+            android:name=".FakeGooglePlayCheckoutActivity"
+            android:theme="@style/Cashier.FakeCheckoutTheme"/>
+
+    </application>
+
+</manifest>

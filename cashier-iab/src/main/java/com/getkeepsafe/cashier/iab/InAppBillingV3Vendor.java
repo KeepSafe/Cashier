@@ -81,6 +81,11 @@ import static com.getkeepsafe.cashier.iab.InAppBillingConstants.RESPONSE_INAPP_P
 import static com.getkeepsafe.cashier.iab.InAppBillingConstants.RESPONSE_INAPP_SIGNATURE_LIST;
 import static com.getkeepsafe.cashier.iab.InAppBillingConstants.VENDOR_PACKAGE;
 
+/**
+ * @deprecated Google In App Billing is no longer supported.
+ * Please use GooglePlayBillingVendor that uses new Google Play Billing library.
+ */
+@Deprecated
 public class InAppBillingV3Vendor implements Vendor {
   private final AbstractInAppBillingV3API api;
   private final String publicKey64;
