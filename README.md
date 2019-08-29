@@ -30,6 +30,7 @@ Cashier also aims to bridge the gap between development testing and production t
     - Fake checkout, facilitating faster development
     - Local receipt verification
     - Inventory querying
+    - For now, developer payload is not supported (will be added in GPB v2)
 
 ## Installation
 
@@ -124,14 +125,16 @@ flows remain the same.
   releaseCompile 'com.getkeepsafe.cashier:cashier-iab-debug-no-op:0.x.x'```
 
 with
-```compile 'com.getkeepsafe.cashier:cashier-google-play-billing:0.x.x'
-debugCompile 'com.getkeepsafe.cashier:cashier-google-play-billing-debug:0.x.x' // For fake checkout and testing```
+```
+compile 'com.getkeepsafe.cashier:cashier-google-play-billing:0.x.x'
+debugCompile 'com.getkeepsafe.cashier:cashier-google-play-billing-debug:0.x.x' // For fake checkout and testing
+```
 
 2. Replace `InAppBillingV3Vendor` with  `GooglePlayBillingVendor`. To test the app in debug mode use `FakeGooglePlayBillingApi` in place of `FakeAppBillingV3Api`.
 Definition of products remains the same, but now you need to add them by calling
 ```FakeGooglePlayBillingApi.addTestProduct(product)```
 
-3. That's it! Now your app will use new Billing API!
+3. That's it! Now your app will use new Google Play Billing API!!
 
 ## Sample App
 

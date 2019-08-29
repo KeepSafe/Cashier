@@ -178,7 +178,6 @@ public class FakeGooglePlayBillingApi extends AbstractGooglePlayBillingApi {
 
     @Override
     public void consumePurchase(final @NonNull String purchaseToken, final @NonNull ConsumeResponseListener listener) {
-
         // Use new thread to simulate network operation
         new Thread() {
             public void run() {
@@ -209,7 +208,6 @@ public class FakeGooglePlayBillingApi extends AbstractGooglePlayBillingApi {
 
     @Override
     public void getSkuDetails(final String itemType, final @NonNull List<String> skus, final @NonNull SkuDetailsResponseListener listener) {
-
         // Use new thread to simulate network operation
         new Thread() {
             public void run() {
