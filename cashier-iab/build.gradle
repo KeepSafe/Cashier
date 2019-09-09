@@ -1,5 +1,6 @@
 apply plugin: 'com.android.library'
 apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'com.jfrog.bintray'
 
 android {
   compileSdkVersion versions.compileSdk
@@ -25,6 +26,39 @@ android {
   }
 }
 
+install {
+  repositories.mavenInstaller {
+    pom.project {
+      name libname
+      description project.description
+      url "https://github.com/KeepSafe/$libname"
+      inceptionYear 2016
+
+      packaging 'aar'
+      groupId project.group
+      artifactId 'cashier-iab'
+      version project.version
+
+      licenses {
+        license {
+          name 'The Apache Software License, Version 2.0'
+          url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+          distribution 'repo'
+        }
+      }
+      scm {
+        connection "https://github.com/KeepSafe/${libname}.git"
+        url "https://github.com/KeepSafe/$libname"
+      }
+      developers {
+        developer {
+          name 'Keepsafe'
+        }
+      }
+    }
+  }
+}
+
 dependencies {
   api project(':cashier')
 
@@ -39,4 +73,5 @@ dependencies {
   testImplementation deps.truth
 }
 
+apply from: rootProject.file('bintray.gradle')
 apply from: rootProject.file('javadoc.gradle')

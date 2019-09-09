@@ -1,0 +1,21 @@
+bintray {
+    user = project.hasProperty('bintray.user') ? project.property('bintray.user') : ''
+    key = project.hasProperty('bintray.apikey') ? project.property('bintray.apikey') : ''
+    configurations = ['archives']
+    override = true
+    pkg {
+        repo = 'Android'
+        name = libname
+        userOrg = 'keepsafesoftware'
+        licenses = ['Apache-2.0']
+        vcsUrl = "https://github.com/KeepSafe/${libname}.git"
+        publish = true
+
+        version {
+            name = project.version
+            desc = project.description
+            released = new Date()
+            vcsTag = project.version
+        }
+    }
+}

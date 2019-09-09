@@ -20,9 +20,10 @@ android {
 }
 
 dependencies {
-  implementation project(':cashier-iab')
-  debugImplementation project(':cashier-iab-debug')
-  releaseImplementation project(':cashier-iab-debug-no-op')
+  implementation 'com.getkeepsafe.cashier:cashier:0.3.5'
+  implementation 'com.getkeepsafe.cashier:cashier-iab:0.3.5'
+  debugImplementation 'com.getkeepsafe.cashier:cashier-iab-debug:0.3.5'
+  releaseImplementation 'com.getkeepsafe.cashier:cashier-iab-debug-no-op:0.3.5'
 
   implementation deps.appCompat
 }
