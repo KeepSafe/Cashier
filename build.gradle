@@ -7,6 +7,7 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:3.3.1'
         classpath 'com.github.dcendents:android-maven-gradle-plugin:1.5'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4'
     }
 }
 
@@ -27,4 +28,7 @@ apply from: rootProject.file('versions.gradle')
 subprojects  {
     version = versions.versionName
     group = 'com.getkeepsafe.cashier'
+    ext {
+        libname = 'Cashier'
+    }
 }
