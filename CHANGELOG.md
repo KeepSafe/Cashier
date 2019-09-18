@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.3.6
+  - Improved error reporting, migration to Jetpack
+
 ## 0.3.5
   - Fixed inventory query uncaught exception
 
