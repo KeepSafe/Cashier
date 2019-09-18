@@ -16,7 +16,8 @@
 
 package com.getkeepsafe.cashier;
 
-import android.support.annotation.Nullable;
+
+import androidx.annotation.Nullable;
 
 public class VendorMissingException extends RuntimeException {
   public final String vendorId;

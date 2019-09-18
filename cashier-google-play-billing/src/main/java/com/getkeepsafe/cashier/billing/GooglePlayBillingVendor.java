@@ -19,10 +19,11 @@ package com.getkeepsafe.cashier.billing;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.android.billingclient.api.BillingClient.BillingResponse;
 import com.android.billingclient.api.BillingClient.SkuType;
@@ -229,7 +230,12 @@ public final class GooglePlayBillingVendor implements Vendor, PurchasesUpdatedLi
         this.purchaseListener = listener;
         this.pendingProduct = product;
         logSafely("Launching Google Play Billing flow for " + product.sku());
-        api.launchBillingFlow(activity, product.sku(), product.isSubscription() ? SkuType.SUBS : SkuType.INAPP);
+        try {
+            api.launchBillingFlow(activity, product.sku(), product.isSubscription() ? SkuType.SUBS : SkuType.INAPP);
+        } catch (Exception e) {
+            clearPendingPurchase();
+            throw e;
+        }
     }
 
     @Override

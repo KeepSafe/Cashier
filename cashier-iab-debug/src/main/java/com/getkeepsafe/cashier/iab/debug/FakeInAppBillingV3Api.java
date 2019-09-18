@@ -19,7 +19,8 @@ package com.getkeepsafe.cashier.iab.debug;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.RemoteException;
-import android.support.annotation.VisibleForTesting;
+
+import androidx.annotation.VisibleForTesting;
 
 import com.getkeepsafe.cashier.Product;
 import com.getkeepsafe.cashier.iab.AbstractInAppBillingV3API;

@@ -20,10 +20,11 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.UiThread;
 import android.text.TextUtils;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.UiThread;
 
 import com.android.billingclient.api.BillingClient;
 import com.android.billingclient.api.BillingClient.BillingResponse;
@@ -158,13 +159,19 @@ public final class GooglePlayBillingApi extends AbstractGooglePlayBillingApi imp
                 new SkuDetailsResponseListener() {
                     @Override
                     public void onSkuDetailsResponse(int responseCode, List<SkuDetails> skuDetailsList) {
-                        if (skuDetailsList.size() > 0) {
-                            BillingFlowParams billingFlowParams = BillingFlowParams.newBuilder()
-                                    .setSkuDetails(skuDetailsList.get(0))
-                                    .build();
+                        try {
+                            if (responseCode == BillingResponse.OK && skuDetailsList.size() > 0) {
+                                BillingFlowParams billingFlowParams = BillingFlowParams.newBuilder()
+                                        .setSkuDetails(skuDetailsList.get(0))
+                                        .build();
 
-                            // This will call the {@link PurchasesUpdatedListener} specified in {@link #initialize}
-                            billing.launchBillingFlow(activity, billingFlowParams);
+                                // This will call the {@link PurchasesUpdatedListener} specified in {@link #initialize}
+                                billing.launchBillingFlow(activity, billingFlowParams);
+                            } else {
+                                vendor.onPurchasesUpdated(BillingResponse.ERROR, null);
+                            }
+                        } catch (Exception e) {
+                            vendor.onPurchasesUpdated(BillingResponse.ERROR, null);
                         }
                     }
                 }

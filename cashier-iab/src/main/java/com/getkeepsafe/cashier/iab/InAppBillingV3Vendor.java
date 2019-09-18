@@ -23,9 +23,10 @@ import android.content.Intent;
 import android.content.IntentSender;
 import android.os.Bundle;
 import android.os.RemoteException;
-import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
+
+import androidx.annotation.Nullable;
 
 import com.getkeepsafe.cashier.ConsumeListener;
 import com.getkeepsafe.cashier.Inventory;
