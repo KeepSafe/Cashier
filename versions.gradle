@@ -3,22 +3,29 @@ ext {
             compileSdk : 28,
             minSdk     : 9,
             buildTools : '28.0.3',
-            versionName: '0.3.5'
+            versionName: '0.3.6',
+            autoValue  : '1.3',
+            autoParcel : '0.2.5',
+            appCompat  : '1.1.0',
+            support    : '1.1.0',
+            billing    : '1.2',
+            roboelectric: '3.3.2',
+            junit      : '4.12',
+            mockito    : '2.2.9',
+            truth      : '0.31'
     ]
 
-    final supportLibraryVersion = '28.0.0'
-
     deps = [
-            autoValue         : 'com.google.auto.value:auto-value:1.3',
-            autoParcel        : 'com.ryanharter.auto.value:auto-value-parcel:0.2.5',
-            appCompat         : "com.android.support:appcompat-v7:$supportLibraryVersion",
-            supportAnnotations: "com.android.support:support-annotations:$supportLibraryVersion",
-            billingClient     : 'com.android.billingclient:billing:1.2',
+            autoValue         : "com.google.auto.value:auto-value:${versions.autoValue}",
+            autoParcel        : "com.ryanharter.auto.value:auto-value-parcel:${versions.autoParcel}",
+            appCompat         : "androidx.appcompat:appcompat:${versions.appCompat}",
+            supportAnnotations: "androidx.annotation:annotation:${versions.support}",
+            billingClient     : "com.android.billingclient:billing:${versions.billing}",
 
             // Test dependencies
-            robolectric       : 'org.robolectric:robolectric:3.3.2',
-            junit             : 'junit:junit:4.12',
-            mockito           : 'org.mockito:mockito-core:2.2.9',
-            truth             : 'com.google.truth:truth:0.31'
+            robolectric       : "org.robolectric:robolectric:${versions.roboelectric}",
+            junit             : "junit:junit:${versions.junit}",
+            mockito           : "org.mockito:mockito-core:${versions.mockito}",
+            truth             : "com.google.truth:truth:${versions.truth}"
     ]
 }

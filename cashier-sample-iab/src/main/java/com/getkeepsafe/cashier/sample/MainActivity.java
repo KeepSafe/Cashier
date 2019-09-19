@@ -18,7 +18,6 @@ package com.getkeepsafe.cashier.sample;
 
 import android.app.ProgressDialog;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -27,6 +26,8 @@ import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.getkeepsafe.cashier.Cashier;
 import com.getkeepsafe.cashier.ConsumeListener;

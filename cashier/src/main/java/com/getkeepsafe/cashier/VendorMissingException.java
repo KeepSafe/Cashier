@@ -13,10 +13,9 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
 package com.getkeepsafe.cashier;
 
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 public class VendorMissingException extends RuntimeException {
   public final String vendorId;

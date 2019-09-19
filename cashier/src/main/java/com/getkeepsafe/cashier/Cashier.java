@@ -20,9 +20,10 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Looper;
-import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
+
+import androidx.annotation.Nullable;
 
 import com.getkeepsafe.cashier.logging.Logger;
 
@@ -203,7 +204,12 @@ public class Cashier {
         }
 
         final String payload = developerPayload == null ? "" : developerPayload;
-        vendor.purchase(activity, product, payload, purchaseListenerWrapper);
+
+        try {
+          vendor.purchase(activity, product, payload, purchaseListenerWrapper);
+        } catch (Exception e) {
+          purchaseListenerWrapper.failure(product, new Vendor.Error(VendorConstants.PURCHASE_FAILURE, -1));
+        }
       }
 
       @Override
@@ -232,7 +238,11 @@ public class Cashier {
           listener.failure(purchase, new Vendor.Error(VendorConstants.CONSUME_UNAVAILABLE, -1));
           return;
         }
-        vendor.consume(context, purchase, listener);
+        try {
+          vendor.consume(context, purchase, listener);
+        } catch (Exception e) {
+          listener.failure(purchase, new Vendor.Error(VendorConstants.CONSUME_UNAVAILABLE, -1));
+        }
       }
 
       @Override
@@ -265,7 +275,11 @@ public class Cashier {
     vendor.initialize(context, new Vendor.InitializationListener() {
       @Override
       public void initialized() {
-        vendor.getInventory(context, itemSkus, subSkus, listener);
+        try {
+          vendor.getInventory(context, itemSkus, subSkus, listener);
+        } catch (Exception e) {
+          listener.failure(new Vendor.Error(VendorConstants.INVENTORY_QUERY_UNAVAILABLE, -1));
+        }
       }
 
       @Override
@@ -290,7 +304,11 @@ public class Cashier {
     vendor.initialize(context, new Vendor.InitializationListener() {
       @Override
       public void initialized() {
-        vendor.getProductDetails(context, sku, isSubscription, listener);
+        try {
+          vendor.getProductDetails(context, sku, isSubscription, listener);
+        } catch (Exception e) {
+          listener.failure(new Vendor.Error(VendorConstants.PRODUCT_DETAILS_UNAVAILABLE, -1));
+        }
       }
 
       @Override
