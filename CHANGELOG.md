@@ -10,6 +10,8 @@ Prepend the changelog with this template on every release.
 -->
 
 ## [Unreleased]
+
+## [0.3.8] - Released March 20, 2021
 - Moved artifact publishing from JCenter to Maven Central (#39)
 
 ## [0.3.6] - Released September 19, 2019
