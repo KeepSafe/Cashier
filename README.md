@@ -23,7 +23,7 @@ Cashier also aims to bridge the gap between development testing and production t
 
 ### Features
 
-  - Google Play's In-App-Billing (IAB) - Deprecated
+  - Google Play's In-App-Billing (IAB) - **Deprecated**
     - Purchasing for products and subscriptions, consuming for consumable products
     - Fake checkout, facilitating faster development
     - Local receipt verification
@@ -46,11 +46,11 @@ repositories {
 }
 
 dependencies {
-  compile 'com.getkeepsafe.cashier:cashier:0.x.x' // Core library, required
+  compile 'com.getkeepsafe.cashier:cashier:x.x.x' // Core library, required
 
   // Google Play Billing
-  compile 'com.getkeepsafe.cashier:cashier-google-play-billing:0.x.x'
-  debugCompile 'com.getkeepsafe.cashier:cashier-google-play-billing-debug:0.x.x' // For fake checkout and testing
+  compile 'com.getkeepsafe.cashier:cashier-google-play-billing:x.x.x'
+  debugCompile 'com.getkeepsafe.cashier:cashier-google-play-billing-debug:x.x.x' // For fake checkout and testing
 }
 ```
 
@@ -124,15 +124,16 @@ Since both implementations are just different ways to connect to Google Play Sto
 flows remain the same.
 
 1. In your dependencies replace
-```compile 'com.getkeepsafe.cashier:cashier-iab:0.x.x'
-  debugCompile 'com.getkeepsafe.cashier:cashier-iab-debug:0.x.x' // For fake checkout and testing
-  releaseCompile 'com.getkeepsafe.cashier:cashier-iab-debug-no-op:0.x.x'```
-
-with
-```
-compile 'com.getkeepsafe.cashier:cashier-google-play-billing:0.x.x'
-debugCompile 'com.getkeepsafe.cashier:cashier-google-play-billing-debug:0.x.x' // For fake checkout and testing
-```
+   ```groovy
+   compile 'com.getkeepsafe.cashier:cashier-iab:x.x.x'
+   debugCompile 'com.getkeepsafe.cashier:cashier-iab-debug:x.x.x' // For fake checkout and testing
+   releaseCompile 'com.getkeepsafe.cashier:cashier-iab-debug-no-op:x.x.x'
+   ```
+   with
+   ```groovy
+   compile 'com.getkeepsafe.cashier:cashier-google-play-billing:x.x.x'
+   debugCompile 'com.getkeepsafe.cashier:cashier-google-play-billing-debug:x.x.x' // For fake checkout and testing
+   ```
 
 2. Replace `InAppBillingV3Vendor` with  `GooglePlayBillingVendor`. To test the app in debug mode use `FakeGooglePlayBillingApi` in place of `FakeAppBillingV3Api`.
 Definition of products remains the same, but now you need to add them by calling

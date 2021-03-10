@@ -10,6 +10,7 @@ Prepend the changelog with this template on every release.
 -->
 
 ## [Unreleased]
+-
 
 ## [0.3.6] - Released September 19, 2019
 - Improved error reporting, migration to Jetpack
