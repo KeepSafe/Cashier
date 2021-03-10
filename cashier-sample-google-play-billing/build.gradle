@@ -20,9 +20,9 @@ android {
 }
 
 dependencies {
-    implementation 'com.getkeepsafe.cashier:cashier:0.3.6'
-    implementation 'com.getkeepsafe.cashier:cashier-google-play-billing:0.3.6'
-    implementation 'com.getkeepsafe.cashier:cashier-google-play-billing-debug:0.3.6'
+    implementation "com.getkeepsafe.cashier:cashier:${getProperty("VERSION_NAME")}"
+    implementation "com.getkeepsafe.cashier:cashier-google-play-billing:${getProperty("VERSION_NAME")}"
+    implementation "com.getkeepsafe.cashier:cashier-google-play-billing-debug:${getProperty("VERSION_NAME")}"
 
     implementation 'androidx.recyclerview:recyclerview:1.1.0'
 

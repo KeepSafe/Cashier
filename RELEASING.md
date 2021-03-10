@@ -28,6 +28,7 @@ We currently deploy to Maven Central (via Sonatype's OSS Nexus instance).
    ```gradle
    SONATYPE_NEXUS_USERNAME=<nexus username>
    SONATYPE_NEXUS_PASSWORD=<nexus password>
+   SONATYPE_STAGING_PROFILE=com.getkeepsafe
    ```
 1. Configure git with your codesigning key; make sure it's the same as the one
    you use to sign binaries (i.e. it's the same one you added to gradle.properties):
@@ -54,16 +55,16 @@ We currently deploy to Maven Central (via Sonatype's OSS Nexus instance).
    ```bash
    git tag -s -a X.Y.Z
    ```
-1. Upload binaries to Sonatype:
+1. Upload binaries to Staging:
    ```bash
    ./gradlew publish
    ```
-1. Go to [Sonatype](https://oss.sonatype.org/), log in with your credentials
-1. Click "Staging Repositories"
-1. Find the "comgetkeepsafe" repo, usually at the bottom of the list
-1. "Close" the repository (select it then click the "close" button up top), the text field doesn't matter so put whatever you want in it
-1. Wait until that's done
-1. "Release" the repository, leave the checkbox checked.  Hooray, we're in Maven Central now!
+1. Publish to Release:
+   ```bash
+   ./gradlew closeAndReleaseRepository
+   ```
+1. Wait until that's done. It takes a while to publish and be available in [MavenCentral](https://repo.maven.apache.org/maven2/com/getkeepsafe/). Monitor until the latest published version is visible.
+1. Hooray, we're in Maven Central now!
 1. Push all of our work to Github to make it official. Check previous [releases](https://github.com/KeepSafe/Cashier/releases) and edit tag release changes:
    ```bash
    git push --tags origin master
