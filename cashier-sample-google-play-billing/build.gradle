@@ -7,7 +7,7 @@ android {
     defaultConfig {
         applicationId "com.getkeepsafe.cashier.sample.googleplaybilling"
         minSdkVersion 19
-        targetSdkVersion 28
+        targetSdkVersion versions.compileSdk
         versionCode 1
         versionName "1.0"
     }
@@ -20,11 +20,11 @@ android {
 }
 
 dependencies {
-    implementation 'com.getkeepsafe.cashier:cashier:0.3.5'
-    implementation 'com.getkeepsafe.cashier:cashier-google-play-billing:0.3.5'
-    implementation 'com.getkeepsafe.cashier:cashier-google-play-billing-debug:0.3.5'
+    implementation 'com.getkeepsafe.cashier:cashier:0.3.6'
+    implementation 'com.getkeepsafe.cashier:cashier-google-play-billing:0.3.6'
+    implementation 'com.getkeepsafe.cashier:cashier-google-play-billing-debug:0.3.6'
 
-    implementation 'androidx.recyclerview:recyclerview:1.0.0'
+    implementation 'androidx.recyclerview:recyclerview:1.1.0'
 
     implementation deps.appCompat
 }
