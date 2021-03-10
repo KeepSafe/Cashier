@@ -18,13 +18,13 @@ We currently deploy to Maven Central (via Sonatype's OSS Nexus instance).
 
 1. Add your GPG key to your github profile - this is required
    for github to know that your commits and tags are "verified".
-1. Configure your code-signing key in ~/.gradle.properties:
+1. Configure your code-signing key in ~/.gradle/gradle.properties:
    ```gradle
    signing.keyId=<key ID of your GPG signing key>
    signing.password=<your key's passphrase>
    signing.secretKeyRingFile=/path/to/your/secring.gpg
    ```
-1. Configure your Sonatype credentials in ~/.gradle.properties:
+1. Configure your Sonatype credentials in ~/.gradle/gradle.properties:
    ```gradle
    SONATYPE_NEXUS_USERNAME=<nexus username>
    SONATYPE_NEXUS_PASSWORD=<nexus password>
