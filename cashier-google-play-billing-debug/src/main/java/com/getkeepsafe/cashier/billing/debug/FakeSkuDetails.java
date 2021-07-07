@@ -15,7 +15,7 @@ public class FakeSkuDetails extends SkuDetails {
     private Product product;
 
     public FakeSkuDetails(Product product) throws JSONException {
-        super("{}");
+        super("{productId:\""+product.sku()+"\", type:\""+(product.isSubscription() ? "subs" : "inapp")+"\"}");
         this.product = product;
     }
 

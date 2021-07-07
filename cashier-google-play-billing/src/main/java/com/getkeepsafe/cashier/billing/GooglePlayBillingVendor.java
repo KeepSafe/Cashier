@@ -25,8 +25,10 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.android.billingclient.api.BillingClient.BillingResponse;
+import com.android.billingclient.api.AcknowledgePurchaseResponseListener;
+import com.android.billingclient.api.BillingClient;
 import com.android.billingclient.api.BillingClient.SkuType;
+import com.android.billingclient.api.BillingResult;
 import com.android.billingclient.api.ConsumeResponseListener;
 import com.android.billingclient.api.PurchasesUpdatedListener;
 import com.android.billingclient.api.SkuDetails;
@@ -175,10 +177,10 @@ public final class GooglePlayBillingVendor implements Vendor, PurchasesUpdatedLi
 
         try {
             canPurchaseItems =
-                    api.isBillingSupported(SkuType.INAPP) == BillingResponse.OK;
+                    api.isBillingSupported(SkuType.INAPP) == BillingClient.BillingResponseCode.OK;
 
             canSubscribe =
-                    api.isBillingSupported(SkuType.SUBS) == BillingResponse.OK;
+                    api.isBillingSupported(SkuType.SUBS) == BillingClient.BillingResponseCode.OK;
 
             available = canPurchaseItems || canSubscribe;
             logSafely("Connected to service and it is " + (available ? "available" : "not available"));
@@ -211,7 +213,7 @@ public final class GooglePlayBillingVendor implements Vendor, PurchasesUpdatedLi
     }
 
     @Override
-    public synchronized void purchase(Activity activity, Product product, String developerPayload, PurchaseListener listener) {
+    public synchronized void purchase(Activity activity, Product product, String developerPayload, String accountId, PurchaseListener listener) {
         Preconditions.checkNotNull(activity, "Activity is null.");
         Preconditions.checkNotNull(product, "Product is null.");
         Preconditions.checkNotNull(listener, "Purchase listener is null.");
@@ -231,7 +233,7 @@ public final class GooglePlayBillingVendor implements Vendor, PurchasesUpdatedLi
         this.pendingProduct = product;
         logSafely("Launching Google Play Billing flow for " + product.sku());
         try {
-            api.launchBillingFlow(activity, product.sku(), product.isSubscription() ? SkuType.SUBS : SkuType.INAPP);
+            api.launchBillingFlow(activity, product.sku(), product.isSubscription() ? SkuType.SUBS : SkuType.INAPP, developerPayload, accountId);
         } catch (Exception e) {
             clearPendingPurchase();
             throw e;
@@ -239,7 +241,7 @@ public final class GooglePlayBillingVendor implements Vendor, PurchasesUpdatedLi
     }
 
     @Override
-    public void onPurchasesUpdated(@BillingResponse int responseCode,
+    public void onPurchasesUpdated(@NonNull BillingResult result,
                                    @Nullable List<com.android.billingclient.api.Purchase> purchases) {
         if (purchaseListener == null) {
             pendingProduct = null;
@@ -247,8 +249,9 @@ public final class GooglePlayBillingVendor implements Vendor, PurchasesUpdatedLi
             return;
         }
 
+        int responseCode = result.getResponseCode();
         switch (responseCode) {
-            case BillingResponse.OK:
+            case BillingClient.BillingResponseCode.OK:
                 if (purchases == null || purchases.isEmpty()) {
                     purchaseListener.failure(pendingProduct, new Error(PURCHASE_FAILURE, responseCode));
                     clearPendingPurchase();
@@ -259,7 +262,7 @@ public final class GooglePlayBillingVendor implements Vendor, PurchasesUpdatedLi
                     handlePurchase(purchase, responseCode);
                 }
                 return;
-            case BillingResponse.USER_CANCELED:
+            case BillingClient.BillingResponseCode.USER_CANCELED:
                 logSafely("User canceled the purchase code: " + responseCode);
                 purchaseListener.failure(pendingProduct, getPurchaseError(responseCode));
                 clearPendingPurchase();
@@ -286,11 +289,11 @@ public final class GooglePlayBillingVendor implements Vendor, PurchasesUpdatedLi
                 return;
             }
 
-            logSafely("Successful purchase of " + purchase.getSku() + "!");
+            logSafely("Successful purchase of " + purchase.getSkus() + "!");
             purchaseListener.success(cashierPurchase);
             clearPendingPurchase();
         } catch (JSONException error) {
-            logSafely("Error in parsing purchase response: " + purchase.getSku());
+            logSafely("Error in parsing purchase response: " + purchase.getSkus());
             purchaseListener.failure(pendingProduct, new Error(PURCHASE_SUCCESS_RESULT_MALFORMED, responseCode));
             clearPendingPurchase();
         }
@@ -308,8 +311,12 @@ public final class GooglePlayBillingVendor implements Vendor, PurchasesUpdatedLi
         throwIfUninitialized();
 
         final Product product = purchase.product();
-        if (product.isSubscription()) {
-            throw new IllegalStateException("Cannot consume a subscription");
+
+        if (tokensToBeConsumed.contains(purchase.token())) {
+            // Purchase currently being consumed or already successfully consumed.
+            logSafely("Token was already scheduled to be consumed - skipping...");
+            listener.failure(purchase, new Error(VendorConstants.CONSUME_UNAVAILABLE, -1));
+            return;
         }
 
         if (tokensToBeConsumed.contains(purchase.token())) {
@@ -319,23 +326,39 @@ public final class GooglePlayBillingVendor implements Vendor, PurchasesUpdatedLi
             return;
         }
 
-        logSafely("Consuming " + product.sku());
-        tokensToBeConsumed.add(purchase.token());
-
-        api.consumePurchase(purchase.token(), new ConsumeResponseListener() {
-            @Override
-            public void onConsumeResponse(int responseCode, String purchaseToken) {
-                if (responseCode == BillingResponse.OK) {
-                    logSafely("Successfully consumed " + purchase.product().sku() + "!");
-                    listener.success(purchase);
-                } else {
-                    // Failure in consuming token, remove from the list so retry is possible
-                    logSafely("Error consuming " + purchase.product().sku() + " with code "+responseCode);
-                    tokensToBeConsumed.remove(purchaseToken);
-                    listener.failure(purchase, getConsumeError(responseCode));
+        if (product.isSubscription()) {
+            api.acknowledgePurchase(purchase.token(), new AcknowledgePurchaseResponseListener() {
+                @Override
+                public void onAcknowledgePurchaseResponse(@NonNull BillingResult result) {
+                    int responseCode = result.getResponseCode();
+                    if (responseCode == BillingClient.BillingResponseCode.OK) {
+                        logSafely("Successfully acknowledged " + purchase.product().sku() + "!");
+                        listener.success(purchase);
+                    } else {
+                        // Failure in consuming token, remove from the list so retry is possible
+                        logSafely("Error consuming " + purchase.product().sku() + " with code " + responseCode);
+                        tokensToBeConsumed.remove(purchase.token());
+                        listener.failure(purchase, getConsumeError(responseCode));
+                    }
                 }
-            }
-        });
+            });
+        } else {
+            api.consumePurchase(purchase.token(), new ConsumeResponseListener() {
+                @Override
+                public void onConsumeResponse(@NonNull BillingResult result, @NonNull String purchaseToken) {
+                    int responseCode = result.getResponseCode();
+                    if (responseCode == BillingClient.BillingResponseCode.OK) {
+                        logSafely("Successfully consumed " + purchase.product().sku() + "!");
+                        listener.success(purchase);
+                    } else {
+                        // Failure in consuming token, remove from the list so retry is possible
+                        logSafely("Error consuming " + purchase.product().sku() + " with code " + responseCode);
+                        tokensToBeConsumed.remove(purchaseToken);
+                        listener.failure(purchase, getConsumeError(responseCode));
+                    }
+                }
+            });
+        }
     }
 
     @Override
@@ -357,8 +380,9 @@ public final class GooglePlayBillingVendor implements Vendor, PurchasesUpdatedLi
                 Collections.singletonList(sku),
                 new SkuDetailsResponseListener() {
                     @Override
-                    public void onSkuDetailsResponse(int responseCode, List<SkuDetails> skuDetailsList) {
-                        if (responseCode == BillingResponse.OK && skuDetailsList.size() == 1) {
+                    public void onSkuDetailsResponse(BillingResult result, List<SkuDetails> skuDetailsList) {
+                        int responseCode = result.getResponseCode();
+                        if (responseCode == BillingClient.BillingResponseCode.OK && skuDetailsList.size() == 1) {
                             logSafely("Successfully got sku details for " + sku + "!");
                             listener.success(
                                     GooglePlayBillingProduct.create(skuDetailsList.get(0), isSubscription ? SkuType.SUBS : SkuType.INAPP)
@@ -437,24 +461,24 @@ public final class GooglePlayBillingVendor implements Vendor, PurchasesUpdatedLi
     private Error getPurchaseError(int responseCode) {
         final int code;
         switch (responseCode) {
-            case BillingResponse.FEATURE_NOT_SUPPORTED:
-            case BillingResponse.SERVICE_DISCONNECTED:
-            case BillingResponse.SERVICE_UNAVAILABLE:
-            case BillingResponse.BILLING_UNAVAILABLE:
-            case BillingResponse.ITEM_UNAVAILABLE:
+            case BillingClient.BillingResponseCode.FEATURE_NOT_SUPPORTED:
+            case BillingClient.BillingResponseCode.SERVICE_DISCONNECTED:
+            case BillingClient.BillingResponseCode.SERVICE_UNAVAILABLE:
+            case BillingClient.BillingResponseCode.BILLING_UNAVAILABLE:
+            case BillingClient.BillingResponseCode.ITEM_UNAVAILABLE:
                 code = PURCHASE_UNAVAILABLE;
                 break;
-            case BillingResponse.USER_CANCELED:
+            case BillingClient.BillingResponseCode.USER_CANCELED:
                 code = PURCHASE_CANCELED;
                 break;
-            case BillingResponse.ITEM_ALREADY_OWNED:
+            case BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED:
                 code = PURCHASE_ALREADY_OWNED;
                 break;
-            case BillingResponse.ITEM_NOT_OWNED:
+            case BillingClient.BillingResponseCode.ITEM_NOT_OWNED:
                 code = PURCHASE_NOT_OWNED;
                 break;
-            case BillingResponse.DEVELOPER_ERROR:
-            case BillingResponse.ERROR:
+            case BillingClient.BillingResponseCode.DEVELOPER_ERROR:
+            case BillingClient.BillingResponseCode.ERROR:
             default:
                 code = PURCHASE_FAILURE;
                 break;
@@ -466,20 +490,20 @@ public final class GooglePlayBillingVendor implements Vendor, PurchasesUpdatedLi
     private Error getConsumeError(int responseCode) {
         final int code;
         switch (responseCode) {
-            case BillingResponse.FEATURE_NOT_SUPPORTED:
-            case BillingResponse.SERVICE_DISCONNECTED:
-            case BillingResponse.BILLING_UNAVAILABLE:
-            case BillingResponse.ITEM_UNAVAILABLE:
+            case BillingClient.BillingResponseCode.FEATURE_NOT_SUPPORTED:
+            case BillingClient.BillingResponseCode.SERVICE_DISCONNECTED:
+            case BillingClient.BillingResponseCode.BILLING_UNAVAILABLE:
+            case BillingClient.BillingResponseCode.ITEM_UNAVAILABLE:
                 code = CONSUME_UNAVAILABLE;
                 break;
-            case BillingResponse.USER_CANCELED:
+            case BillingClient.BillingResponseCode.USER_CANCELED:
                 code = CONSUME_CANCELED;
                 break;
-            case BillingResponse.ITEM_NOT_OWNED:
+            case BillingClient.BillingResponseCode.ITEM_NOT_OWNED:
                 code = CONSUME_NOT_OWNED;
                 break;
-            case BillingResponse.DEVELOPER_ERROR:
-            case BillingResponse.ERROR:
+            case BillingClient.BillingResponseCode.DEVELOPER_ERROR:
+            case BillingClient.BillingResponseCode.ERROR:
             default:
                 code = CONSUME_FAILURE;
                 break;
@@ -491,17 +515,17 @@ public final class GooglePlayBillingVendor implements Vendor, PurchasesUpdatedLi
     private Error getDetailsError(int responseCode) {
         final int code;
         switch (responseCode) {
-            case BillingResponse.FEATURE_NOT_SUPPORTED:
-            case BillingResponse.SERVICE_DISCONNECTED:
-            case BillingResponse.SERVICE_UNAVAILABLE:
-            case BillingResponse.BILLING_UNAVAILABLE:
-            case BillingResponse.ITEM_UNAVAILABLE:
+            case BillingClient.BillingResponseCode.FEATURE_NOT_SUPPORTED:
+            case BillingClient.BillingResponseCode.SERVICE_DISCONNECTED:
+            case BillingClient.BillingResponseCode.SERVICE_UNAVAILABLE:
+            case BillingClient.BillingResponseCode.BILLING_UNAVAILABLE:
+            case BillingClient.BillingResponseCode.ITEM_UNAVAILABLE:
                 code = PRODUCT_DETAILS_UNAVAILABLE;
                 break;
-            case BillingResponse.USER_CANCELED:
-            case BillingResponse.ITEM_NOT_OWNED:
-            case BillingResponse.DEVELOPER_ERROR:
-            case BillingResponse.ERROR:
+            case BillingClient.BillingResponseCode.USER_CANCELED:
+            case BillingClient.BillingResponseCode.ITEM_NOT_OWNED:
+            case BillingClient.BillingResponseCode.DEVELOPER_ERROR:
+            case BillingClient.BillingResponseCode.ERROR:
             default:
                 code = PRODUCT_DETAILS_QUERY_FAILURE;
                 break;

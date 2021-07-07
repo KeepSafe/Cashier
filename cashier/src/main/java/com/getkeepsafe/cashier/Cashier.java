@@ -39,7 +39,7 @@ import java.util.HashMap;
  * There should only be one instance of this class for each Activity that hosts a billing flow
  */
 public class Cashier {
-  private static HashMap<String, VendorFactory> vendorFactories = new HashMap<>(1);
+  private static final HashMap<String, VendorFactory> vendorFactories = new HashMap<>(1);
   static boolean sPurchaseInProgress = false;
 
   private final Context context;
@@ -154,20 +154,34 @@ public class Cashier {
    * @param listener The {@link PurchaseListener} to handle the result
    */
   public void purchase(Activity activity, Product product, PurchaseListener listener) {
-    purchase(activity, product, null, listener);
+    purchase(activity, product, null, null, listener);
   }
-  
+
+  /**
+   * Initiates a purchase flow
+   *
+   * @param activity The activity that will host the purchase flow
+   * @param product  The {@link Product} you wish to buy
+   *                 * @param developerPayload Your custom payload to pass along to the {@link Vendor}
+   * @param listener The {@link PurchaseListener} to handle the result
+   */
+  public void purchase(Activity activity, Product product, String developerPayload, PurchaseListener listener) {
+    purchase(activity, product, developerPayload, null, listener);
+  }
+
   /**
    * Initiates a purchase flow
    *
    * @param activity         The activity that will host the purchase flow
    * @param product          The {@link Product} you wish to buy
    * @param developerPayload Your custom payload to pass along to the {@link Vendor}
+   * @param accountId        Custom account id for better purchase tracking
    * @param purchaseListener         The {@link PurchaseListener} to handle the result
    */
   public void purchase(final Activity activity,
                        final Product product,
                        @Nullable final String developerPayload,
+                       @Nullable final String accountId,
                        final PurchaseListener purchaseListener) {
     Preconditions.checkNotNull(product, "Product is null");
     Preconditions.checkNotNull(purchaseListener, "PurchaseListener is null");
@@ -206,7 +220,7 @@ public class Cashier {
         final String payload = developerPayload == null ? "" : developerPayload;
 
         try {
-          vendor.purchase(activity, product, payload, purchaseListenerWrapper);
+          vendor.purchase(activity, product, payload, accountId, purchaseListenerWrapper);
         } catch (Exception e) {
           purchaseListenerWrapper.failure(product, new Vendor.Error(VendorConstants.PURCHASE_FAILURE, -1));
         }

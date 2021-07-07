@@ -32,9 +32,6 @@ dependencies {
 
     api deps.billingClient
     implementation deps.supportAnnotations
-    compileOnly deps.autoValue
-    annotationProcessor deps.autoValue
-    annotationProcessor deps.autoParcel
 
     testImplementation deps.robolectric
     testImplementation deps.junit

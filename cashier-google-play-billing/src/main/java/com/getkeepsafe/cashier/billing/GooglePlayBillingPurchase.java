@@ -1,11 +1,11 @@
 package com.getkeepsafe.cashier.billing;
 
+import android.os.Parcel;
 import android.os.Parcelable;
 
 import com.getkeepsafe.cashier.CashierPurchase;
 import com.getkeepsafe.cashier.Product;
 import com.getkeepsafe.cashier.Purchase;
-import com.google.auto.value.AutoValue;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -15,8 +15,41 @@ import static com.getkeepsafe.cashier.billing.GooglePlayBillingConstants.Purchas
 import static com.getkeepsafe.cashier.billing.GooglePlayBillingConstants.PurchaseConstants.PURCHASE_STATE_PURCHASED;
 import static com.getkeepsafe.cashier.billing.GooglePlayBillingConstants.PurchaseConstants.PURCHASE_STATE_REFUNDED;
 
-@AutoValue
-public abstract class GooglePlayBillingPurchase implements Parcelable, Purchase {
+public class GooglePlayBillingPurchase implements Parcelable, Purchase {
+
+    protected GooglePlayBillingPurchase(Parcel in) {
+        purchase = in.readParcelable(Purchase.class.getClassLoader());
+        receipt = in.readString();
+        token = in.readString();
+        orderId = in.readString();
+        purchaseState = in.readInt();
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeParcelable(purchase, flags);
+        dest.writeString(receipt);
+        dest.writeString(token);
+        dest.writeString(orderId);
+        dest.writeInt(purchaseState);
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    public static final Creator<GooglePlayBillingPurchase> CREATOR = new Creator<GooglePlayBillingPurchase>() {
+        @Override
+        public GooglePlayBillingPurchase createFromParcel(Parcel in) {
+            return new GooglePlayBillingPurchase(in);
+        }
+
+        @Override
+        public GooglePlayBillingPurchase[] newArray(int size) {
+            return new GooglePlayBillingPurchase[size];
+        }
+    };
 
     public static GooglePlayBillingPurchase create(Product product,
                                                    com.android.billingclient.api.Purchase googlePlayPurchase)
@@ -28,24 +61,51 @@ public abstract class GooglePlayBillingPurchase implements Parcelable, Purchase 
                 googlePlayPurchase.getOrderId(),
                 googlePlayPurchase.getPurchaseToken(),
                 googlePlayPurchase.getOriginalJson(),
-                // NOTE: Developer payload is not supported with Google Play Billing
-                // https://issuetracker.google.com/issues/63381481
-                "");
+                googlePlayPurchase.getDeveloperPayload(),
+                googlePlayPurchase.getAccountIdentifiers().getObfuscatedAccountId());
 
-        return new AutoValue_GooglePlayBillingPurchase(cashierPurchase, receipt, googlePlayPurchase.getPurchaseToken(), googlePlayPurchase.getOrderId(), purchaseState);
+        return new GooglePlayBillingPurchase(
+                cashierPurchase,
+                receipt,
+                googlePlayPurchase.getPurchaseToken(),
+                googlePlayPurchase.getOrderId(),
+                purchaseState
+        );
     }
 
-    public abstract Purchase purchase();
+    private final Purchase purchase;
+    private final String receipt;
+    private final String token;
+    private final String orderId;
+    private final int purchaseState;
+
+    private GooglePlayBillingPurchase(Purchase purchase, String receipt, String token, String orderId, int purchaseState) {
+        this.purchase = purchase;
+        this.receipt = receipt;
+        this.token = token;
+        this.orderId = orderId;
+        this.purchaseState = purchaseState;
+    }
+
+    public Purchase purchase() {
+        return purchase;
+    }
 
     /**
      * The original purchase data receipt from Google Play. This is useful for data signature
      * validation
      */
-    public abstract String receipt();
+    public String receipt() {
+        return receipt;
+    }
 
-    public abstract String token();
+    public String token() {
+        return token;
+    }
 
-    public abstract String orderId();
+    public String orderId() {
+        return orderId;
+    }
 
     /**
      * The purchase state of the order.
@@ -56,7 +116,9 @@ public abstract class GooglePlayBillingPurchase implements Parcelable, Purchase 
      * <li>{@code 2} - Refunded</li>
      * </ul>
      */
-    public abstract int purchaseState();
+    public int purchaseState() {
+        return purchaseState;
+    }
 
     public Product product() {
         return purchase().product();

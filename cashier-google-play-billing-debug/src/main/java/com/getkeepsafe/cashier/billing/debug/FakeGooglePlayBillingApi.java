@@ -9,7 +9,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
+import com.android.billingclient.api.AcknowledgePurchaseResponseListener;
 import com.android.billingclient.api.BillingClient;
+import com.android.billingclient.api.BillingResult;
 import com.android.billingclient.api.ConsumeResponseListener;
 import com.android.billingclient.api.Purchase;
 import com.android.billingclient.api.SkuDetails;
@@ -124,14 +126,14 @@ public class FakeGooglePlayBillingApi extends AbstractGooglePlayBillingApi {
 
     @Override
     public int isBillingSupported(String itemType) {
-        return BillingClient.BillingResponse.OK;
+        return BillingClient.BillingResponseCode.OK;
     }
 
     @Override
-    public void launchBillingFlow(@NonNull Activity activity, @NonNull final String sku, final String itemType) {
+    public void launchBillingFlow(@NonNull Activity activity, @NonNull final String sku, final String itemType, @Nullable final String developerPayload, @Nullable final String accountId) {
         for (Product product : testProducts) {
             if (product.sku().equals(sku)) {
-                activity.startActivity(FakeGooglePlayCheckoutActivity.intent(activity, product, TEST_PRIVATE_KEY));
+                activity.startActivity(FakeGooglePlayCheckoutActivity.intent(activity, product, TEST_PRIVATE_KEY, developerPayload, accountId));
 
                 // Put listener to pendingPurchases map and wait until either
                 // notifyPurchaseSuccess or notifyPurchaseError is called from FakeGooglePlayCheckoutActivity
@@ -144,13 +146,18 @@ public class FakeGooglePlayBillingApi extends AbstractGooglePlayBillingApi {
                         } else {
                             testInappPurchases.add(purchase);
                         }
-                        vendor.onPurchasesUpdated(BillingClient.BillingResponse.OK, Collections.singletonList(purchase));
+                        vendor.onPurchasesUpdated(
+                                BillingResult.newBuilder()
+                                        .setResponseCode(BillingClient.BillingResponseCode.OK)
+                                        .build(), Collections.singletonList(purchase));
                     }
 
                     @Override
                     public void onFakePurchaseError(int responseCode) {
                         pendingPurchases.remove(sku);
-                        vendor.onPurchasesUpdated(responseCode, null);
+                        vendor.onPurchasesUpdated(BillingResult.newBuilder()
+                                .setResponseCode(responseCode)
+                                .build(), null);
                     }
                 });
                 return;
@@ -200,7 +207,41 @@ public class FakeGooglePlayBillingApi extends AbstractGooglePlayBillingApi {
                 mainHandler.post(new Runnable() {
                     @Override
                     public void run() {
-                        listener.onConsumeResponse(BillingClient.BillingResponse.OK, purchaseToken);
+                        listener.onConsumeResponse(BillingResult.newBuilder()
+                                .setResponseCode(BillingClient.BillingResponseCode.OK)
+                                .build(), purchaseToken);
+                    }
+                });
+            }
+        }.start();
+    }
+
+    @Override
+    public void acknowledgePurchase(@NonNull String purchaseToken, @NonNull AcknowledgePurchaseResponseListener listener) {
+        // Use new thread to simulate network operation
+        new Thread() {
+            public void run() {
+                // Wait 1 second to simulate network operation
+                try { sleep(1000L); } catch (InterruptedException e) {}
+
+                for (Iterator<Purchase> it = testInappPurchases.iterator(); it.hasNext();) {
+                    if (it.next().getPurchaseToken().equals(purchaseToken)) {
+                        it.remove();
+                    }
+                }
+                for (Iterator<Purchase> it = testSubPurchases.iterator(); it.hasNext();) {
+                    if (it.next().getPurchaseToken().equals(purchaseToken)) {
+                        it.remove();
+                    }
+                }
+
+                // Return result on main thread
+                mainHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        listener.onAcknowledgePurchaseResponse(BillingResult.newBuilder()
+                                .setResponseCode(BillingClient.BillingResponseCode.OK)
+                                .build());
                     }
                 });
             }
@@ -229,7 +270,9 @@ public class FakeGooglePlayBillingApi extends AbstractGooglePlayBillingApi {
                 mainHandler.post(new Runnable() {
                     @Override
                     public void run() {
-                        listener.onSkuDetailsResponse(BillingClient.BillingResponse.OK, details);
+                        listener.onSkuDetailsResponse(BillingResult.newBuilder()
+                                .setResponseCode(BillingClient.BillingResponseCode.OK)
+                                .build(), details);
                     }
                 });
             }

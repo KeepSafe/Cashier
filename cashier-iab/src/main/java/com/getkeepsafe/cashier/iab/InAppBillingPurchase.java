@@ -17,12 +17,12 @@
 package com.getkeepsafe.cashier.iab;
 
 import android.content.Intent;
+import android.os.Parcel;
 import android.os.Parcelable;
 
 import com.getkeepsafe.cashier.CashierPurchase;
 import com.getkeepsafe.cashier.Product;
 import com.getkeepsafe.cashier.Purchase;
-import com.google.auto.value.AutoValue;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -41,8 +41,7 @@ import static com.getkeepsafe.cashier.iab.InAppBillingConstants.PurchaseConstant
 import static com.getkeepsafe.cashier.iab.InAppBillingConstants.RESPONSE_INAPP_PURCHASE_DATA;
 import static com.getkeepsafe.cashier.iab.InAppBillingConstants.RESPONSE_INAPP_SIGNATURE;
 
-@AutoValue
-public abstract class InAppBillingPurchase implements Parcelable, Purchase {
+public class InAppBillingPurchase implements Parcelable, Purchase {
   public static final String GP_ORDER_ID_TEST = "TEST-ORDER-ID";
 
   public static final String GP_KEY_PACKAGE_NAME = "gp-package-name";
@@ -52,29 +51,95 @@ public abstract class InAppBillingPurchase implements Parcelable, Purchase {
   public static final String GP_KEY_PURCHASE_STATE = "gp-purchase-state";
   public static final String GP_KEY_PURCHASE_DATA = "gp-purchase-data";
 
-  public abstract Purchase purchase();
+  private final Purchase purchase;
+  private final String packageName;
+  private final String dataSignature;
+  private final boolean autoRenewing;
+  private final long purchaseTime;
+  private final int purchaseState;
+  private final String receipt;
+
+  private InAppBillingPurchase(Purchase purchase, String packageName, String dataSignature, boolean autoRenewing, long purchaseTime, int purchaseState, String receipt) {
+    this.purchase = purchase;
+    this.packageName = packageName;
+    this.dataSignature = dataSignature;
+    this.autoRenewing = autoRenewing;
+    this.purchaseTime = purchaseTime;
+    this.purchaseState = purchaseState;
+    this.receipt = receipt;
+  }
+
+  protected InAppBillingPurchase(Parcel in) {
+    purchase = in.readParcelable(Purchase.class.getClassLoader());
+    packageName = in.readString();
+    dataSignature = in.readString();
+    autoRenewing = in.readByte() != 0;
+    purchaseTime = in.readLong();
+    purchaseState = in.readInt();
+    receipt = in.readString();
+  }
+
+  @Override
+  public void writeToParcel(Parcel dest, int flags) {
+    dest.writeParcelable(purchase, flags);
+    dest.writeString(packageName);
+    dest.writeString(dataSignature);
+    dest.writeByte((byte) (autoRenewing ? 1 : 0));
+    dest.writeLong(purchaseTime);
+    dest.writeInt(purchaseState);
+    dest.writeString(receipt);
+  }
+
+  @Override
+  public int describeContents() {
+    return 0;
+  }
+
+  public static final Creator<InAppBillingPurchase> CREATOR = new Creator<InAppBillingPurchase>() {
+    @Override
+    public InAppBillingPurchase createFromParcel(Parcel in) {
+      return new InAppBillingPurchase(in);
+    }
+
+    @Override
+    public InAppBillingPurchase[] newArray(int size) {
+      return new InAppBillingPurchase[size];
+    }
+  };
+
+  public Purchase purchase() {
+    return purchase;
+  }
 
   /**
    * The application package from which the purchase originated
    */
-  public abstract String packageName();
+  public String packageName() {
+    return packageName;
+  }
 
   /**
    * String containing the signature of the purchase data that was signed with the private key
    * of the developer.
    */
-  public abstract String dataSignature();
+  public String dataSignature() {
+    return dataSignature;
+  }
 
   /**
    * Indicates whether a subscription renews automatically. {@code false} indicates a canceled
    * subscription.
    */
-  public abstract boolean autoRenewing();
+  public boolean autoRenewing() {
+    return autoRenewing;
+  }
 
   /**
    * The time the product was purchased, in milliseconds since the UNIX epoch
    */
-  public abstract long purchaseTime();
+  public long purchaseTime() {
+    return purchaseTime;
+  }
 
   /**
    * The purchase state of the order.
@@ -85,13 +150,17 @@ public abstract class InAppBillingPurchase implements Parcelable, Purchase {
    * <li>{@code 2} - Refunded</li>
    * </ul>
    */
-  public abstract int purchaseState();
+  public int purchaseState() {
+    return purchaseState;
+  }
 
   /**
    * The original purchase data receipt from Google Play. This is useful for data signature
    * validation
    */
-  public abstract String receipt();
+  public String receipt() {
+    return receipt;
+  }
 
   public Product product() {
     return purchase().product();
@@ -171,7 +240,7 @@ public abstract class InAppBillingPurchase implements Parcelable, Purchase {
     final int purchaseState = data.getInt(PURCHASE_STATE);
 
     final Purchase purchase =
-        CashierPurchase.create(product, orderId, purchaseToken, purchaseData, developerPayload);
+        CashierPurchase.create(product, orderId, purchaseToken, purchaseData, developerPayload, null);
 
     return create(
         purchase,
@@ -187,7 +256,7 @@ public abstract class InAppBillingPurchase implements Parcelable, Purchase {
                                             String dataSignature, boolean autoRenew,
                                             long purchaseTime, int purchaseState,
                                             String purchaseData) {
-    return new AutoValue_InAppBillingPurchase(purchase,
+    return new InAppBillingPurchase(purchase,
         packageName,
         dataSignature,
         autoRenew,

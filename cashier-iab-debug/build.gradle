@@ -29,10 +29,7 @@ android {
 dependencies {
   api project(':cashier-iab')
 
-  compileOnly deps.autoValue
   compileOnly deps.supportAnnotations
-  annotationProcessor deps.autoValue
-  annotationProcessor deps.autoParcel
 
   testImplementation deps.robolectric
   testImplementation deps.junit

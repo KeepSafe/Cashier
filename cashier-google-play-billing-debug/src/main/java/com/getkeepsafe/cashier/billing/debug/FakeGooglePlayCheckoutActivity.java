@@ -22,12 +22,20 @@ import org.json.JSONObject;
 public class FakeGooglePlayCheckoutActivity extends Activity {
 
     private static final String ARGUMENT_PRODUCT = "product";
+    private static final String ARGUMENT_DEV_PAYLOAD = "developer_payload";
+    private static final String ARGUMENT_ACCOUNT_ID = "account_id";
 
     private Product product;
 
-    public static Intent intent(Context context, Product product, String privateKey64) {
+    private String developerPayload;
+
+    private String accountId;
+
+    public static Intent intent(Context context, Product product, String developerPayload, String accountId, String privateKey64) {
         Intent intent = new Intent(context, FakeGooglePlayCheckoutActivity.class);
         intent.putExtra(ARGUMENT_PRODUCT, product);
+        intent.putExtra(ARGUMENT_DEV_PAYLOAD, developerPayload);
+        intent.putExtra(ARGUMENT_ACCOUNT_ID, accountId);
         return intent;
     }
 
@@ -38,6 +46,8 @@ public class FakeGooglePlayCheckoutActivity extends Activity {
 
         final Intent intent = getIntent();
         product = intent.getParcelableExtra(ARGUMENT_PRODUCT);
+        developerPayload = intent.getStringExtra(ARGUMENT_DEV_PAYLOAD);
+        accountId = intent.getStringExtra(ARGUMENT_ACCOUNT_ID);
 
         final TextView productName = bind(R.id.product_name);
         final TextView productDescription = bind(R.id.product_description);
@@ -65,6 +75,8 @@ public class FakeGooglePlayCheckoutActivity extends Activity {
                     purchaseJson.put("purchaseToken", product.sku() + "_" + System.currentTimeMillis());
                     purchaseJson.put("purchaseState", 0);
                     purchaseJson.put("productId", product.sku());
+                    purchaseJson.put("developerPayload", developerPayload);
+                    purchaseJson.put("obfuscatedAccountId", accountId);
                     String json = purchaseJson.toString();
                     String signature = GooglePlayBillingSecurity.sign(FakeGooglePlayBillingApi.TEST_PRIVATE_KEY, json);
                     Purchase purchase = new Purchase(json, signature);
@@ -72,7 +84,7 @@ public class FakeGooglePlayCheckoutActivity extends Activity {
                     FakeGooglePlayBillingApi.notifyPurchaseSuccess(product.sku(), purchase);
 
                 } catch (JSONException e) {
-                    FakeGooglePlayBillingApi.notifyPurchaseError(product.sku(), BillingClient.BillingResponse.SERVICE_UNAVAILABLE);
+                    FakeGooglePlayBillingApi.notifyPurchaseError(product.sku(), BillingClient.BillingResponseCode.SERVICE_UNAVAILABLE);
                 }
                 finish();
             }
@@ -82,7 +94,7 @@ public class FakeGooglePlayCheckoutActivity extends Activity {
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        FakeGooglePlayBillingApi.notifyPurchaseError(product.sku(), BillingClient.BillingResponse.USER_CANCELED);
+        FakeGooglePlayBillingApi.notifyPurchaseError(product.sku(), BillingClient.BillingResponseCode.USER_CANCELED);
     }
 
     private SpannableString metadataField(String name, Object value) {
