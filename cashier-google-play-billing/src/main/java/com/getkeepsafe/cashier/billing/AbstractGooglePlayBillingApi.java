@@ -22,6 +22,7 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.android.billingclient.api.AcknowledgePurchaseResponseListener;
 import com.android.billingclient.api.BillingClient.SkuType;
 import com.android.billingclient.api.ConsumeResponseListener;
 import com.android.billingclient.api.Purchase;
@@ -63,7 +64,7 @@ public abstract class AbstractGooglePlayBillingApi {
     public abstract void getSkuDetails(@SkuType String itemType, @NonNull List<String> skus,
                                        @NonNull SkuDetailsResponseListener listener);
 
-    public abstract void launchBillingFlow(@NonNull Activity activity, @NonNull String sku, @SkuType String itemType);
+    public abstract void launchBillingFlow(@NonNull Activity activity, @NonNull String sku, @SkuType String itemType, @Nullable String developerPayload, @Nullable String accountId);
 
     @Nullable
     public abstract List<Purchase> getPurchases();
@@ -72,6 +73,8 @@ public abstract class AbstractGooglePlayBillingApi {
     public abstract List<Purchase> getPurchases(@SkuType String itemType);
 
     public abstract void consumePurchase(@NonNull String purchaseToken, @NonNull ConsumeResponseListener listener);
+
+    public abstract void acknowledgePurchase(@NonNull String purchaseToken, @NonNull AcknowledgePurchaseResponseListener listener);
 
     protected void throwIfUnavailable() {
         if (packageName == null) {

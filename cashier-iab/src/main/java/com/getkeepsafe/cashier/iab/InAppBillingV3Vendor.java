@@ -220,7 +220,7 @@ public class InAppBillingV3Vendor implements Vendor {
   }
 
   @Override
-  public void purchase(Activity activity, Product product, String developerPayload,
+  public void purchase(Activity activity, Product product, String developerPayload, String accountId,
                        PurchaseListener listener) {
     if (activity == null || product == null || listener == null) {
       throw new IllegalArgumentException("Activity, product, or listener is null");
@@ -230,6 +230,10 @@ public class InAppBillingV3Vendor implements Vendor {
 
     if (!canPurchase(product)) {
       throw new IllegalArgumentException("Cannot purchase given product!" + product.toString());
+    }
+
+    if (accountId != null) {
+      throw new IllegalArgumentException("Account id is not supported!");
     }
 
     log("Constructing buy intent...");

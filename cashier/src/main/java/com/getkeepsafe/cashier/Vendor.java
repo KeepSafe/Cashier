@@ -61,6 +61,7 @@ public interface Vendor {
   void purchase(Activity activity,
                 Product product,
                 String developerPayload,
+                String accountId,
                 PurchaseListener listener);
 
   void consume(Context context,

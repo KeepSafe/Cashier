@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.android.billingclient.api.BillingClient;
+import com.android.billingclient.api.BillingResult;
 import com.android.billingclient.api.SkuDetails;
 import com.android.billingclient.api.SkuDetailsResponseListener;
 import com.getkeepsafe.cashier.Inventory;
@@ -31,11 +32,11 @@ import java.util.Set;
  */
 class InventoryQuery {
 
-    private Threading threading;
+    private final Threading threading;
 
-    private InventoryListener listener;
+    private final InventoryListener listener;
 
-    private AbstractGooglePlayBillingApi api;
+    private final AbstractGooglePlayBillingApi api;
 
     /**
      * Inapp product details returned from async getSkuDetails call
@@ -55,9 +56,9 @@ class InventoryQuery {
      */
     private List<com.android.billingclient.api.Purchase> purchases = null;
 
-    private Collection<String> inappSkus;
+    private final Collection<String> inappSkus;
 
-    private Collection<String> subSkus;
+    private final Collection<String> subSkus;
 
     private int inappResponseCode = 0;
 
@@ -103,7 +104,7 @@ class InventoryQuery {
                     subsSkuDetails = null;
                     Set<String> inappSkusToQuery = new HashSet<>();
                     Set<String> subSkusToQuery = new HashSet<>();
-                    boolean subscriptionsSupported = api.isBillingSupported(BillingClient.SkuType.SUBS) == BillingClient.BillingResponse.OK;
+                    boolean subscriptionsSupported = api.isBillingSupported(BillingClient.SkuType.SUBS) == BillingClient.BillingResponseCode.OK;
 
                     if (inappSkus != null) {
                         inappSkusToQuery.addAll(inappSkus);
@@ -129,20 +130,20 @@ class InventoryQuery {
 
                     // Add all inapp purchases skus to skus to be queried list
                     for (com.android.billingclient.api.Purchase inappPurchase : inappPurchases) {
-                        inappSkusToQuery.add(inappPurchase.getSku());
+                        inappSkusToQuery.addAll(inappPurchase.getSkus());
                     }
                     // Add all subscription purchases skus to skus to be queried list
                     for (com.android.billingclient.api.Purchase subPurchase : subPurchases) {
-                        subSkusToQuery.add(subPurchase.getSku());
+                        subSkusToQuery.addAll(subPurchase.getSkus());
                     }
 
                     if (inappSkusToQuery.size() > 0) {
                         // Perform async sku details query
                         api.getSkuDetails(BillingClient.SkuType.INAPP, new ArrayList<String>(inappSkusToQuery), new SkuDetailsResponseListener() {
                             @Override
-                            public void onSkuDetailsResponse(int responseCode, List<SkuDetails> skuDetailsList) {
+                            public void onSkuDetailsResponse(BillingResult result, List<SkuDetails> skuDetailsList) {
                                 inappSkuDetails = skuDetailsList != null ? skuDetailsList : new ArrayList<SkuDetails>();
-                                inappResponseCode = responseCode;
+                                inappResponseCode = result.getResponseCode();
                                 // Check if other async operation finished
                                 notifyIfReady();
                             }
@@ -155,9 +156,9 @@ class InventoryQuery {
                         // Perform async sku details query
                         api.getSkuDetails(BillingClient.SkuType.SUBS, new ArrayList<String>(subSkusToQuery), new SkuDetailsResponseListener() {
                             @Override
-                            public void onSkuDetailsResponse(int responseCode, List<SkuDetails> skuDetailsList) {
+                            public void onSkuDetailsResponse(BillingResult result, List<SkuDetails> skuDetailsList) {
                                 subsSkuDetails = skuDetailsList != null ? skuDetailsList : new ArrayList<SkuDetails>();
-                                subsResponseCode = responseCode;
+                                subsResponseCode = result.getResponseCode();
                                 // Check if other async operation finished
                                 notifyIfReady();
                             }
@@ -182,7 +183,7 @@ class InventoryQuery {
         // and result may be delivered to listener
         if (purchases != null && inappSkuDetails != null && subsSkuDetails != null && !notified) {
 
-            if (inappResponseCode != BillingClient.BillingResponse.OK || subsResponseCode != BillingClient.BillingResponse.OK) {
+            if (inappResponseCode != BillingClient.BillingResponseCode.OK || subsResponseCode != BillingClient.BillingResponseCode.OK) {
                 // Deliver result on main thread
                 threading.runOnMainThread(new Runnable() {
                     @Override
@@ -216,22 +217,24 @@ class InventoryQuery {
             }
 
             for (com.android.billingclient.api.Purchase billingPurchase : purchases) {
-                SkuDetails skuDetails = details.get(billingPurchase.getSku());
-                if (skuDetails != null) {
-                    Product product = GooglePlayBillingProduct.create(skuDetails, skuDetails.getType());
-                    try {
-                        Purchase purchase = GooglePlayBillingPurchase.create(product, billingPurchase);
-                        inventory.addPurchase(purchase);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                        // Deliver result on main thread
-                        threading.runOnMainThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                listener.failure(new Vendor.Error(VendorConstants.INVENTORY_QUERY_MALFORMED_RESPONSE, -1));
-                            }
-                        });
-                        return;
+                for (String sku : billingPurchase.getSkus()) {
+                    SkuDetails skuDetails = details.get(sku);
+                    if (skuDetails != null) {
+                        Product product = GooglePlayBillingProduct.create(skuDetails, skuDetails.getType());
+                        try {
+                            Purchase purchase = GooglePlayBillingPurchase.create(product, billingPurchase);
+                            inventory.addPurchase(purchase);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            // Deliver result on main thread
+                            threading.runOnMainThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    listener.failure(new Vendor.Error(VendorConstants.INVENTORY_QUERY_MALFORMED_RESPONSE, -1));
+                                }
+                            });
+                            return;
+                        }
                     }
                 }
             }

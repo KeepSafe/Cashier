@@ -26,12 +26,15 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.UiThread;
 
+import com.android.billingclient.api.AcknowledgePurchaseParams;
+import com.android.billingclient.api.AcknowledgePurchaseResponseListener;
 import com.android.billingclient.api.BillingClient;
-import com.android.billingclient.api.BillingClient.BillingResponse;
 import com.android.billingclient.api.BillingClient.FeatureType;
 import com.android.billingclient.api.BillingClient.SkuType;
 import com.android.billingclient.api.BillingClientStateListener;
 import com.android.billingclient.api.BillingFlowParams;
+import com.android.billingclient.api.BillingResult;
+import com.android.billingclient.api.ConsumeParams;
 import com.android.billingclient.api.ConsumeResponseListener;
 import com.android.billingclient.api.Purchase;
 import com.android.billingclient.api.SkuDetails;
@@ -95,6 +98,7 @@ public final class GooglePlayBillingApi extends AbstractGooglePlayBillingApi imp
             public void run() {
                 logSafely("Creating Google Play Billing client...");
                 billing = BillingClient.newBuilder(context)
+                        .enablePendingPurchases()
                         .setListener(vendor)
                         .build();
 
@@ -126,12 +130,12 @@ public final class GooglePlayBillingApi extends AbstractGooglePlayBillingApi imp
         throwIfUnavailable();
 
         if (SkuType.INAPP.equalsIgnoreCase(itemType) && billing.isReady()) {
-            return BillingResponse.OK;
+            return BillingClient.BillingResponseCode.OK;
         } else if (SkuType.SUBS.equalsIgnoreCase(itemType)) {
-            return billing.isFeatureSupported(FeatureType.SUBSCRIPTIONS);
+            return billing.isFeatureSupported(FeatureType.SUBSCRIPTIONS).getResponseCode();
         }
 
-        return BillingResponse.FEATURE_NOT_SUPPORTED;
+        return BillingClient.BillingResponseCode.FEATURE_NOT_SUPPORTED;
     }
 
     @Override
@@ -149,7 +153,7 @@ public final class GooglePlayBillingApi extends AbstractGooglePlayBillingApi imp
     }
 
     @Override
-    public void launchBillingFlow(@NonNull final Activity activity, @NonNull String sku, @SkuType String itemType) {
+    public void launchBillingFlow(@NonNull final Activity activity, @NonNull String sku, @SkuType String itemType, @Nullable String developerPayload, @Nullable String accountId) {
         throwIfUnavailable();
         logSafely("Launching billing flow for " + sku + " with type " + itemType);
 
@@ -158,20 +162,28 @@ public final class GooglePlayBillingApi extends AbstractGooglePlayBillingApi imp
                 Collections.singletonList(sku),
                 new SkuDetailsResponseListener() {
                     @Override
-                    public void onSkuDetailsResponse(int responseCode, List<SkuDetails> skuDetailsList) {
+                    public void onSkuDetailsResponse(@NonNull BillingResult result, List<SkuDetails> skuDetailsList) {
                         try {
-                            if (responseCode == BillingResponse.OK && skuDetailsList.size() > 0) {
-                                BillingFlowParams billingFlowParams = BillingFlowParams.newBuilder()
-                                        .setSkuDetails(skuDetailsList.get(0))
-                                        .build();
+                            if (result.getResponseCode() == BillingClient.BillingResponseCode.OK && skuDetailsList.size() > 0) {
+                                BillingFlowParams.Builder billingFlowParamsBuilder = BillingFlowParams.newBuilder()
+                                        .setSkuDetails(skuDetailsList.get(0));
+
+                                if (accountId != null) {
+                                    billingFlowParamsBuilder.setObfuscatedAccountId(accountId);
+                                }
 
                                 // This will call the {@link PurchasesUpdatedListener} specified in {@link #initialize}
-                                billing.launchBillingFlow(activity, billingFlowParams);
+                                billing.launchBillingFlow(activity, billingFlowParamsBuilder.build());
                             } else {
-                                vendor.onPurchasesUpdated(BillingResponse.ERROR, null);
+                                vendor.onPurchasesUpdated(
+                                        BillingResult.newBuilder()
+                                                .setResponseCode(BillingClient.BillingResponseCode.ERROR)
+                                                .build(), null);
                             }
                         } catch (Exception e) {
-                            vendor.onPurchasesUpdated(BillingResponse.ERROR, null);
+                            vendor.onPurchasesUpdated(BillingResult.newBuilder()
+                                    .setResponseCode(BillingClient.BillingResponseCode.ERROR)
+                                    .build(), null);
                         }
                     }
                 }
@@ -188,18 +200,18 @@ public final class GooglePlayBillingApi extends AbstractGooglePlayBillingApi imp
         logSafely("Querying in-app purchases...");
         Purchase.PurchasesResult inAppPurchasesResult = billing.queryPurchases(SkuType.INAPP);
 
-        if (inAppPurchasesResult.getResponseCode() == BillingResponse.OK) {
+        if (inAppPurchasesResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
             List<Purchase> inAppPurchases = inAppPurchasesResult.getPurchasesList();
             logSafely("In-app purchases: " + TextUtils.join(", ", inAppPurchases));
             allPurchases.addAll(inAppPurchases);
             // Check if we support subscriptions and query those purchases as well
             boolean isSubscriptionSupported =
-                    billing.isFeatureSupported(FeatureType.SUBSCRIPTIONS) == BillingResponse.OK;
+                    billing.isFeatureSupported(FeatureType.SUBSCRIPTIONS).getResponseCode() == BillingClient.BillingResponseCode.OK;
             if (isSubscriptionSupported) {
                 logSafely("Querying subscription purchases...");
                 Purchase.PurchasesResult subscriptionPurchasesResult = billing.queryPurchases(SkuType.SUBS);
 
-                if (subscriptionPurchasesResult.getResponseCode() == BillingResponse.OK) {
+                if (subscriptionPurchasesResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
                     List<Purchase> subscriptionPurchases = subscriptionPurchasesResult.getPurchasesList();
                     logSafely("Subscription purchases: " + TextUtils.join(", ", subscriptionPurchases));
                     allPurchases.addAll(subscriptionPurchases);
@@ -224,7 +236,7 @@ public final class GooglePlayBillingApi extends AbstractGooglePlayBillingApi imp
         throwIfUnavailable();
 
         Purchase.PurchasesResult purchasesResult = billing.queryPurchases(itemType);
-        if (purchasesResult.getResponseCode() == BillingResponse.OK) {
+        if (purchasesResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
             List<Purchase> purchases = purchasesResult.getPurchasesList();
             logSafely(itemType + " purchases: " + TextUtils.join(", ", purchases));
             return purchases;
@@ -238,14 +250,28 @@ public final class GooglePlayBillingApi extends AbstractGooglePlayBillingApi imp
         throwIfUnavailable();
 
         logSafely("Consuming product with purchase token: " + purchaseToken);
-        billing.consumeAsync(purchaseToken, listener);
+        ConsumeParams params = ConsumeParams.newBuilder()
+                .setPurchaseToken(purchaseToken)
+                .build();
+        billing.consumeAsync(params, listener);
     }
 
     @Override
-    public void onBillingSetupFinished(@BillingResponse int billingResponseCode) {
-        logSafely("Service setup finished and connected. Response: " + billingResponseCode);
+    public void acknowledgePurchase(@NonNull String purchaseToken, @NonNull AcknowledgePurchaseResponseListener listener) {
+        throwIfUnavailable();
 
-        if (billingResponseCode == BillingResponse.OK) {
+        logSafely("Acknowledging subscription with purchase token: " + purchaseToken);
+        AcknowledgePurchaseParams params = AcknowledgePurchaseParams.newBuilder()
+                .setPurchaseToken(purchaseToken)
+                .build();
+        billing.acknowledgePurchase(params, listener);
+    }
+
+    @Override
+    public void onBillingSetupFinished(BillingResult result) {
+        logSafely("Service setup finished and connected. Response: " + result.getResponseCode());
+
+        if (result.getResponseCode() == BillingClient.BillingResponseCode.OK) {
             isServiceConnected = true;
 
             if (listener != null) {
